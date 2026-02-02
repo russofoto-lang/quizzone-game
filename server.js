@@ -9,115 +9,148 @@ const io = require('socket.io')(http, {
 
 const PORT = process.env.PORT || 3001;
 
-// --- CARICAMENTO DATABASE ---
+// --- PERCORSI ---
+const publicPath = path.join(__dirname, 'public');
+const jsonPath = path.join(publicPath, 'domande.json');
+
+// --- DATABASE ---
 let fullDb = { categorie: {}, raffica: [], bonus: [] };
-
 try {
-  const data = fs.readFileSync(path.join(__dirname, 'public', 'domande.json'), 'utf8');
-  fullDb = JSON.parse(data);
-  console.log("DB Caricato: ", Object.keys(fullDb.categorie).length, "categorie,", fullDb.bonus.length, "bonus.");
-} catch (err) {
-  console.error("Errore JSON:", err);
-}
+  if (fs.existsSync(jsonPath)) {
+    fullDb = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
+    console.log("✅ DB Caricato.");
+  }
+} catch (e) { console.error("❌ Errore JSON:", e.message); }
 
-// Stato Gioco
+// --- STATO GIOCO AVANZATO ---
 let gameState = {
   teams: {},           
-  currentQuestion: null,
+  currentQuestion: null, // Contiene la domanda attiva
+  questionStartTime: 0,  // Timestamp inizio domanda
+  roundAnswers: [],      // Elenco risposte del round corrente
   buzzerLocked: false,
   buzzerWinner: null
 };
 
 app.use(express.static('public'));
-
-// Rotte
-app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
-app.get('/display', (req, res) => res.sendFile(path.join(__dirname, 'public', 'display.html')));
-app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
+app.get('/admin', (req, res) => res.sendFile(path.join(publicPath, 'admin.html')));
+app.get('/display', (req, res) => res.sendFile(path.join(publicPath, 'display.html')));
+app.get('/', (req, res) => res.sendFile(path.join(publicPath, 'index.html')));
 
 io.on('connection', (socket) => {
   
-  // --- ADMIN CONNECTION ---
+  // --- ADMIN ---
   socket.on('admin_connect', () => {
     socket.join('admin');
-    // Invia la STRUTTURA del gioco all'admin
     socket.emit('init_data', { 
-      categories: Object.keys(fullDb.categorie), // ["storia", "sport"...]
-      hasBonus: fullDb.bonus.length > 0,
-      hasRaffica: fullDb.raffica.length > 0,
+      categories: fullDb.categorie ? Object.keys(fullDb.categorie) : [],
       teams: Object.values(gameState.teams)
     });
   });
 
-  // Admin chiede le domande di una sezione specifica
   socket.on('get_questions', (payload) => {
-    // payload = { type: 'categoria' | 'bonus' | 'raffica', key: 'storia' (opzionale) }
-    
-    let questionsToSend = [];
-
-    if (payload.type === 'categoria') {
-      questionsToSend = fullDb.categorie[payload.key] || [];
-    } else if (payload.type === 'bonus') {
-      questionsToSend = fullDb.bonus || [];
-    } else if (payload.type === 'raffica') {
-      // Per semplicità, qui mandiamo tutte le domande di tutte le raffiche in un'unica lista piatta
-      // oppure potremmo far scegliere quale raffica. Qui le uniamo per test.
-      fullDb.raffica.forEach(r => {
-        questionsToSend = questionsToSend.concat(r.domande.map(d => ({...d, nomeRaffica: r.nome})));
-      });
+    let list = [];
+    if (payload.type === 'categoria') list = fullDb.categorie[payload.key] || [];
+    else if (payload.type === 'bonus') list = fullDb.bonus || [];
+    else if (payload.type === 'raffica' && fullDb.raffica) {
+         fullDb.raffica.forEach(r => { if(r.domande) list = list.concat(r.domande); });
     }
-
-    socket.emit('receive_questions', questionsToSend);
+    socket.emit('receive_questions', list);
   });
 
   // --- LOGICA DI GIOCO ---
   socket.on('invia_domanda', (dati) => {
     gameState.currentQuestion = dati;
+    gameState.questionStartTime = Date.now(); // AVVIA IL CRONOMETRO
+    gameState.roundAnswers = []; // Resetta risposte vecchie
     gameState.buzzerLocked = false;
     gameState.buzzerWinner = null;
+
     io.emit('nuova_domanda', dati);
     io.emit('reset_buzzer');
+    
+    // Pulisce la tabella risposte dell'admin
+    io.to('admin').emit('reset_round_monitor');
   });
 
-  // --- RIVELA RISPOSTA (FIX CORRETTO) ---
   socket.on('rivela_risposta', () => {
     if (!gameState.currentQuestion) return;
-    
     const q = gameState.currentQuestion;
+    
+    // Calcola testo soluzione
     let text = q.corretta;
-
-    // Se la risposta è un indice numerico, convertilo in testo
     if (typeof q.corretta === 'number' && q.risposte && q.risposte[q.corretta]) {
         text = q.risposte[q.corretta];
     }
     
     io.emit('mostra_soluzione', text);
+    // NON resettiamo ancora il round, così l'admin può dare i punti
   });
 
-  // --- BUZZER & SQUADRE ---
-  socket.on('login', (name) => {
-    gameState.teams[socket.id] = { id: socket.id, name: name, score: 0 };
-    socket.emit('login_success', { id: socket.id, name: name });
-    io.emit('update_teams', Object.values(gameState.teams));
+  // --- RISPOSTA GIOCATORI ---
+  socket.on('invia_risposta', (rispGiocatore) => {
+    const team = gameState.teams[socket.id];
+    if (!team || !gameState.currentQuestion) return;
+
+    // 1. Calcola Tempo
+    const tempoImpiegato = ((Date.now() - gameState.questionStartTime) / 1000).toFixed(2);
+    
+    // 2. Verifica Correttezza (Server-Side)
+    let isCorrect = false;
+    const q = gameState.currentQuestion;
+    
+    // Se la risposta corretta è un numero (indice), troviamo la stringa
+    let rispostaCorrettaStringa = q.corretta;
+    if (typeof q.corretta === 'number' && q.risposte) {
+        rispostaCorrettaStringa = q.risposte[q.corretta];
+    }
+
+    // Confronto (case insensitive)
+    if (String(rispGiocatore).trim().toLowerCase() === String(rispostaCorrettaStringa).trim().toLowerCase()) {
+        isCorrect = true;
+    }
+
+    // 3. Salva nel round
+    const answerEntry = {
+        teamId: socket.id,
+        teamName: team.name,
+        risposta: rispGiocatore,
+        tempo: tempoImpiegato,
+        corretta: isCorrect,
+        giaPuntata: false // Per evitare doppi punti
+    };
+    gameState.roundAnswers.push(answerEntry);
+
+    // 4. Invia AGGIORNAMENTO COMPLETO all'Admin (Ordinato per tempo)
+    // Ordiniamo: Prima i corretti, poi per tempo
+    gameState.roundAnswers.sort((a,b) => parseFloat(a.tempo) - parseFloat(b.tempo));
+    
+    io.to('admin').emit('update_round_monitor', gameState.roundAnswers);
   });
 
+  // --- BUZZER ---
   socket.on('prenoto', () => {
     if (!gameState.buzzerLocked && gameState.teams[socket.id]) {
       gameState.buzzerLocked = true;
       gameState.buzzerWinner = gameState.teams[socket.id].name;
       io.emit('buzzer_bloccato', { winner: gameState.buzzerWinner });
       io.to(socket.id).emit('prenotazione_vinta');
+      
+      // Notifica Admin che qualcuno ha prenotato (ma non ancora risposto)
+      io.to('admin').emit('buzzer_admin_alert', gameState.buzzerWinner);
     }
   });
 
-  socket.on('invia_risposta', (risp) => {
-    const t = gameState.teams[socket.id];
-    if(t) io.to('admin').emit('risposta_ricevuta', { teamName: t.name, teamId: socket.id, risposta: risp });
+  // --- SETUP ---
+  socket.on('login', (name) => {
+    gameState.teams[socket.id] = { id: socket.id, name: name, score: 0 };
+    socket.emit('login_success', { id: socket.id, name: name });
+    io.emit('update_teams', Object.values(gameState.teams));
   });
 
   socket.on('assegna_punti', (data) => {
     if(gameState.teams[data.teamId]) {
-      gameState.teams[data.teamId].score += data.punti;
+      gameState.teams[data.teamId].score += parseInt(data.punti);
       io.emit('update_teams', Object.values(gameState.teams));
     }
   });
@@ -130,4 +163,4 @@ io.on('connection', (socket) => {
   });
 });
 
-http.listen(PORT, '0.0.0.0', () => console.log(`Server su porta ${PORT}`));
+http.listen(PORT, '0.0.0.0', () => console.log(`Server avviato su porta ${PORT}`));

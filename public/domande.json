@@ -7,7 +7,12 @@
           {
             "id": 1,
             "domanda": "In quale anno è caduto l'Impero Romano d'Occidente?",
-            "risposte": ["476 d.C.", "410 d.C.", "1453 d.C.", "800 d.C."],
+            "risposte": [
+              "476 d.C.",
+              "410 d.C.",
+              "1453 d.C.",
+              "800 d.C."
+            ],
             "corretta": 0,
             "punti": 100,
             "difficolta": "facile"
@@ -15,7 +20,12 @@
           {
             "id": 2,
             "domanda": "Chi fu il primo presidente degli Stati Uniti?",
-            "risposte": ["George Washington", "Thomas Jefferson", "Abraham Lincoln", "John Adams"],
+            "risposte": [
+              "George Washington",
+              "Thomas Jefferson",
+              "Abraham Lincoln",
+              "John Adams"
+            ],
             "corretta": 0,
             "punti": 100,
             "difficolta": "facile"
@@ -23,7 +33,12 @@
           {
             "id": 3,
             "domanda": "In quale secolo visse Leonardo da Vinci?",
-            "risposte": ["XV-XVI secolo", "XIII secolo", "XVII secolo", "XIX secolo"],
+            "risposte": [
+              "XV-XVI secolo",
+              "XIII secolo",
+              "XVII secolo",
+              "XIX secolo"
+            ],
             "corretta": 0,
             "punti": 100,
             "difficolta": "medio"
@@ -31,7 +46,12 @@
           {
             "id": 4,
             "domanda": "Quale imperatore romano costruì il Vallo di Adriano?",
-            "risposte": ["Adriano", "Augusto", "Traiano", "Costantino"],
+            "risposte": [
+              "Adriano",
+              "Augusto",
+              "Traiano",
+              "Costantino"
+            ],
             "corretta": 0,
             "punti": 100,
             "difficolta": "medio"
@@ -39,7 +59,12 @@
           {
             "id": 5,
             "domanda": "Quale famosa battaglia segnò la fine delle guerre napoleoniche?",
-            "risposte": ["Waterloo", "Austerlitz", "Borodino", "Trafalgar"],
+            "risposte": [
+              "Waterloo",
+              "Austerlitz",
+              "Borodino",
+              "Trafalgar"
+            ],
             "corretta": 0,
             "punti": 100,
             "difficolta": "difficile"
@@ -49,7 +74,12 @@
           {
             "id": 6,
             "domanda": "Qual è la capitale dell'Australia?",
-            "risposte": ["Canberra", "Sydney", "Melbourne", "Perth"],
+            "risposte": [
+              "Canberra",
+              "Sydney",
+              "Melbourne",
+              "Perth"
+            ],
             "corretta": 0,
             "punti": 100,
             "difficolta": "facile"
@@ -57,7 +87,12 @@
           {
             "id": 7,
             "domanda": "Qual è il fiume più lungo d'Italia?",
-            "risposte": ["Po", "Tevere", "Adige", "Arno"],
+            "risposte": [
+              "Po",
+              "Tevere",
+              "Adige",
+              "Arno"
+            ],
             "corretta": 0,
             "punti": 100,
             "difficolta": "facile"
@@ -65,7 +100,12 @@
           {
             "id": 8,
             "domanda": "In quale continente si trova il deserto del Kalahari?",
-            "risposte": ["Africa", "Asia", "America", "Australia"],
+            "risposte": [
+              "Africa",
+              "Asia",
+              "America",
+              "Australia"
+            ],
             "corretta": 0,
             "punti": 100,
             "difficolta": "medio"
@@ -73,7 +113,12 @@
           {
             "id": 9,
             "domanda": "Quale paese ha come capitale Brasilia?",
-            "risposte": ["Brasile", "Argentina", "Cile", "Perù"],
+            "risposte": [
+              "Brasile",
+              "Argentina",
+              "Cile",
+              "Perù"
+            ],
             "corretta": 0,
             "punti": 100,
             "difficolta": "medio"
@@ -81,7 +126,12 @@
           {
             "id": 10,
             "domanda": "Quale catena montuosa separa l'Europa dall'Asia?",
-            "risposte": ["Monti Urali", "Alpi", "Himalaya", "Ande"],
+            "risposte": [
+              "Monti Urali",
+              "Alpi",
+              "Himalaya",
+              "Ande"
+            ],
             "corretta": 0,
             "punti": 100,
             "difficolta": "difficile"
@@ -91,7 +141,12 @@
           {
             "id": 11,
             "domanda": "Quale pianeta è noto come il Pianeta Rosso?",
-            "risposte": ["Marte", "Venere", "Giove", "Saturno"],
+            "risposte": [
+              "Marte",
+              "Venere",
+              "Giove",
+              "Saturno"
+            ],
             "corretta": 0,
             "punti": 100,
             "difficolta": "facile"
@@ -99,7 +154,12 @@
           {
             "id": 12,
             "domanda": "Quale gas è essenziale per la respirazione?",
-            "risposte": ["Ossigeno", "Azoto", "Anidride carbonica", "Idrogeno"],
+            "risposte": [
+              "Ossigeno",
+              "Azoto",
+              "Anidride carbonica",
+              "Idrogeno"
+            ],
             "corretta": 0,
             "punti": 100,
             "difficolta": "facile"
@@ -107,7 +167,12 @@
           {
             "id": 13,
             "domanda": "Quale elemento chimico ha simbolo 'Au'?",
-            "risposte": ["Oro", "Argento", "Alluminio", "Arsenico"],
+            "risposte": [
+              "Oro",
+              "Argento",
+              "Alluminio",
+              "Arsenico"
+            ],
             "corretta": 0,
             "punti": 100,
             "difficolta": "medio"
@@ -115,7 +180,12 @@
           {
             "id": 14,
             "domanda": "Quale parte della cellula contiene il DNA?",
-            "risposte": ["Nucleo", "Mitocondrio", "Ribosoma", "Cloroplasto"],
+            "risposte": [
+              "Nucleo",
+              "Mitocondrio",
+              "Ribosoma",
+              "Cloroplasto"
+            ],
             "corretta": 0,
             "punti": 100,
             "difficolta": "medio"
@@ -123,7 +193,12 @@
           {
             "id": 15,
             "domanda": "Quale scienziato formulò la teoria della relatività?",
-            "risposte": ["Albert Einstein", "Isaac Newton", "Galileo Galilei", "Stephen Hawking"],
+            "risposte": [
+              "Albert Einstein",
+              "Isaac Newton",
+              "Galileo Galilei",
+              "Stephen Hawking"
+            ],
             "corretta": 0,
             "punti": 100,
             "difficolta": "difficile"
@@ -133,7 +208,12 @@
           {
             "id": 16,
             "domanda": "Chi ha diretto 'Il Padrino'?",
-            "risposte": ["Francis Ford Coppola", "Martin Scorsese", "Steven Spielberg", "Quentin Tarantino"],
+            "risposte": [
+              "Francis Ford Coppola",
+              "Martin Scorsese",
+              "Steven Spielberg",
+              "Quentin Tarantino"
+            ],
             "corretta": 0,
             "punti": 100,
             "difficolta": "facile"
@@ -141,7 +221,12 @@
           {
             "id": 17,
             "domanda": "In quale film compare il personaggio di Forrest Gump?",
-            "risposte": ["Forrest Gump", "Rain Man", "Il curioso caso di Benjamin Button", "Shawshank Redemption"],
+            "risposte": [
+              "Forrest Gump",
+              "Rain Man",
+              "Il curioso caso di Benjamin Button",
+              "Shawshank Redemption"
+            ],
             "corretta": 0,
             "punti": 100,
             "difficolta": "facile"
@@ -149,7 +234,12 @@
           {
             "id": 18,
             "domanda": "Quale attrice ha interpretato il ruolo di Hermione in Harry Potter?",
-            "risposte": ["Emma Watson", "Emma Stone", "Jennifer Lawrence", "Natalie Portman"],
+            "risposte": [
+              "Emma Watson",
+              "Emma Stone",
+              "Jennifer Lawrence",
+              "Natalie Portman"
+            ],
             "corretta": 0,
             "punti": 100,
             "difficolta": "medio"
@@ -157,7 +247,12 @@
           {
             "id": 19,
             "domanda": "Chi ha vinto l'Oscar come miglior attore per 'Il gladiatore'?",
-            "risposte": ["Russell Crowe", "Joaquin Phoenix", "Richard Harris", "Oliver Reed"],
+            "risposte": [
+              "Russell Crowe",
+              "Joaquin Phoenix",
+              "Richard Harris",
+              "Oliver Reed"
+            ],
             "corretta": 0,
             "punti": 100,
             "difficolta": "medio"
@@ -165,7 +260,12 @@
           {
             "id": 20,
             "domanda": "Quale film di Stanley Kubrick è basato su un romanzo di Stephen King?",
-            "risposte": ["Shining", "2001: Odissea nello spazio", "Arancia meccanica", "Eyes Wide Shut"],
+            "risposte": [
+              "Shining",
+              "2001: Odissea nello spazio",
+              "Arancia meccanica",
+              "Eyes Wide Shut"
+            ],
             "corretta": 0,
             "punti": 100,
             "difficolta": "difficile"
@@ -175,7 +275,12 @@
           {
             "id": 21,
             "domanda": "Quale famosa band britannica ha pubblicato 'Bohemian Rhapsody'?",
-            "risposte": ["Queen", "The Beatles", "The Rolling Stones", "Led Zeppelin"],
+            "risposte": [
+              "Queen",
+              "The Beatles",
+              "The Rolling Stones",
+              "Led Zeppelin"
+            ],
             "corretta": 0,
             "punti": 100,
             "difficolta": "facile"
@@ -183,7 +288,12 @@
           {
             "id": 22,
             "domanda": "Chi è conosciuto come il 'Re del Pop'?",
-            "risposte": ["Michael Jackson", "Elvis Presley", "Prince", "Madonna"],
+            "risposte": [
+              "Michael Jackson",
+              "Elvis Presley",
+              "Prince",
+              "Madonna"
+            ],
             "corretta": 0,
             "punti": 100,
             "difficolta": "facile"
@@ -191,7 +301,12 @@
           {
             "id": 23,
             "domanda": "Quale compositore classico è sordo per gran parte della sua vita?",
-            "risposte": ["Ludwig van Beethoven", "Wolfgang Amadeus Mozart", "Johann Sebastian Bach", "Frédéric Chopin"],
+            "risposte": [
+              "Ludwig van Beethoven",
+              "Wolfgang Amadeus Mozart",
+              "Johann Sebastian Bach",
+              "Frédéric Chopin"
+            ],
             "corretta": 0,
             "punti": 100,
             "difficolta": "medio"
@@ -199,7 +314,12 @@
           {
             "id": 24,
             "domanda": "Quale cantante italiana ha vinto il Festival di Sanremo 2022?",
-            "risposte": ["Mahmood e Blanco", "Elisa", "Marco Mengoni", "Annalisa"],
+            "risposte": [
+              "Mahmood e Blanco",
+              "Elisa",
+              "Marco Mengoni",
+              "Annalisa"
+            ],
             "corretta": 0,
             "punti": 100,
             "difficolta": "medio"
@@ -207,7 +327,12 @@
           {
             "id": 25,
             "domanda": "In quale anno i Beatles si sono sciolti ufficialmente?",
-            "risposte": ["1970", "1969", "1971", "1972"],
+            "risposte": [
+              "1970",
+              "1969",
+              "1971",
+              "1972"
+            ],
             "corretta": 0,
             "punti": 100,
             "difficolta": "difficile"
@@ -217,7 +342,12 @@
           {
             "id": 26,
             "domanda": "Chi dipinse la Cappella Sistina?",
-            "risposte": ["Michelangelo", "Leonardo da Vinci", "Raffaello", "Donatello"],
+            "risposte": [
+              "Michelangelo",
+              "Leonardo da Vinci",
+              "Raffaello",
+              "Donatello"
+            ],
             "corretta": 0,
             "punti": 100,
             "difficolta": "facile"
@@ -225,7 +355,12 @@
           {
             "id": 27,
             "domanda": "In quale città si trova il Museo del Louvre?",
-            "risposte": ["Parigi", "Londra", "Roma", "New York"],
+            "risposte": [
+              "Parigi",
+              "Londra",
+              "Roma",
+              "New York"
+            ],
             "corretta": 0,
             "punti": 100,
             "difficolta": "facile"
@@ -233,7 +368,12 @@
           {
             "id": 28,
             "domanda": "Quale movimento artistico è associato a Salvador Dalì?",
-            "risposte": ["Surrealismo", "Impressionismo", "Cubismo", "Espressionismo"],
+            "risposte": [
+              "Surrealismo",
+              "Impressionismo",
+              "Cubismo",
+              "Espressionismo"
+            ],
             "corretta": 0,
             "punti": 100,
             "difficolta": "medio"
@@ -241,7 +381,12 @@
           {
             "id": 29,
             "domanda": "Chi è l'autore della scultura 'David'?",
-            "risposte": ["Michelangelo", "Donatello", "Bernini", "Cellini"],
+            "risposte": [
+              "Michelangelo",
+              "Donatello",
+              "Bernini",
+              "Cellini"
+            ],
             "corretta": 0,
             "punti": 100,
             "difficolta": "medio"
@@ -249,7 +394,12 @@
           {
             "id": 30,
             "domanda": "Quale famoso quadro rappresenta una notte stellata?",
-            "risposte": ["Notte stellata di Van Gogh", "Urlo di Munch", "Nascita di Venere", "Guernica"],
+            "risposte": [
+              "Notte stellata di Van Gogh",
+              "Urlo di Munch",
+              "Nascita di Venere",
+              "Guernica"
+            ],
             "corretta": 0,
             "punti": 100,
             "difficolta": "difficile"
@@ -259,7 +409,12 @@
           {
             "id": 31,
             "domanda": "In quale sport si usa la mazza da hockey?",
-            "risposte": ["Hockey su ghiaccio", "Golf", "Tennis", "Baseball"],
+            "risposte": [
+              "Hockey su ghiaccio",
+              "Golf",
+              "Tennis",
+              "Baseball"
+            ],
             "corretta": 0,
             "punti": 100,
             "difficolta": "facile"
@@ -267,7 +422,12 @@
           {
             "id": 32,
             "domanda": "Quanti giocatori ci sono in una squadra di calcio?",
-            "risposte": ["11", "10", "9", "12"],
+            "risposte": [
+              "11",
+              "10",
+              "9",
+              "12"
+            ],
             "corretta": 0,
             "punti": 100,
             "difficolta": "facile"
@@ -275,7 +435,12 @@
           {
             "id": 33,
             "domanda": "Quale paese ha vinto il Mondiale di calcio 2018?",
-            "risposte": ["Francia", "Croazia", "Brasile", "Germania"],
+            "risposte": [
+              "Francia",
+              "Croazia",
+              "Brasile",
+              "Germania"
+            ],
             "corretta": 0,
             "punti": 100,
             "difficolta": "medio"
@@ -283,7 +448,12 @@
           {
             "id": 34,
             "domanda": "In quale sport si compete per il Trofeo della Coppa Davis?",
-            "risposte": ["Tennis", "Calcio", "Rugby", "Golf"],
+            "risposte": [
+              "Tennis",
+              "Calcio",
+              "Rugby",
+              "Golf"
+            ],
             "corretta": 0,
             "punti": 100,
             "difficolta": "medio"
@@ -291,10 +461,82 @@
           {
             "id": 35,
             "domanda": "Chi detiene il record mondiale dei 100 metri piani maschili?",
-            "risposte": ["Usain Bolt", "Carl Lewis", "Justin Gatlin", "Asafa Powell"],
+            "risposte": [
+              "Usain Bolt",
+              "Carl Lewis",
+              "Justin Gatlin",
+              "Asafa Powell"
+            ],
             "corretta": 0,
             "punti": 100,
             "difficolta": "difficile"
+          }
+        ],
+        "Giochi di logica": [
+          {
+            "id": 1001,
+            "domanda": "Completa la sequenza: 2, 4, 6, 8, ?",
+            "risposte": [
+              "9",
+              "10",
+              "12",
+              "14"
+            ],
+            "corretta": 1,
+            "punti": 50,
+            "difficolta": "facile"
+          },
+          {
+            "id": 1002,
+            "domanda": "Completa la sequenza: 3, 6, 12, 24, ?",
+            "risposte": [
+              "36",
+              "40",
+              "48",
+              "60"
+            ],
+            "corretta": 2,
+            "punti": 80,
+            "difficolta": "medio"
+          },
+          {
+            "id": 1003,
+            "domanda": "Completa la sequenza: 1, 1, 2, 3, 5, ?",
+            "risposte": [
+              "6",
+              "7",
+              "8",
+              "5"
+            ],
+            "corretta": 2,
+            "punti": 120,
+            "difficolta": "medio"
+          },
+          {
+            "id": 1004,
+            "domanda": "Completa la sequenza: 2, 5, 10, 17, ?",
+            "risposte": [
+              "24",
+              "26",
+              "28",
+              "30"
+            ],
+            "corretta": 1,
+            "punti": 160,
+            "difficolta": "difficile"
+          },
+          {
+            "id": 1005,
+            "domanda": "Completa la sequenza: 1, 4, 9, 16, ?",
+            "risposte": [
+              "20",
+              "24",
+              "25",
+              "36"
+            ],
+            "corretta": 2,
+            "punti": 200,
+            "difficolta": "molto difficile"
           }
         ]
       },
@@ -302,7 +544,12 @@
         {
           "id": 36,
           "domanda": "BONUS: Qual è l'animale più veloce sulla terra?",
-          "risposte": ["Ghepardo", "Leone", "Antilope", "Leopardo"],
+          "risposte": [
+            "Ghepardo",
+            "Leone",
+            "Antilope",
+            "Leopardo"
+          ],
           "corretta": 0,
           "punti": 200,
           "difficolta": "facile"
@@ -310,7 +557,12 @@
         {
           "id": 37,
           "domanda": "BONUS: Quale pianeta ha il giorno più lungo?",
-          "risposte": ["Venere", "Marte", "Giove", "Saturno"],
+          "risposte": [
+            "Venere",
+            "Marte",
+            "Giove",
+            "Saturno"
+          ],
           "corretta": 0,
           "punti": 200,
           "difficolta": "facile"
@@ -318,7 +570,12 @@
         {
           "id": 38,
           "domanda": "BONUS: Chi ha scritto 'Il vecchio e il mare'?",
-          "risposte": ["Ernest Hemingway", "Mark Twain", "John Steinbeck", "F. Scott Fitzgerald"],
+          "risposte": [
+            "Ernest Hemingway",
+            "Mark Twain",
+            "John Steinbeck",
+            "F. Scott Fitzgerald"
+          ],
           "corretta": 0,
           "punti": 200,
           "difficolta": "medio"

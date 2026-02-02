@@ -418,6 +418,15 @@ io.on('connection', (socket) => {
 
 // Serve static files
 app.use(express.static('public'));
+// Serve admin.html for /admin route
+app.get('/admin', (req, res) => {
+  res.sendFile(__dirname + '/public/admin.html');
+});
+
+// Serve display.html for /display route
+app.get('/display', (req, res) => {
+  res.sendFile(__dirname + '/public/display.html');
+});
 
 http.listen(PORT, () => {
   console.log(`

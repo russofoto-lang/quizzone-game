@@ -41,8 +41,13 @@
         <!-- VISTA GIOCO -->
         <div id="view-gioco" class="view-section hidden absolute inset-0 flex flex-col items-center justify-center">
             <div id="buzzer-overlay" class="hidden absolute inset-0 bg-black/90 z-50 flex flex-col items-center justify-center">
-                <p class="text-6xl text-red-500 font-black mb-8 animate__animated animate__bounceIn">🚨 PRENOTATO 🚨</p>
-                <div id="winner-name" class="text-9xl font-black text-white bg-red-600 px-16 py-8 rounded-3xl shadow-2xl border-4 border-white uppercase">SQUADRA</div>
+                <p class="text-6xl text-red-500 font-black mb-8 animate__animated animate__bounceIn">⚡ PRENOTAZIONI BUZZER ⚡</p>
+                
+                <div class="bg-red-900/50 rounded-3xl p-8 max-w-4xl w-full">
+                    <div id="buzzer-queue-display" class="space-y-4">
+                        <!-- Popolato via JS -->
+                    </div>
+                </div>
             </div>
 
             <div class="bg-gray-800/80 w-full max-w-6xl p-12 rounded-[3rem] border-t-8 border-blue-500 shadow-2xl text-center glass">
@@ -266,12 +271,36 @@
             }
         }
 
-        // BUZZER
+        // BUZZER - Mostra lista completa
+        socket.on('buzzer_queue_update', (d) => {
+            const queueDiv = document.getElementById('buzzer-queue-display');
+            if(!queueDiv) return;
+            
+            document.getElementById('buzzer-overlay').classList.remove('hidden');
+            queueDiv.innerHTML = '';
+            
+            if(d.queue && d.queue.length > 0) {
+                d.queue.forEach((player, idx) => {
+                    const medals = ['🥇', '🥈', '🥉'];
+                    const medal = medals[idx] || `${idx + 1}°`;
+                    
+                    queueDiv.innerHTML += `
+                        <div class="bg-white/10 rounded-2xl p-6 flex justify-between items-center animate__animated animate__fadeInLeft" style="animation-delay: ${idx * 0.1}s">
+                            <div class="flex items-center gap-6">
+                                <span class="text-6xl">${medal}</span>
+                                <span class="text-5xl font-black text-white uppercase">${player.name}</span>
+                            </div>
+                            <span class="text-4xl text-yellow-400 font-mono">${player.time}s</span>
+                        </div>
+                    `;
+                });
+            }
+        });
+
         socket.on('buzzer_bloccato', (d) => {
+            // Vecchio sistema - deprecato ma tengo per compatibilità
             stopTimer();
             document.getElementById('timer-display-container').classList.add('hidden');
-            document.getElementById('buzzer-overlay').classList.remove('hidden');
-            document.getElementById('winner-name').innerText = d.winner;
         });
 
         socket.on('reset_buzzer_display', () => { 

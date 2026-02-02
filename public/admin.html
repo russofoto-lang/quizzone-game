@@ -19,6 +19,7 @@
             <button onclick="regia('gioco')" class="px-3 py-1 bg-blue-600 text-white rounded font-bold uppercase text-xs">Gioco</button>
             <button onclick="regia('classifica_round')" class="px-3 py-1 bg-purple-600 text-white rounded font-bold uppercase text-xs">Podio</button>
             <button onclick="regia('classifica_gen')" class="px-3 py-1 bg-yellow-600 text-white rounded font-bold uppercase text-xs">Generale</button>
+            <button onclick="mostraVincitore()" class="px-3 py-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded font-bold uppercase text-xs">Vincitore</button>
         </div>
     </div>
 
@@ -38,7 +39,9 @@
                 <option value="anagramma">🧩 ANAGRAMMA</option>
                 <option value="bonus">💰 BONUS</option>
             </select>
-            <select id="sel-cat" class="w-full border p-1 rounded mb-2 text-gray-800" disabled></select>
+            <select id="sel-cat" class="w-full border p-1 rounded mb-2 text-gray-800" disabled>
+                <option value="">-- SCEGLI CATEGORIA --</option>
+            </select>
             <select id="sel-dom" class="w-full border p-1 rounded mb-2 h-48 text-gray-800" size="10" disabled></select>
             
             <div class="grid grid-cols-2 gap-2 mt-auto">
@@ -59,6 +62,15 @@
                 <!-- Lista completa buzzer -->
                 <div id="buzzer-queue-list" class="bg-red-900/50 rounded p-3 max-h-64 overflow-y-auto">
                     <!-- Popolato via JS -->
+                </div>
+                
+                <div class="grid grid-cols-2 gap-2 mt-3">
+                    <button onclick="buzzerCorrect()" class="bg-green-700 hover:bg-green-600 py-2 rounded font-bold uppercase text-sm">
+                        ✅ Assegna Punti
+                    </button>
+                    <button onclick="buzzerWrong()" class="bg-gray-800 hover:bg-gray-700 py-2 rounded font-bold uppercase text-sm">
+                        ❌ Risposta Sbagliata
+                    </button>
                 </div>
                 
                 <button onclick="chiudiBuzzer()" class="w-full bg-gray-800 hover:bg-gray-700 text-white mt-3 py-2 rounded font-bold uppercase text-sm">
@@ -130,27 +142,38 @@
             // Popola dropdown categorie (se presente)
             const catSelect = document.getElementById('sel-cat');
             catSelect.innerHTML = '<option value="">-- SCEGLI CATEGORIA --</option>';
-            d.categories.forEach(c => {
-                catSelect.innerHTML += `<option value="${c}">${c.replace('_',' ')}</option>`;
-            });
+            if (d.categories && d.categories.length > 0) {
+                d.categories.forEach(c => {
+                    catSelect.innerHTML += `<option value="${c}">${c}</option>`;
+                });
+            }
         });
 
         // Evento quando il pacchetto viene cambiato
         socket.on('package_selected', (data) => {
-            // Aggiorna dropdown pacchetti
+            console.log('Pacchetto selezionato:', data);
+            
+            // Aggiorna il testo del pacchetto selezionato
             const packageSelect = document.getElementById('sel-package');
             if (packageSelect.value !== data.packageId) {
                 packageSelect.value = data.packageId;
             }
             
-            // Aggiorna dropdown categorie
+            // Popola il dropdown delle categorie
             const catSelect = document.getElementById('sel-cat');
             catSelect.innerHTML = '<option value="">-- SCEGLI CATEGORIA --</option>';
-            data.categories.forEach(c => {
-                catSelect.innerHTML += `<option value="${c}">${c.replace('_',' ')}</option>`;
-            });
             
-            // Resetta altre dropdown
+            if (data.categories && data.categories.length > 0) {
+                data.categories.forEach(c => {
+                    catSelect.innerHTML += `<option value="${c}">${c}</option>`;
+                });
+                catSelect.disabled = false;
+            } else {
+                catSelect.innerHTML = '<option value="">Nessuna categoria disponibile</option>';
+                catSelect.disabled = true;
+            }
+            
+            // Resetta le domande
             document.getElementById('sel-dom').innerHTML = '';
             document.getElementById('sel-dom').disabled = true;
             currentQuestions = [];
@@ -169,23 +192,42 @@
         document.getElementById('sel-tipo').addEventListener('change', (e) => {
             const t = e.target.value;
             const sc = document.getElementById('sel-cat');
-            sc.innerHTML = '<option value="">-- SCEGLI CATEGORIA --</option>';
+            
             if(t === 'categoria') {
-                sc.disabled = false;
+                // Controlla se abbiamo già selezionato un pacchetto
                 const currentPackageId = document.getElementById('sel-package').value;
                 if (!currentPackageId) {
                     alert('Seleziona prima un pacchetto!');
+                    e.target.value = ''; // Resetta la selezione
                     return;
                 }
-                // Le categorie sono già popolate quando si seleziona il pacchetto
+                
+                // Se il dropdown categorie è già popolato, abilitalo
+                if (sc.options.length > 1) {
+                    sc.disabled = false;
+                } else {
+                    // Altrimenti richiedi le categorie al server
+                    socket.emit('get_categories', { packageId: currentPackageId });
+                }
             } else {
                 sc.disabled = true;
                 const currentPackageId = document.getElementById('sel-package').value;
-                if (!currentPackageId) {
-                    alert('Seleziona prima un pacchetto!');
-                    return;
+                if (currentPackageId) {
+                    socket.emit('get_questions', {type: t});
                 }
-                socket.emit('get_questions', {type: t});
+            }
+        });
+
+        // Evento per ricevere le categorie
+        socket.on('categories_list', (data) => {
+            const catSelect = document.getElementById('sel-cat');
+            catSelect.innerHTML = '<option value="">-- SCEGLI CATEGORIA --</option>';
+            
+            if (data.categories && data.categories.length > 0) {
+                data.categories.forEach(c => {
+                    catSelect.innerHTML += `<option value="${c}">${c}</option>`;
+                });
+                catSelect.disabled = false;
             }
         });
 
@@ -369,7 +411,16 @@
                 if(typeof selectedQ.corretta === 'number' && selectedQ.risposte) {
                     soluzione = selectedQ.risposte[selectedQ.corretta];
                 }
-                socket.emit('mostra_soluzione', { soluzione: soluzione, risultati: [] });
+                socket.emit('mostra_soluzione', { soluzione: soluzione, risultati: currentRoundAnswers });
+            }
+        }
+        
+        // Funzione per mostrare il vincitore
+        function mostraVincitore() {
+            // Chiedi conferma
+            if (confirm("Vuoi mostrare il vincitore finale? Assicurati che il gioco sia finito.")) {
+                // Emetti un evento al server
+                socket.emit('mostra_vincitore_finale');
             }
         }
     </script>

@@ -13,10 +13,10 @@
         
         <div class="flex gap-2 bg-gray-200 p-1 rounded">
             <span class="text-xs font-bold pt-1">DISPLAY:</span>
-            <button onclick="regia('logo')" class="px-2 py-0.5 bg-gray-600 text-white rounded text-xs">LOGO</button>
-            <button onclick="regia('gioco')" class="px-2 py-0.5 bg-blue-600 text-white rounded text-xs">GIOCO</button>
-            <button onclick="regia('classifica_round')" class="px-2 py-0.5 bg-purple-600 text-white rounded text-xs">PODIO ROUND</button>
-            <button onclick="regia('classifica_gen')" class="px-2 py-0.5 bg-yellow-600 text-white rounded text-xs">GENERALE</button>
+            <button onclick="regia('logo')" class="px-2 py-0.5 bg-gray-600 text-white rounded text-xs hover:bg-gray-700">LOGO</button>
+            <button onclick="regia('gioco')" class="px-2 py-0.5 bg-blue-600 text-white rounded text-xs hover:bg-blue-700">GIOCO</button>
+            <button onclick="regia('classifica_round')" class="px-2 py-0.5 bg-purple-600 text-white rounded text-xs hover:bg-purple-700">PODIO ROUND</button>
+            <button onclick="regia('classifica_gen')" class="px-2 py-0.5 bg-yellow-600 text-white rounded text-xs hover:bg-yellow-700">GENERALE</button>
         </div>
         <div id="status" class="text-xs font-bold text-red-500">OFFLINE</div>
     </div>
@@ -26,7 +26,16 @@
         <div class="col-span-4 flex flex-col gap-2 overflow-y-auto">
             <div class="bg-white p-3 rounded shadow">
                 <h2 class="font-bold text-gray-600 mb-2">1. Domande</h2>
-                <select id="sel-tipo" class="w-full border p-1 rounded mb-2 text-xs font-bold"><option value="">-- TIPO --</option><option value="categorie">CATEGORIE</option><option value="bonus">BONUS</option><option value="raffica">RAFFICA</option></select>
+                
+                <select id="sel-tipo" class="w-full border-2 border-blue-500 p-2 rounded font-bold mb-2 text-blue-900">
+                    <option value="">-- TIPO GIOCO --</option>
+                    <option value="categorie">📂 CATEGORIE CLASSICHE</option>
+                    <option value="stima">🔮 STIMA (PREZZO GIUSTO)</option>
+                    <option value="anagramma">🧩 ANAGRAMMA</option>
+                    <option value="bonus">💰 BONUS</option>
+                    <option value="raffica">⚡ RAFFICA</option>
+                </select>
+
                 <select id="sel-cat" class="w-full border p-1 rounded mb-2 text-xs" disabled></select>
                 <select id="sel-dom" class="w-full border p-1 rounded mb-2 text-xs" disabled></select>
                 
@@ -39,20 +48,20 @@
             <div id="manual-buzzer-ctrl" class="hidden bg-red-100 p-3 rounded border border-red-300">
                 <div class="font-bold text-red-800 mb-2 text-center">CONTROLLO MANUALE</div>
                 <div class="flex gap-2">
-                    <button onclick="toggleLock(false)" class="flex-1 bg-green-600 text-white py-2 rounded font-bold">🔓 APRI</button>
-                    <button onclick="toggleLock(true)" class="flex-1 bg-gray-600 text-white py-2 rounded font-bold">🔒 BLOCCA</button>
+                    <button onclick="toggleLock(false)" class="flex-1 bg-green-600 text-white py-2 rounded font-bold hover:bg-green-500">🔓 APRI</button>
+                    <button onclick="toggleLock(true)" class="flex-1 bg-gray-600 text-white py-2 rounded font-bold hover:bg-gray-500">🔒 BLOCCA</button>
                 </div>
             </div>
 
             <div class="mt-auto">
-                <button onclick="resetGame()" class="w-full bg-red-900 text-red-200 text-xs py-1 rounded">RESET GAME</button>
+                <button onclick="resetGame()" class="w-full bg-red-900 text-red-200 text-xs py-1 rounded hover:bg-red-800">RESET GAME</button>
             </div>
         </div>
 
         <div class="col-span-5 bg-gray-900 p-3 rounded shadow flex flex-col text-white border border-gray-700">
             <h2 class="font-bold mb-2 flex justify-between">MONITOR <span id="timer-badge" class="bg-gray-700 px-2 rounded text-xs">Attesa</span></h2>
             
-            <div id="buzzer-alert" class="hidden bg-red-600 p-4 rounded mb-2 text-center">
+            <div id="buzzer-alert" class="hidden bg-red-600 p-4 rounded mb-2 text-center animate-pulse">
                 <div class="text-xs uppercase text-red-200">Ha prenotato:</div>
                 <div id="buzzer-winner" class="text-2xl font-black bg-white text-red-600 rounded px-2 my-1">NOME SQUADRA</div>
                 
@@ -73,8 +82,8 @@
             </div>
 
             <div class="grid grid-cols-2 gap-2">
-                <button onclick="rivela()" class="bg-yellow-600 py-2 rounded font-bold">👁️ SVELA</button>
-                <button onclick="assegnaAuto()" class="bg-green-600 py-2 rounded font-bold">🏆 PUNTI AUTO</button>
+                <button onclick="rivela()" class="bg-yellow-600 py-2 rounded font-bold hover:bg-yellow-500">👁️ SVELA</button>
+                <button onclick="assegnaAuto()" class="bg-green-600 py-2 rounded font-bold hover:bg-green-500">🏆 PUNTI AUTO</button>
             </div>
         </div>
 
@@ -90,14 +99,24 @@
         const socket = io();
         let currentQuestions=[], selectedQ=null, dbStructure={};
 
-        socket.on('connect', () => { document.getElementById('status').innerText="ONLINE"; document.getElementById('status').className="text-green-500 font-bold text-xs"; socket.emit('admin_connect'); });
+        socket.on('connect', () => { 
+            document.getElementById('status').innerText="ONLINE"; 
+            document.getElementById('status').className="text-green-500 font-bold text-xs pt-2"; 
+            socket.emit('admin_connect'); 
+        });
+        
         socket.on('init_data', (d) => { dbStructure=d; updateTeams(d.teams); });
         socket.on('force_reload', () => location.reload());
 
         socket.on('receive_questions', (q) => {
             currentQuestions = q;
-            const s = document.getElementById('sel-dom'); s.disabled=false; s.innerHTML='<option>-- Seleziona --</option>';
-            q.forEach((item,i) => s.innerHTML+=`<option value="${i}">${item.id}. ${item.domanda.substring(0,30)}...</option>`);
+            const s = document.getElementById('sel-dom'); 
+            s.disabled=false; 
+            s.innerHTML='<option>-- Seleziona --</option>';
+            q.forEach((item,i) => {
+                let text = item.domanda.length > 30 ? item.domanda.substring(0,30) + "..." : item.domanda;
+                s.innerHTML+=`<option value="${i}">${item.id}. ${text}</option>`;
+            });
         });
 
         // BUZZER ALERT
@@ -107,7 +126,7 @@
             document.getElementById('buzzer-actions').classList.remove('hidden');
             
             document.getElementById('buzzer-winner').innerText = data.winner;
-            document.getElementById('buzzer-solution').innerText = data.correctAnswer; // MOSTRA LA RISPOSTA!
+            document.getElementById('buzzer-solution').innerText = data.correctAnswer;
             document.getElementById('queue-info').innerText = data.queueLen > 1 ? `(+${data.queueLen-1} in coda)` : "Nessun altro in coda";
         });
 
@@ -126,26 +145,44 @@
 
         socket.on('update_round_monitor', (list) => {
             const t = document.getElementById('round-table'); t.innerHTML='';
-            list.forEach((e,i) => t.innerHTML+=`<tr><td class="p-1 text-white">${i+1}. ${e.teamName}</td><td class="p-1 ${e.corretta?'text-green-400':'text-red-400'}">${e.risposta}</td></tr>`);
+            list.forEach((e,i) => {
+                const color = e.corretta ? 'text-green-400 font-bold' : 'text-red-400';
+                t.innerHTML+=`<tr><td class="p-1 text-white">${i+1}. ${e.teamName}</td><td class="p-1 ${color}">${e.risposta}</td></tr>`;
+            });
         });
 
         socket.on('update_teams', updateTeams);
         function updateTeams(t) {
             t.sort((a,b)=>b.score-a.score);
             const l=document.getElementById('team-list'); l.innerHTML='';
-            t.forEach(x=>l.innerHTML+=`<tr class="border-b"><td class="font-bold">${x.name}</td><td class="text-right text-blue-600">${x.score}</td></tr>`);
+            t.forEach(x=>l.innerHTML+=`<tr class="border-b"><td class="font-bold">${x.name}</td><td class="text-right text-blue-600 font-bold">${x.score}</td></tr>`);
         }
 
-        // MENU
+        // MENU LOGIC
         document.getElementById('sel-tipo').addEventListener('change', (e) => {
-            const t=e.target.value; const sc=document.getElementById('sel-cat'); 
-            sc.innerHTML='<option>-- --</option>'; document.getElementById('sel-dom').innerHTML='';
-            if(t==='categorie') { sc.disabled=false; dbStructure.categories.forEach(c=>sc.innerHTML+=`<option value="${c}">${c}</option>`); }
-            else { sc.disabled=true; socket.emit('get_questions', {type:t}); }
+            const t=e.target.value; 
+            const sc=document.getElementById('sel-cat'); 
+            sc.innerHTML='<option>-- --</option>'; 
+            document.getElementById('sel-dom').innerHTML='';
+            
+            if(t==='categorie') { 
+                sc.disabled=false; 
+                if(dbStructure.categories) {
+                    dbStructure.categories.forEach(c=>sc.innerHTML+=`<option value="${c}">${c.toUpperCase()}</option>`); 
+                }
+            } else { 
+                sc.disabled=true; 
+                if(t) socket.emit('get_questions', {type:t}); 
+            }
         });
-        document.getElementById('sel-cat').addEventListener('change', (e) => socket.emit('get_questions', {type:'categoria', key:e.target.value}));
+
+        document.getElementById('sel-cat').addEventListener('change', (e) => {
+            if(e.target.value) socket.emit('get_questions', {type:'categoria', key:e.target.value});
+        });
+        
         document.getElementById('sel-dom').addEventListener('change', (e) => selectedQ=currentQuestions[e.target.value]);
 
+        // ACTIONS
         function lancia(m) {
             if(!selectedQ) return alert("Scegli domanda");
             socket.emit('invia_domanda', {...selectedQ, modalita:m});
@@ -158,7 +195,7 @@
         function rivela() { socket.emit('rivela_risposta'); }
         function assegnaAuto() { socket.emit('assegna_punti_auto'); }
         function regia(v) { socket.emit('regia_cmd', v); }
-        function resetGame() { if(confirm("Reset?")) socket.emit('reset_game'); }
+        function resetGame() { if(confirm("Reset Totale?")) socket.emit('reset_game'); }
     </script>
 </body>
 </html>

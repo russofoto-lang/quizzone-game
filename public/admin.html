@@ -37,9 +37,9 @@
             </div>
             
             <div id="manual-buzzer-ctrl" class="hidden bg-red-100 p-3 rounded border border-red-300">
-                <div class="font-bold text-red-800 mb-2 text-center">CONTROLLO BUZZER</div>
+                <div class="font-bold text-red-800 mb-2 text-center">CONTROLLO MANUALE</div>
                 <div class="flex gap-2">
-                    <button onclick="toggleLock(false)" class="flex-1 bg-green-600 text-white py-2 rounded font-bold">🔓 APRI (VIA!)</button>
+                    <button onclick="toggleLock(false)" class="flex-1 bg-green-600 text-white py-2 rounded font-bold">🔓 APRI</button>
                     <button onclick="toggleLock(true)" class="flex-1 bg-gray-600 text-white py-2 rounded font-bold">🔒 BLOCCA</button>
                 </div>
             </div>
@@ -52,19 +52,20 @@
         <div class="col-span-5 bg-gray-900 p-3 rounded shadow flex flex-col text-white border border-gray-700">
             <h2 class="font-bold mb-2 flex justify-between">MONITOR <span id="timer-badge" class="bg-gray-700 px-2 rounded text-xs">Attesa</span></h2>
             
-            <div id="buzzer-alert" class="hidden bg-red-600 p-4 rounded mb-2 text-center animate-pulse">
-                <div class="text-xs uppercase">Ha prenotato:</div>
-                <div id="buzzer-winner" class="text-2xl font-black">NOME SQUADRA</div>
-                <div id="queue-info" class="text-xs mt-1"></div>
+            <div id="buzzer-alert" class="hidden bg-red-600 p-4 rounded mb-2 text-center">
+                <div class="text-xs uppercase text-red-200">Ha prenotato:</div>
+                <div id="buzzer-winner" class="text-2xl font-black bg-white text-red-600 rounded px-2 my-1">NOME SQUADRA</div>
+                
+                <div class="mt-2 bg-yellow-400 text-black p-2 rounded font-bold text-sm">
+                    SOLUZIONE: <span id="buzzer-solution">...</span>
+                </div>
+                
+                <div id="queue-info" class="text-xs mt-1 text-red-200"></div>
             </div>
 
             <div id="buzzer-actions" class="hidden grid grid-cols-2 gap-2 mb-4">
-                <button onclick="buzzerCorrect()" class="bg-green-500 hover:bg-green-400 text-white py-4 rounded-xl font-bold shadow-lg text-lg">
-                    ✅ GIUSTA (+100)
-                </button>
-                <button onclick="buzzerWrong()" class="bg-red-500 hover:bg-red-400 text-white py-4 rounded-xl font-bold shadow-lg text-lg">
-                    ❌ ERRATA (NEXT)
-                </button>
+                <button onclick="buzzerCorrect()" class="bg-green-500 hover:bg-green-400 text-white py-4 rounded-xl font-bold shadow-lg text-lg">✅ GIUSTA</button>
+                <button onclick="buzzerWrong()" class="bg-red-500 hover:bg-red-400 text-white py-4 rounded-xl font-bold shadow-lg text-lg">❌ ERRATA</button>
             </div>
 
             <div id="classic-monitor" class="flex-1 overflow-y-auto bg-black/50 rounded p-1 mb-2">
@@ -72,7 +73,7 @@
             </div>
 
             <div class="grid grid-cols-2 gap-2">
-                <button onclick="rivela()" class="bg-yellow-600 py-2 rounded font-bold">👁️ SVELA RISPOSTA</button>
+                <button onclick="rivela()" class="bg-yellow-600 py-2 rounded font-bold">👁️ SVELA</button>
                 <button onclick="assegnaAuto()" class="bg-green-600 py-2 rounded font-bold">🏆 PUNTI AUTO</button>
             </div>
         </div>
@@ -99,21 +100,21 @@
             q.forEach((item,i) => s.innerHTML+=`<option value="${i}">${item.id}. ${item.domanda.substring(0,30)}...</option>`);
         });
 
-        // --- BUZZER LOGIC ---
+        // BUZZER ALERT
         socket.on('buzzer_admin_alert', (data) => {
-            // Nascondi tabella classico, mostra alert buzzer
             document.getElementById('classic-monitor').classList.add('hidden');
             document.getElementById('buzzer-alert').classList.remove('hidden');
             document.getElementById('buzzer-actions').classList.remove('hidden');
             
             document.getElementById('buzzer-winner').innerText = data.winner;
+            document.getElementById('buzzer-solution').innerText = data.correctAnswer; // MOSTRA LA RISPOSTA!
             document.getElementById('queue-info').innerText = data.queueLen > 1 ? `(+${data.queueLen-1} in coda)` : "Nessun altro in coda";
         });
 
         socket.on('reset_buzzer_admin', () => {
             document.getElementById('buzzer-alert').classList.add('hidden');
             document.getElementById('buzzer-actions').classList.add('hidden');
-            document.getElementById('classic-monitor').classList.remove('hidden'); // Torna monitor normale
+            document.getElementById('classic-monitor').classList.remove('hidden');
         });
 
         socket.on('reset_round_monitor', () => {
@@ -135,7 +136,7 @@
             t.forEach(x=>l.innerHTML+=`<tr class="border-b"><td class="font-bold">${x.name}</td><td class="text-right text-blue-600">${x.score}</td></tr>`);
         }
 
-        // --- MENU ---
+        // MENU
         document.getElementById('sel-tipo').addEventListener('change', (e) => {
             const t=e.target.value; const sc=document.getElementById('sel-cat'); 
             sc.innerHTML='<option>-- --</option>'; document.getElementById('sel-dom').innerHTML='';
@@ -145,7 +146,6 @@
         document.getElementById('sel-cat').addEventListener('change', (e) => socket.emit('get_questions', {type:'categoria', key:e.target.value}));
         document.getElementById('sel-dom').addEventListener('change', (e) => selectedQ=currentQuestions[e.target.value]);
 
-        // --- ACTIONS ---
         function lancia(m) {
             if(!selectedQ) return alert("Scegli domanda");
             socket.emit('invia_domanda', {...selectedQ, modalita:m});

@@ -2,28 +2,22 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DISPLAY - Il Quizzone</title>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
-    <style>
-        body { background: #0f172a; color: white; overflow: hidden; }
-        .glass { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2); }
-    </style>
+    <style>body { background: #0f172a; color: white; overflow: hidden; }</style>
 </head>
 <body class="flex flex-col h-screen p-8">
 
     <div class="flex justify-between items-start h-1/4">
         <div>
-            <h1 class="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-red-600 drop-shadow-lg">
-                IL QUIZZONE
-            </h1>
-            <p id="status-text" class="text-xl text-gray-400 mt-2 animate-pulse">Connessione al server...</p>
+            <h1 class="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-red-600 drop-shadow-lg">IL QUIZZONE</h1>
+            <p id="status-text" class="text-xl text-gray-400 mt-2">In attesa...</p>
         </div>
         
-        <div class="glass rounded-xl p-4 w-1/4">
-            <h3 class="text-sm font-bold text-gray-400 uppercase mb-2 border-b border-gray-600">Top 5 Squadre</h3>
+        <div class="bg-white/10 rounded-xl p-4 w-1/4 backdrop-blur">
+            <h3 class="text-sm font-bold text-gray-400 uppercase mb-2 border-b border-gray-600">Classifica Totale</h3>
             <ul id="leaderboard" class="text-sm space-y-2"></ul>
         </div>
     </div>
@@ -33,103 +27,118 @@
         <div id="screen-wait" class="text-center w-full">
             <div id="buzzer-winner" class="hidden animate__animated animate__zoomIn">
                 <p class="text-2xl text-red-400 font-bold mb-4">HA PRENOTATO:</p>
-                <div id="winner-name" class="text-8xl font-black text-white bg-red-600 px-12 py-6 rounded-2xl shadow-2xl inline-block">SQUADRA</div>
+                <div id="winner-name" class="text-8xl font-black text-white bg-red-600 px-12 py-6 rounded-2xl shadow-2xl">SQUADRA</div>
             </div>
         </div>
 
         <div id="screen-game" class="hidden w-full max-w-5xl text-center">
-            <div class="glass p-12 rounded-3xl border-t-8 border-blue-500 shadow-2xl animate__animated animate__fadeInUp">
-                <h2 id="cat" class="text-xl font-bold text-blue-400 tracking-widest mb-6">CATEGORIA</h2>
-                <div id="q-text" class="text-5xl font-bold leading-tight mb-10">...</div>
-                <div id="opts" class="grid grid-cols-2 gap-6 text-2xl hidden"></div>
-            </div>
+            <div class="bg-white/10 p-8 rounded-3xl border-t-8 border-blue-500 shadow-2xl backdrop-blur-md">
+                <h2 id="cat" class="text-xl font-bold text-blue-400 tracking-widest mb-4">CATEGORIA</h2>
+                <div id="q-text" class="text-4xl font-bold leading-tight mb-8">...</div>
+                <div id="opts" class="grid grid-cols-2 gap-4 text-2xl hidden mb-4"></div>
+                
+                <div id="solution" class="hidden mt-6 animate__animated animate__fadeInUp">
+                    <div class="bg-green-600 text-white px-8 py-3 rounded-full text-3xl font-bold shadow-lg inline-block mb-6">
+                        ✅ <span id="sol-text">RISPOSTA</span>
+                    </div>
 
-            <div id="solution" class="hidden mt-8 animate__animated animate__bounceIn">
-                <div class="inline-block bg-green-600 text-white px-12 py-4 rounded-full text-3xl font-bold shadow-lg border-4 border-green-400">
-                    ✅ <span id="sol-text">Risposta</span>
+                    <div class="bg-black/40 rounded-xl p-4 max-w-2xl mx-auto">
+                        <h3 class="text-sm font-bold text-gray-400 mb-2">ESITO ROUND</h3>
+                        <table class="w-full text-left text-lg">
+                            <tbody id="round-results-body"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
-
     </div>
 
     <script>
-        let socket;
-        try {
-            socket = io();
-        } catch (e) {
-            console.error("Errore Socket:", e);
-        }
-
-        // Elementi DOM
+        const socket = io();
         const elWait = document.getElementById('screen-wait');
         const elGame = document.getElementById('screen-game');
         const elBuzzer = document.getElementById('buzzer-winner');
         const elSolution = document.getElementById('solution');
-        const elLeaderboard = document.getElementById('leaderboard');
 
-        if(socket) {
-            socket.on('connect', () => {
-                console.log("Display connesso!");
-                document.getElementById('status-text').innerText = "In attesa della regia...";
-                socket.emit('display_connect');
-            });
+        socket.on('connect', () => {
+            console.log("Display connesso!");
+            socket.emit('display_connect');
+        });
 
-            socket.on('nuova_domanda', (data) => {
-                elWait.classList.add('hidden');
-                elBuzzer.classList.add('hidden');
-                elSolution.classList.add('hidden');
-                elGame.classList.remove('hidden');
+        socket.on('nuova_domanda', (data) => {
+            elWait.classList.add('hidden');
+            elBuzzer.classList.add('hidden');
+            elSolution.classList.add('hidden'); 
+            elGame.classList.remove('hidden');
 
-                document.getElementById('cat').innerText = (data.categoria || "QUIZ").toUpperCase();
-                document.getElementById('q-text').innerText = data.domanda;
-                document.getElementById('status-text').innerText = "Domanda in corso...";
+            document.getElementById('cat').innerText = (data.categoria || "QUIZ").toUpperCase();
+            document.getElementById('q-text').innerText = data.domanda;
+            document.getElementById('status-text').innerText = "Domanda in corso...";
 
-                const optContainer = document.getElementById('opts');
-                optContainer.innerHTML = '';
-                
-                if(data.modalita === 'classico' && data.risposte.length > 0) {
-                    optContainer.classList.remove('hidden');
-                    data.risposte.forEach(r => {
-                        const div = document.createElement('div');
-                        div.className = "bg-white/10 p-4 rounded-xl border border-white/20";
-                        div.innerText = r;
-                        optContainer.appendChild(div);
-                    });
-                } else {
-                    optContainer.classList.add('hidden');
-                }
-            });
-
-            socket.on('buzzer_bloccato', (data) => {
-                elGame.classList.add('hidden');
-                elWait.classList.remove('hidden');
-                elBuzzer.classList.remove('hidden');
-                document.getElementById('winner-name').innerText = data.winner;
-                document.getElementById('status-text').innerText = "Buzzer bloccato!";
-            });
-
-            socket.on('mostra_soluzione', (sol) => {
-                elWait.classList.add('hidden');
-                elGame.classList.remove('hidden');
-                elSolution.classList.remove('hidden');
-                document.getElementById('sol-text').innerText = sol;
-                document.getElementById('status-text').innerText = "Fine round.";
-            });
-
-            socket.on('update_teams', (teams) => {
-                teams.sort((a,b) => b.score - a.score);
-                elLeaderboard.innerHTML = '';
-                teams.slice(0, 5).forEach((t, i) => {
-                    const li = document.createElement('li');
-                    li.className = "flex justify-between";
-                    li.innerHTML = `<span class="truncate w-32">${i+1}. ${t.name}</span><span class="font-bold text-yellow-400">${t.score}</span>`;
-                    elLeaderboard.appendChild(li);
+            const optContainer = document.getElementById('opts');
+            optContainer.innerHTML = '';
+            
+            if(data.modalita === 'classico' && data.risposte) {
+                optContainer.classList.remove('hidden');
+                data.risposte.forEach(r => {
+                    const div = document.createElement('div');
+                    div.className = "bg-white/10 p-3 rounded-xl border border-white/20";
+                    div.innerText = r;
+                    optContainer.appendChild(div);
                 });
+            } else {
+                optContainer.classList.add('hidden');
+            }
+        });
+
+        socket.on('buzzer_bloccato', (data) => {
+            elGame.classList.add('hidden');
+            elWait.classList.remove('hidden');
+            elBuzzer.classList.remove('hidden');
+            document.getElementById('winner-name').innerText = data.winner;
+            document.getElementById('status-text').innerText = "Buzzer!";
+        });
+
+        // --- RICEZIONE SOLUZIONE E LISTA VINCITORI ---
+        socket.on('mostra_soluzione', (data) => {
+            elWait.classList.add('hidden');
+            elBuzzer.classList.add('hidden');
+            elGame.classList.remove('hidden');
+            elSolution.classList.remove('hidden');
+            
+            // Testo Soluzione
+            document.getElementById('sol-text').innerText = data.soluzione;
+            
+            // Genera lista chi ha indovinato
+            const tbody = document.getElementById('round-results-body');
+            tbody.innerHTML = '';
+            
+            data.risultati.forEach(entry => {
+                const tr = document.createElement('tr');
+                const icon = entry.corretta ? '✅' : '❌';
+                const color = entry.corretta ? 'text-green-400' : 'text-red-400';
+                
+                tr.innerHTML = `
+                    <td class="py-1 font-bold ${color}">${entry.teamName}</td>
+                    <td class="py-1 text-right text-sm text-gray-400">${entry.tempo}s</td>
+                    <td class="py-1 text-right">${icon}</td>
+                `;
+                tbody.appendChild(tr);
             });
 
-            socket.on('reset_buzzer', () => { elBuzzer.classList.add('hidden'); });
-        }
+            document.getElementById('status-text').innerText = "Soluzione svelata";
+        });
+
+        socket.on('update_teams', (teams) => {
+            teams.sort((a,b) => b.score - a.score);
+            const list = document.getElementById('leaderboard');
+            list.innerHTML = '';
+            teams.slice(0, 5).forEach((t, i) => {
+                list.innerHTML += `<li class="flex justify-between"><span class="truncate w-32">${i+1}. ${t.name}</span><span class="font-bold text-yellow-400">${t.score}</span></li>`;
+            });
+        });
+
+        socket.on('reset_buzzer', () => { elBuzzer.classList.add('hidden'); });
     </script>
 </body>
 </html>

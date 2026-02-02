@@ -150,23 +150,43 @@ io.on('connection', (socket) => {
   });
 
   socket.on('invia_risposta', (risp) => {
-      const team = gameState.teams[socket.id];
-      if(!team || !gameState.currentQuestion) return;
-      if(gameState.roundAnswers.find(x => x.teamId === socket.id)) return;
+    const team = gameState.teams[socket.id];
+    if(!team || !gameState.currentQuestion) return;
+    if(gameState.roundAnswers.find(x => x.teamId === socket.id)) return;
 
-      const q = gameState.currentQuestion;
-      let isCorrect = false;
-      let corrStr = String(q.corretta);
-      if(typeof q.corretta==='number' && q.risposte) corrStr = q.risposte[q.corretta];
+    const q = gameState.currentQuestion;
+    let isCorrect = false;
+    let corrStr = String(q.corretta);
+    if(typeof q.corretta==='number' && q.risposte) corrStr = q.risposte[q.corretta];
 
-      if(String(risp).trim().toLowerCase() === String(corrStr).trim().toLowerCase()) isCorrect = true;
+    if(String(risp).trim().toLowerCase() === String(corrStr).trim().toLowerCase()) isCorrect = true;
 
-      gameState.roundAnswers.push({
-          teamId: socket.id, teamName: team.name, risposta: risp, corretta: isCorrect,
-          tempo: ((Date.now() - gameState.questionStartTime)/1000).toFixed(2)
-      });
-      io.to('admin').emit('update_round_monitor', gameState.roundAnswers);
-  });
+    const tempoSecondi = (Date.now() - gameState.questionStartTime) / 1000;
+    
+    // CALCOLO PUNTEGGIO CON BONUS VELOCITÀ
+    let punti = 0;
+    if(isCorrect) {
+        const puntiBase = q.punti || 100;
+        // Bonus velocità: max 50 punti, decresce linearmente fino a 20 secondi
+        const bonusVelocita = Math.max(0, 50 - (tempoSecondi * 2.5));
+        punti = puntiBase + Math.round(bonusVelocita);
+        
+        // ASSEGNA PUNTI ALLA SQUADRA
+        team.score += punti;
+        io.emit('update_teams', Object.values(gameState.teams));
+    }
+
+    gameState.roundAnswers.push({
+        teamId: socket.id, 
+        teamName: team.name, 
+        risposta: risp, 
+        corretta: isCorrect,
+        tempo: tempoSecondi.toFixed(2),
+        punti: punti  // Aggiungiamo anche i punti nei risultati
+    });
+    
+    io.to('admin').emit('update_round_monitor', gameState.roundAnswers);
+});
 
   socket.on('regia_cmd', (cmd) => io.emit('cambia_vista', { view: cmd, data: gameState.roundAnswers }));
   socket.on('reset_game', () => { gameState.teams={}; gameState.roundAnswers=[]; gameState.buzzerQueue=[]; io.emit('force_reload'); });

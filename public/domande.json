@@ -3,25 +3,41 @@
     "cultura_generale": [
       {
         "id": 1,
-        "domanda": "Qual è la capitale della Francia?",
-        "risposte": ["Lione", "Marsiglia", "Parigi", "Nizza"],
-        "corretta": 2,
+        "domanda": "Qual è l'organo più esteso del corpo umano?",
+        "risposte": ["Fegato", "Pelle", "Intestino", "Cervello"],
+        "corretta": 1,
         "punti": 100,
         "categoria": "cultura_generale"
       },
       {
         "id": 2,
-        "domanda": "Quanti continenti ci sono?",
-        "risposte": ["5", "6", "7", "8"],
+        "domanda": "Qual è il simbolo chimico dell'oro?",
+        "risposte": ["Ag", "Go", "Au", "Pt"],
         "corretta": 2,
         "punti": 100,
         "categoria": "cultura_generale"
       },
       {
         "id": 3,
-        "domanda": "Chi ha inventato il telefono?",
-        "risposte": ["Thomas Edison", "Alexander Graham Bell", "Nikola Tesla", "Guglielmo Marconi"],
+        "domanda": "Chi scrisse il 'Manifesto del Partito Comunista'?",
+        "risposte": ["Stalin", "Lenin", "Marx e Engels", "Hegel"],
+        "corretta": 2,
+        "punti": 100,
+        "categoria": "cultura_generale"
+      },
+      {
+        "id": 4,
+        "domanda": "In quale anno l'uomo ha messo piede sulla Luna?",
+        "risposte": ["1965", "1969", "1972", "1975"],
         "corretta": 1,
+        "punti": 100,
+        "categoria": "cultura_generale"
+      },
+      {
+        "id": 5,
+        "domanda": "Quale filosofo è noto per la frase 'Cogito, ergo sum'?",
+        "risposte": ["Kant", "Socrate", "Cartesio", "Nietzsche"],
+        "corretta": 2,
         "punti": 100,
         "categoria": "cultura_generale"
       }
@@ -29,33 +45,41 @@
     "storia": [
       {
         "id": 10,
-        "domanda": "In che anno è caduto il muro di Berlino?",
-        "risposte": ["1987", "1989", "1991", "1993"],
-        "corretta": 1,
+        "domanda": "Quale evento segna l'inizio dell'Età Moderna?",
+        "risposte": ["Caduta di Costantinopoli", "Rivoluzione Francese", "Caduta Impero Romano", "Scoperta dell'America"],
+        "corretta": 3,
         "punti": 100,
         "categoria": "storia"
       },
       {
         "id": 11,
-        "domanda": "In che anno l'uomo è sbarcato sulla Luna?",
-        "risposte": ["1965", "1967", "1969", "1971"],
-        "corretta": 2,
+        "domanda": "Chi fu il primo Re d'Italia?",
+        "risposte": ["Vittorio Emanuele II", "Umberto I", "Carlo Alberto", "Giuseppe Garibaldi"],
+        "corretta": 0,
         "punti": 100,
         "categoria": "storia"
       },
       {
         "id": 12,
-        "domanda": "Chi ha scoperto l'America?",
-        "risposte": ["Amerigo Vespucci", "Cristoforo Colombo", "Marco Polo", "Ferdinando Magellano"],
+        "domanda": "In che anno scoppiò la Rivoluzione Francese?",
+        "risposte": ["1776", "1789", "1804", "1848"],
         "corretta": 1,
         "punti": 100,
         "categoria": "storia"
       },
       {
         "id": 13,
-        "domanda": "In che anno è iniziata la Prima Guerra Mondiale?",
-        "risposte": ["1912", "1914", "1916", "1918"],
-        "corretta": 1,
+        "domanda": "Quale trattato pose fine alla Prima Guerra Mondiale?",
+        "risposte": ["Trattato di Verdun", "Pace di Vestfalia", "Trattato di Versailles", "Trattato di Roma"],
+        "corretta": 2,
+        "punti": 100,
+        "categoria": "storia"
+      },
+      {
+        "id": 14,
+        "domanda": "Chi era l'imperatore romano durante la vita di Gesù?",
+        "risposte": ["Nerone", "Augusto", "Tiberio", "Traiano"],
+        "corretta": 2,
         "punti": 100,
         "categoria": "storia"
       }
@@ -63,32 +87,40 @@
     "sport": [
       {
         "id": 20,
-        "domanda": "Quanti giocatori ci sono in una squadra di calcio in campo?",
-        "risposte": ["9", "10", "11", "12"],
-        "corretta": 2,
+        "domanda": "Quanto dura un round di pugilato professionistico?",
+        "risposte": ["2 minuti", "3 minuti", "4 minuti", "5 minuti"],
+        "corretta": 1,
         "punti": 100,
         "categoria": "sport"
       },
       {
         "id": 21,
-        "domanda": "In che sport si usa la racchetta?",
-        "risposte": ["Calcio", "Tennis", "Nuoto", "Atletica"],
+        "domanda": "Nel tennis, come si chiama il punteggio di 40-40?",
+        "risposte": ["Pareggio", "Deuce", "Tie-break", "Match point"],
         "corretta": 1,
         "punti": 100,
         "categoria": "sport"
       },
       {
         "id": 22,
-        "domanda": "Ogni quanto si svolgono le Olimpiadi estive?",
-        "risposte": ["2 anni", "3 anni", "4 anni", "5 anni"],
-        "corretta": 2,
+        "domanda": "Quale città ha ospitato le Olimpiadi del 1960?",
+        "risposte": ["Londra", "Roma", "Tokyo", "Berlino"],
+        "corretta": 1,
         "punti": 100,
         "categoria": "sport"
       },
       {
         "id": 23,
-        "domanda": "Quale paese ha vinto i Mondiali di calcio 2018?",
-        "risposte": ["Germania", "Francia", "Brasile", "Argentina"],
+        "domanda": "Chi detiene il record di gol in Serie A in una singola stagione (36 gol)?",
+        "risposte": ["Totti e Del Piero", "Higuain e Immobile", "Ronaldo e Lukaku", "Vieri e Inzaghi"],
+        "corretta": 1,
+        "punti": 100,
+        "categoria": "sport"
+      },
+      {
+        "id": 24,
+        "domanda": "In quale sport si utilizza il termine 'Albatros'?",
+        "risposte": ["Cricket", "Golf", "Polo", "Badminton"],
         "corretta": 1,
         "punti": 100,
         "categoria": "sport"
@@ -97,25 +129,41 @@
     "gossip": [
       {
         "id": 30,
-        "domanda": "Chi ha sposato il principe Harry?",
-        "risposte": ["Kate Middleton", "Meghan Markle", "Lady Diana", "Camilla Parker"],
-        "corretta": 1,
+        "domanda": "Come si chiamano i figli di Fedez e Chiara Ferragni?",
+        "risposte": ["Leone e Vittoria", "Nathan e Santiago", "Sole e Celeste", "Louis e George"],
+        "corretta": 0,
         "punti": 100,
         "categoria": "gossip"
       },
       {
         "id": 31,
-        "domanda": "Quale cantante è conosciuta come 'Queen Bey'?",
-        "risposte": ["Rihanna", "Beyoncé", "Ariana Grande", "Taylor Swift"],
-        "corretta": 1,
+        "domanda": "Quale famosa attrice è stata sposata con Brad Pitt?",
+        "risposte": ["Julia Roberts", "Jennifer Lawrence", "Angelina Jolie", "Nicole Kidman"],
+        "corretta": 2,
         "punti": 100,
         "categoria": "gossip"
       },
       {
         "id": 32,
-        "domanda": "Chi ha interpretato Jack in Titanic?",
-        "risposte": ["Brad Pitt", "Johnny Depp", "Leonardo DiCaprio", "Tom Cruise"],
-        "corretta": 2,
+        "domanda": "Chi è la regina consorte del Regno Unito (2023)?",
+        "risposte": ["Diana", "Camilla", "Kate", "Meghan"],
+        "corretta": 1,
+        "punti": 100,
+        "categoria": "gossip"
+      },
+      {
+        "id": 33,
+        "domanda": "Quale cantante italiana ha vinto Sanremo 2024?",
+        "risposte": ["Annalisa", "Angelina Mango", "Elodie", "Loredana Bertè"],
+        "corretta": 1,
+        "punti": 100,
+        "categoria": "gossip"
+      },
+      {
+        "id": 34,
+        "domanda": "Chi è il marito di Victoria Beckham?",
+        "risposte": ["David Beckham", "Cristiano Ronaldo", "Zlatan Ibrahimovic", "Piquè"],
+        "corretta": 0,
         "punti": 100,
         "categoria": "gossip"
       }
@@ -123,25 +171,41 @@
     "cinema": [
       {
         "id": 40,
-        "domanda": "Chi ha diretto 'Il Padrino'?",
-        "risposte": ["Martin Scorsese", "Francis Ford Coppola", "Steven Spielberg", "Quentin Tarantino"],
+        "domanda": "Chi ha diretto 'Schindler's List'?",
+        "risposte": ["Scorsese", "Spielberg", "Tarantino", "Nolan"],
         "corretta": 1,
         "punti": 100,
         "categoria": "cinema"
       },
       {
         "id": 41,
-        "domanda": "In che anno è uscito il primo film di Star Wars?",
-        "risposte": ["1975", "1977", "1979", "1981"],
+        "domanda": "Quale film ha vinto l'Oscar come Miglior Film nel 2020 (primo non in inglese)?",
+        "risposte": ["Roma", "Parasite", "La Vita è Bella", "Amour"],
         "corretta": 1,
         "punti": 100,
         "categoria": "cinema"
       },
       {
         "id": 42,
-        "domanda": "Chi ha interpretato Iron Man nei film Marvel?",
-        "risposte": ["Chris Evans", "Chris Hemsworth", "Robert Downey Jr.", "Mark Ruffalo"],
+        "domanda": "Come si chiama l'attore protagonista di 'Forrest Gump'?",
+        "risposte": ["Tom Cruise", "Brad Pitt", "Tom Hanks", "Leonardo DiCaprio"],
         "corretta": 2,
+        "punti": 100,
+        "categoria": "cinema"
+      },
+      {
+        "id": 43,
+        "domanda": "In quale film sentiamo la frase 'Ti farò un'offerta che non potrai rifiutare'?",
+        "risposte": ["Scarface", "Quei Bravi Ragazzi", "Il Padrino", "Pulp Fiction"],
+        "corretta": 2,
+        "punti": 100,
+        "categoria": "cinema"
+      },
+      {
+        "id": 44,
+        "domanda": "Chi è il regista della trilogia de 'Il Signore degli Anelli'?",
+        "risposte": ["George Lucas", "Peter Jackson", "Ridley Scott", "James Cameron"],
+        "corretta": 1,
         "punti": 100,
         "categoria": "cinema"
       }
@@ -149,25 +213,41 @@
     "musica": [
       {
         "id": 50,
-        "domanda": "Chi era il cantante dei Queen?",
-        "risposte": ["David Bowie", "Freddie Mercury", "Mick Jagger", "Elton John"],
-        "corretta": 1,
+        "domanda": "Quante corde ha un violino standard?",
+        "risposte": ["4", "5", "6", "3"],
+        "corretta": 0,
         "punti": 100,
         "categoria": "musica"
       },
       {
         "id": 51,
-        "domanda": "Quale strumento suonava Mozart?",
-        "risposte": ["Violino", "Pianoforte", "Chitarra", "Flauto"],
-        "corretta": 1,
+        "domanda": "Chi è l'autore delle 'Quattro Stagioni'?",
+        "risposte": ["Bach", "Mozart", "Vivaldi", "Beethoven"],
+        "corretta": 2,
         "punti": 100,
         "categoria": "musica"
       },
       {
         "id": 52,
-        "domanda": "In che anno si sono sciolti i Beatles?",
-        "risposte": ["1968", "1970", "1972", "1974"],
+        "domanda": "In che anno è morto Freddie Mercury?",
+        "risposte": ["1989", "1991", "1994", "1999"],
         "corretta": 1,
+        "punti": 100,
+        "categoria": "musica"
+      },
+      {
+        "id": 53,
+        "domanda": "Quale band ha pubblicato l'album 'The Dark Side of the Moon'?",
+        "risposte": ["Led Zeppelin", "The Beatles", "Pink Floyd", "Rolling Stones"],
+        "corretta": 2,
+        "punti": 100,
+        "categoria": "musica"
+      },
+      {
+        "id": 54,
+        "domanda": "Qual è l'opera lirica incompiuta di Giacomo Puccini?",
+        "risposte": ["Tosca", "La Bohème", "Turandot", "Madama Butterfly"],
+        "corretta": 2,
         "punti": 100,
         "categoria": "musica"
       }
@@ -175,24 +255,40 @@
     "geografia": [
       {
         "id": 60,
-        "domanda": "Qual è il fiume più lungo d'Italia?",
-        "risposte": ["Tevere", "Po", "Arno", "Adige"],
-        "corretta": 1,
-        "punti": 100,
-        "categoria": "geografia"
-      },
-      {
-        "id": 61,
-        "domanda": "Qual è la montagna più alta del mondo?",
-        "risposte": ["K2", "Monte Bianco", "Everest", "Kilimanjaro"],
+        "domanda": "Qual è la capitale dell'Australia?",
+        "risposte": ["Sydney", "Melbourne", "Canberra", "Perth"],
         "corretta": 2,
         "punti": 100,
         "categoria": "geografia"
       },
       {
+        "id": 61,
+        "domanda": "Dove si trova il deserto di Atacama?",
+        "risposte": ["Cile", "Australia", "Africa", "USA"],
+        "corretta": 0,
+        "punti": 100,
+        "categoria": "geografia"
+      },
+      {
         "id": 62,
-        "domanda": "In quale continente si trova l'Egitto?",
-        "risposte": ["Asia", "Africa", "Europa", "Oceania"],
+        "domanda": "Qual è il fiume più lungo del mondo?",
+        "risposte": ["Nilo", "Rio delle Amazzoni", "Yangtze", "Mississippi"],
+        "corretta": 1,
+        "punti": 100,
+        "categoria": "geografia"
+      },
+      {
+        "id": 63,
+        "domanda": "Quale stretto separa l'Europa dall'Africa?",
+        "risposte": ["Stretto di Messina", "Stretto di Gibilterra", "Bosforo", "Canale di Suez"],
+        "corretta": 1,
+        "punti": 100,
+        "categoria": "geografia"
+      },
+      {
+        "id": 64,
+        "domanda": "In quale regione italiana si trovano le Cinque Terre?",
+        "risposte": ["Toscana", "Liguria", "Campania", "Puglia"],
         "corretta": 1,
         "punti": 100,
         "categoria": "geografia"
@@ -202,31 +298,31 @@
   "raffica": [
     {
       "id": "raffica_1",
-      "nome": "Raffica Cultura Pop",
+      "nome": "Raffica Scienze",
       "domande": [
         {
-          "domanda": "Chi ha cantato 'Thriller'?",
-          "risposte": ["Prince", "Michael Jackson", "Madonna", "Whitney Houston"],
-          "corretta": 1
+          "domanda": "Simbolo chimico dell'Ossigeno?",
+          "risposte": ["O", "Os", "Ox", "On"],
+          "corretta": 0
         },
         {
-          "domanda": "Qual è il social network con l'uccellino blu?",
-          "risposte": ["Facebook", "Instagram", "Twitter", "TikTok"],
+          "domanda": "Pianeta più grande del sistema solare?",
+          "risposte": ["Giove", "Saturno", "Terra", "Nettuno"],
+          "corretta": 0
+        },
+        {
+          "domanda": "Formula dell'acqua?",
+          "risposte": ["H2O", "CO2", "H2O2", "NaCl"],
+          "corretta": 0
+        },
+        {
+          "domanda": "Unità di misura della forza?",
+          "risposte": ["Watt", "Joule", "Newton", "Pascal"],
           "corretta": 2
         },
         {
-          "domanda": "Chi ha scritto Harry Potter?",
-          "risposte": ["J.R.R. Tolkien", "J.K. Rowling", "George R.R. Martin", "Stephen King"],
-          "corretta": 1
-        },
-        {
-          "domanda": "Qual è il pianeta più vicino al Sole?",
-          "risposte": ["Venere", "Mercurio", "Marte", "Terra"],
-          "corretta": 1
-        },
-        {
-          "domanda": "In che città si trova la Torre Eiffel?",
-          "risposte": ["Londra", "Roma", "Parigi", "Madrid"],
+          "domanda": "Chi ha formulato la relatività?",
+          "risposte": ["Newton", "Galileo", "Einstein", "Tesla"],
           "corretta": 2
         }
       ],
@@ -235,32 +331,32 @@
     },
     {
       "id": "raffica_2",
-      "nome": "Raffica Sport",
+      "nome": "Raffica Letteratura",
       "domande": [
         {
-          "domanda": "Quanti punti vale un canestro da 3 punti nel basket?",
-          "risposte": ["2", "3", "4", "5"],
+          "domanda": "Chi ha scritto la Divina Commedia?",
+          "risposte": ["Dante", "Petrarca", "Boccaccio", "Ariosto"],
+          "corretta": 0
+        },
+        {
+          "domanda": "In che lingua scriveva Omero?",
+          "risposte": ["Latino", "Greco", "Etrusco", "Arabo"],
           "corretta": 1
         },
         {
-          "domanda": "Ogni quanto si svolge la Coppa del Mondo FIFA?",
-          "risposte": ["2 anni", "3 anni", "4 anni", "5 anni"],
-          "corretta": 2
+          "domanda": "Autore di '1984'?",
+          "risposte": ["Orwell", "Huxley", "Bradbury", "Dickens"],
+          "corretta": 0
         },
         {
-          "domanda": "Quanti set si giocano in una partita di tennis?",
-          "risposte": ["1 o 2", "2 o 3", "3 o 5", "5 o 7"],
-          "corretta": 2
-        },
-        {
-          "domanda": "Quale sport praticava Muhammad Ali?",
-          "risposte": ["Judo", "Boxe", "Wrestling", "Karate"],
+          "domanda": "Il poeta di 'A Silvia'?",
+          "risposte": ["Manzoni", "Leopardi", "Pascoli", "Carducci"],
           "corretta": 1
         },
         {
-          "domanda": "Quanti giocatori formano una squadra di pallavolo in campo?",
-          "risposte": ["5", "6", "7", "8"],
-          "corretta": 1
+          "domanda": "Protagonista dei Promessi Sposi?",
+          "risposte": ["Renzo", "Paolo", "Marco", "Luca"],
+          "corretta": 0
         }
       ],
       "puntiBase": 50,
@@ -270,27 +366,61 @@
   "bonus": [
     {
       "id": 100,
-      "domanda": "BONUS: Chi ha dipinto la Cappella Sistina?",
-      "risposte": ["Leonardo da Vinci", "Michelangelo", "Raffaello", "Caravaggio"],
-      "corretta": 1,
+      "domanda": "BONUS: Qual è la velocità della luce (approx)?",
+      "risposte": ["300.000 km/s", "150.000 km/s", "1.000 km/s", "300 m/s"],
+      "corretta": 0,
       "punti": 300,
       "timerSecondi": 10
     },
     {
       "id": 101,
-      "domanda": "BONUS: Quale elemento chimico ha simbolo 'Au'?",
-      "risposte": ["Argento", "Oro", "Alluminio", "Arsenico"],
+      "domanda": "BONUS: Chi ha dipinto 'Guernica'?",
+      "risposte": ["Dalì", "Picasso", "Van Gogh", "Monet"],
       "corretta": 1,
       "punti": 300,
       "timerSecondi": 10
     },
     {
       "id": 102,
-      "domanda": "BONUS: Quanti tasti ha un pianoforte?",
-      "risposte": ["76", "78", "86", "88"],
-      "corretta": 3,
+      "domanda": "BONUS: Quanto dura un mandato del Presidente USA?",
+      "risposte": ["4 anni", "5 anni", "6 anni", "7 anni"],
+      "corretta": 0,
       "punti": 300,
       "timerSecondi": 10
+    }
+  ],
+  "stima": [
+    {
+      "id": "stima_1",
+      "domanda": "Quanto è alta la Torre di Pisa (in metri)?",
+      "corretta": "57",
+      "punti": 200,
+      "modalita": "stima"
+    },
+    {
+      "id": "stima_2",
+      "domanda": "Quanti comuni ci sono in Italia (al 2024 circa)?",
+      "corretta": "7896",
+      "punti": 200,
+      "modalita": "stima"
+    }
+  ],
+  "anagramma": [
+    {
+      "id": "ana_1",
+      "domanda": "ANAGRAMMA: A T T O R E",
+      "risposte": ["TEATRO"],
+      "corretta": 0,
+      "punti": 150,
+      "modalita": "anagramma"
+    },
+    {
+      "id": "ana_2",
+      "domanda": "ANAGRAMMA: M A R E",
+      "risposte": ["RAME", "ARME", "MERA"],
+      "corretta": 0,
+      "punti": 150,
+      "modalita": "anagramma"
     }
   ]
 }

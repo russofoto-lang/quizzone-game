@@ -9,8 +9,16 @@
 <body class="bg-gray-800 p-2 h-screen flex flex-col text-sm">
 
     <div class="flex justify-between items-center bg-white p-2 rounded mb-2 shadow">
-        <h1 class="font-bold text-gray-800 text-lg">🎛️ REGIA</h1>
-        <div id="status" class="font-bold text-red-500 uppercase text-xs">Offline</div>
+        <h1 class="font-bold text-gray-800 text-lg">🎛️ REGIA MASTER</h1>
+        <div class="flex gap-4">
+            <div class="bg-gray-200 rounded px-2 py-1 flex gap-2 items-center">
+                <span class="font-bold text-xs text-gray-600">DISPLAY:</span>
+                <button onclick="regia('logo')" class="bg-gray-600 text-white px-2 py-1 rounded text-xs hover:bg-gray-700">⬛ LOGO</button>
+                <button onclick="regia('classifica')" class="bg-yellow-600 text-white px-2 py-1 rounded text-xs hover:bg-yellow-700">🏆 CLASSIFICA</button>
+                <button onclick="regia('gioco')" class="bg-blue-600 text-white px-2 py-1 rounded text-xs hover:bg-blue-700">🎮 GIOCO</button>
+            </div>
+            <div id="status" class="font-bold text-red-500 uppercase text-xs pt-2">Offline</div>
+        </div>
     </div>
 
     <div class="grid grid-cols-12 gap-2 flex-1 overflow-hidden">
@@ -44,16 +52,18 @@
             
             <div class="flex-1 overflow-y-auto bg-black/50 rounded p-1 mb-2">
                 <table class="w-full text-left text-xs text-gray-300">
-                    <tbody id="round-table"></tbody>
+                    <tbody id="round-table">
+                         <div class="text-center p-4 text-gray-500 italic">Pronto per iniziare...</div>
+                    </tbody>
                 </table>
             </div>
 
             <div class="grid grid-cols-2 gap-2">
-                <button onclick="rivela()" class="bg-yellow-600 text-white py-3 rounded font-bold hover:bg-yellow-500">
+                <button onclick="rivela()" class="bg-yellow-600 text-white py-3 rounded font-bold hover:bg-yellow-500 border-b-4 border-yellow-800 active:border-b-0">
                     👁️ SVELA RISPOSTA
                 </button>
-                <button onclick="assegnaAuto()" class="bg-green-600 text-white py-3 rounded font-bold hover:bg-green-500 animate-pulse">
-                    🏆 ASSEGNA PUNTI (AUTO)
+                <button onclick="assegnaAuto()" class="bg-green-600 text-white py-3 rounded font-bold hover:bg-green-500 animate-pulse border-b-4 border-green-800 active:border-b-0">
+                    🏆 ASSEGNA PUNTI
                 </button>
             </div>
         </div>
@@ -64,6 +74,9 @@
                 <table class="w-full text-xs">
                     <tbody id="team-list"></tbody>
                 </table>
+            </div>
+            <div class="mt-2 pt-2 border-t text-center">
+                 <p class="text-[10px] text-gray-400">Clicca +50 per bonus manuali</p>
             </div>
         </div>
     </div>
@@ -76,7 +89,7 @@
 
         socket.on('connect', () => {
             document.getElementById('status').innerText = "ONLINE";
-            document.getElementById('status').className = "font-bold text-green-500 uppercase text-xs";
+            document.getElementById('status').className = "font-bold text-green-500 uppercase text-xs pt-2";
             socket.emit('admin_connect');
         });
 
@@ -96,33 +109,27 @@
             });
         });
 
-        // UPDATE TABELLA LIVE
         socket.on('update_round_monitor', (answers) => {
             const tbody = document.getElementById('round-table');
             tbody.innerHTML = '';
             answers.forEach((entry, idx) => {
                 const color = entry.corretta ? 'text-green-400 font-bold' : 'text-red-400';
                 const pos = idx + 1;
-                let bonus = "";
-                if(entry.corretta) {
-                    if(pos === 1) bonus = "<span class='text-yellow-400'>[150pt]</span>";
-                    else if(pos === 2) bonus = "<span class='text-gray-400'>[125pt]</span>";
-                    else bonus = "<span class='text-green-600'>[100pt]</span>";
-                }
+                let bonus = entry.corretta ? (pos === 1 ? '[150]' : (pos===2 ? '[125]' : '[100]')) : '';
                 
                 tbody.innerHTML += `
                     <tr class="border-b border-gray-800">
                         <td class="p-2 text-white">${pos}. ${entry.teamName}</td>
                         <td class="p-2 ${color}">${entry.risposta}</td>
                         <td class="p-2 text-gray-400">${entry.tempo}s</td>
-                        <td class="p-2 text-right">${bonus}</td>
+                        <td class="p-2 text-right text-xs text-yellow-500">${bonus}</td>
                     </tr>`;
             });
         });
 
         socket.on('reset_round_monitor', () => {
-            document.getElementById('round-table').innerHTML = '<div class="text-center p-4 text-gray-500">Attendo risposte...</div>';
-            document.getElementById('timer-badge').innerText = "GARA APERTA";
+            document.getElementById('round-table').innerHTML = '<div class="text-center p-4 text-gray-500">Gara in corso...</div>';
+            document.getElementById('timer-badge').innerText = "LIVE";
             document.getElementById('timer-badge').className = "bg-green-600 px-2 rounded text-xs animate-pulse text-white";
         });
 
@@ -136,7 +143,14 @@
             const list = document.getElementById('team-list');
             list.innerHTML = '';
             teams.forEach(t => {
-                list.innerHTML += `<tr class="border-b"><td class="py-1 font-bold">${t.name}</td><td class="text-right text-blue-600 font-bold">${t.score}</td></tr>`;
+                list.innerHTML += `
+                <tr class="border-b group hover:bg-gray-100">
+                    <td class="py-1 font-bold">${t.name}</td>
+                    <td class="text-right text-blue-600 font-bold">${t.score}</td>
+                    <td class="text-right w-8 opacity-0 group-hover:opacity-100">
+                        <button onclick="daiPunti('${t.id}', 50)" class="text-[10px] bg-green-200 text-green-800 px-1 rounded">+50</button>
+                    </td>
+                </tr>`;
             });
         }
 
@@ -171,6 +185,8 @@
         }
         function rivela() { socket.emit('rivela_risposta'); }
         function assegnaAuto() { socket.emit('assegna_punti_auto'); }
+        function regia(cmd) { socket.emit('regia_cmd', cmd); }
+        function daiPunti(id, pts) { socket.emit('assegna_punti', { teamId: id, punti: pts }); }
     </script>
 </body>
 </html>

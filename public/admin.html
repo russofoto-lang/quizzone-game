@@ -61,9 +61,24 @@
                     <span id="answers-count" class="text-[10px] bg-gray-800 px-2 py-0.5 rounded text-gray-400">0 risposte</span>
                 </div>
                 <table class="w-full">
+                    <thead class="text-[10px] text-gray-500 border-b border-gray-800">
+                        <tr>
+                            <th class="text-left py-1">SQUADRA</th>
+                            <th class="text-left px-2">RISPOSTA</th>
+                            <th class="text-right">TEMPO</th>
+                            <th class="text-right pr-2">PUNTI</th>
+                        </tr>
+                    </thead>
                     <tbody id="round-table" class="text-sm">
-                        </tbody>
+                    </tbody>
                 </table>
+                
+                <!-- BOTTONE MOSTRA SOLUZIONE -->
+                <div id="show-solution-btn" class="hidden mt-3">
+                    <button onclick="mostraSoluzioneSuDisplay()" class="w-full bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-500 hover:to-orange-500 text-white py-3 rounded font-black uppercase shadow-lg text-sm">
+                        📺 Mostra Soluzione su Display
+                    </button>
+                </div>
             </div>
 
             <div class="grid grid-cols-2 gap-2 mt-2 pt-2 border-t border-gray-800">
@@ -131,15 +146,25 @@
             const table = document.getElementById('round-table');
             document.getElementById('answers-count').innerText = `${data.length} risposte`;
             table.innerHTML = '';
+            
             data.forEach((res) => {
                 const bg = res.corretta ? 'text-green-400' : 'text-red-400';
+                const punti = res.punti || 0;
+                const puntiColor = res.corretta ? 'text-green-400' : 'text-gray-600';
+                
                 table.innerHTML += `
                     <tr class="border-b border-gray-800 animate-in fade-in duration-300">
                         <td class="py-2 font-bold">${res.teamName}</td>
                         <td class="px-2 font-mono ${bg}">${res.corretta ? '✅' : '❌'} ${res.risposta}</td>
                         <td class="text-right text-gray-500 text-[10px]">${res.tempo}s</td>
+                        <td class="text-right font-black text-sm ${puntiColor} pr-2">${res.corretta ? '+' : ''}${punti}</td>
                     </tr>`;
             });
+            
+            // Mostra bottone "Mostra Soluzione" se ci sono risposte
+            if(data.length > 0) {
+                document.getElementById('show-solution-btn').classList.remove('hidden');
+            }
         });
 
         socket.on('reset_round_monitor', () => {
@@ -147,6 +172,7 @@
             document.getElementById('answers-count').innerText = "0 risposte";
             document.getElementById('buzzer-alert').classList.add('hidden');
             document.getElementById('classic-monitor').classList.remove('hidden');
+            document.getElementById('show-solution-btn').classList.add('hidden');
         });
 
         // Gestione Buzzer
@@ -190,6 +216,18 @@
         function regia(v) { socket.emit('regia_cmd', v); }
         function punti(id, p) { socket.emit('admin_punti_manuali', {id: id, punti: p}); }
         function resetGame() { if(confirm("Vuoi resettare tutti i punteggi e le squadre?")) socket.emit('reset_game'); }
+        
+        // Mostra la soluzione sul display
+        function mostraSoluzioneSuDisplay() {
+            if(selectedQ && selectedQ.corretta !== undefined) {
+                let soluzione = selectedQ.corretta;
+                // Se corretta è un numero, mostra la risposta testuale
+                if(typeof selectedQ.corretta === 'number' && selectedQ.risposte) {
+                    soluzione = selectedQ.risposte[selectedQ.corretta];
+                }
+                socket.emit('regia_cmd', 'classifica_round');
+            }
+        }
     </script>
 </body>
 </html>

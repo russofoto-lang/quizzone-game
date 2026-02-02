@@ -153,8 +153,16 @@ io.on('connection', (socket) => {
         gameState.buzzerQueue = [];
         io.to('admin').emit('reset_buzzer_admin');
     }
-  });
+});  // <--- Qui chiude il handler buzzer_correct_assign
 
+// Aggiungi questo handler PER MOSTRARE LA SOLUZIONE SUL DISPLAY - SEPARATO!
+socket.on('mostra_soluzione', (data) => {
+    // Inoltra a tutti i display/client per mostrare la soluzione
+    io.emit('mostra_soluzione', { 
+        soluzione: data.soluzione, 
+        risultati: gameState.roundAnswers 
+    });
+});
   // Chiudi il buzzer manualmente
   socket.on('buzzer_close', () => {
     gameState.buzzerLocked = true;

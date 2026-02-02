@@ -26,8 +26,8 @@ let gameState = {
   currentQuestion: null, 
   questionStartTime: 0,
   roundAnswers: [], 
-  buzzerQueue: [],      // Coda ordinata di chi ha premuto
-  buzzerLocked: true    // Parte bloccato
+  buzzerQueue: [],      
+  buzzerLocked: true    
 };
 
 app.use(express.static('public'));
@@ -58,7 +58,7 @@ io.on('connection', (socket) => {
 
   // --- REGIA ---
   socket.on('regia_cmd', (cmd) => {
-      // cmd: 'logo', 'game', 'classifica_gen', 'classifica_round'
+      // Invia sempre i dati aggiornati del round quando si chiede il podio
       if(cmd === 'classifica_round') {
           io.emit('cambia_vista', { view: 'classifica_round', data: gameState.roundAnswers });
       } else {
@@ -72,32 +72,23 @@ io.on('connection', (socket) => {
     gameState.questionStartTime = Date.now();
     gameState.roundAnswers = [];
     gameState.buzzerQueue = [];
-    
-    // Se è buzzer, parte BLOCCATO (lo sblocca l'admin o automatico se preferisci)
-    // Se è classico, parte sbloccato
     gameState.buzzerLocked = (dati.modalita === 'buzzer'); 
 
     io.emit('cambia_vista', { view: 'game' });
     io.emit('nuova_domanda', dati);
-    
-    // Aggiorna stato lucchetto client
     io.emit('stato_buzzer', { locked: gameState.buzzerLocked }); 
     io.to('admin').emit('reset_round_monitor');
   });
 
-  // --- GESTIONE BUZZER LOCK ---
   socket.on('toggle_buzzer_lock', (stato) => {
-      // stato: true (blocca), false (sblocca/via)
       gameState.buzzerLocked = stato;
       io.emit('stato_buzzer', { locked: stato });
   });
 
   // --- PRENOTAZIONE BUZZER ---
   socket.on('prenoto', () => {
-    // Accetta solo se sbloccato e se squadra esiste
     if (!gameState.buzzerLocked && gameState.teams[socket.id]) {
       
-      // Aggiungi in coda se non c'è
       if(!gameState.buzzerQueue.find(p => p.id === socket.id)) {
           gameState.buzzerQueue.push({ 
               id: socket.id, 
@@ -105,70 +96,96 @@ io.on('connection', (socket) => {
           });
       }
 
-      // Se è il PRIMO, diventa il vincitore temporaneo
       if (gameState.buzzerQueue.length === 1) {
-          // Blocchiamo temporaneamente gli altri (lato visuale) ma la coda continua a riempirsi in background se arrivano millesimi dopo
-          // Per semplicità di gioco: Blocchiamo tutto
           gameState.buzzerLocked = true; 
-          io.emit('stato_buzzer', { locked: true }); // Tutti pulsanti grigi
+          io.emit('stato_buzzer', { locked: true }); 
           
           const winner = gameState.buzzerQueue[0];
-          io.emit('buzzer_vinto_display', { winner: winner.name }); // Display mostra nome
-          io.to(winner.id).emit('prenotazione_vinta'); // Giocatore vede "Tocca a te"
-          io.to('admin').emit('buzzer_admin_alert', { winner: winner.name, queueLen: gameState.buzzerQueue.length });
+          
+          // TROVA LA SOLUZIONE DA MANDARE ALL'ADMIN
+          let solText = "";
+          if(gameState.currentQuestion) {
+             const q = gameState.currentQuestion;
+             if(typeof q.corretta === 'number' && q.risposte) solText = q.risposte[q.corretta];
+             else solText = q.corretta;
+          }
+
+          io.emit('buzzer_vinto_display', { winner: winner.name });
+          io.to(winner.id).emit('prenotazione_vinta'); 
+          
+          // Manda all'admin anche la soluzione!
+          io.to('admin').emit('buzzer_admin_alert', { 
+              winner: winner.name, 
+              queueLen: gameState.buzzerQueue.length,
+              correctAnswer: solText 
+          });
       }
     }
   });
 
-  // --- BUZZER: RISPOSTA SBAGLIATA (NEXT) ---
+  // --- BUZZER: RISPOSTA SBAGLIATA ---
   socket.on('buzzer_wrong_next', () => {
-      // Rimuovi il primo
       gameState.buzzerQueue.shift();
 
       if(gameState.buzzerQueue.length > 0) {
-          // C'è un secondo!
           const next = gameState.buzzerQueue[0];
+          
+          // Ricalcola soluzione per sicurezza
+          let solText = "";
+          if(gameState.currentQuestion) {
+             const q = gameState.currentQuestion;
+             solText = (typeof q.corretta === 'number' && q.risposte) ? q.risposte[q.corretta] : q.corretta;
+          }
+
           io.emit('buzzer_vinto_display', { winner: next.name });
           io.to(next.id).emit('prenotazione_vinta');
-          io.to('admin').emit('buzzer_admin_alert', { winner: next.name, queueLen: gameState.buzzerQueue.length });
+          
+          io.to('admin').emit('buzzer_admin_alert', { 
+              winner: next.name, 
+              queueLen: gameState.buzzerQueue.length,
+              correctAnswer: solText
+          });
       } else {
-          // Coda finita: riapri il buzzer per tutti? o chiudi round?
-          // Riapriamo per permettere ad altri di prenotarsi
           gameState.buzzerLocked = false;
           io.emit('stato_buzzer', { locked: false });
-          io.emit('reset_buzzer_display'); // Pulisci nome dal display
-          io.to('admin').emit('reset_buzzer_admin'); // Pulisci alert admin
+          io.emit('reset_buzzer_display'); 
+          io.to('admin').emit('reset_buzzer_admin'); 
       }
   });
 
-  // --- BUZZER: RISPOSTA CORRETTA (Admin da punti) ---
+  // --- BUZZER: RISPOSTA CORRETTA ---
   socket.on('buzzer_correct_assign', (data) => {
-      // data: { points: 100 }
       if(gameState.buzzerQueue.length > 0) {
           const winner = gameState.buzzerQueue[0];
           
-          // Assegna punti
           if(gameState.teams[winner.id]) gameState.teams[winner.id].score += parseInt(data.points);
           
-          // Salva nel round per la classifica round
+          // *** FIX PODIO: Salviamo il vincitore nella storia del round ***
           gameState.roundAnswers.push({
               teamName: winner.name,
-              risposta: "(Buzzer)",
+              risposta: "Buzzer Vinto",
               corretta: true,
-              tempo: "0.00",
+              tempo: "0.00", // Tempo simbolico per buzzer
               punti: data.points
           });
 
           io.emit('update_teams', Object.values(gameState.teams));
-          io.emit('mostra_soluzione', { soluzione: "BUZZER CORRETTO!", risultati: gameState.roundAnswers });
           
-          // Pulisci tutto
+          // Mostra soluzione su display
+          let solText = "RISPOSTA CORRETTA!";
+          if(gameState.currentQuestion) {
+              const q = gameState.currentQuestion;
+              solText = (typeof q.corretta === 'number' && q.risposte) ? q.risposte[q.corretta] : q.corretta;
+          }
+
+          io.emit('mostra_soluzione', { soluzione: solText, risultati: gameState.roundAnswers });
+          
           gameState.buzzerQueue = [];
           io.to('admin').emit('reset_buzzer_admin');
       }
   });
 
-  // --- RISPOSTE TESTUALI (Quiz Classico) ---
+  // --- RISPOSTE QUIZ CLASSICO ---
   socket.on('invia_risposta', (risp) => {
       const team = gameState.teams[socket.id];
       if(!team || !gameState.currentQuestion) return;
@@ -194,6 +211,8 @@ io.on('connection', (socket) => {
       if (!gameState.currentQuestion) return;
       const q = gameState.currentQuestion;
       let text = typeof q.corretta==='number'&&q.risposte ? q.risposte[q.corretta] : q.corretta;
+      
+      // Manda anche i risultati aggiornati
       io.emit('mostra_soluzione', { soluzione: text, risultati: gameState.roundAnswers });
   });
 

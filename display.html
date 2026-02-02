@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Il Quizzone - Display</title>
+  <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      overflow: hidden;
+    }
+    
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-50px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+    
+    .slide-in {
+      animation: slideIn 0.5s ease-out;
+    }
+    
+    .fade-in {
+      animation: fadeIn 0.3s ease-in;
+    }
+    
+    .pulse-timer {
+      animation: pulse 1s ease-in-out infinite;
+    }
+    
+    @keyframes progressBar {
+      from { width: 100%; }
+      to { width: 0%; }
+    }
+    
+    .answer-button {
+      transition: all 0.3s ease;
+    }
+    
+    .answer-button:hover {
+      transform: scale(1.02);
+    }
+    
+    @keyframes countdown {
+      0% { background-color: rgb(34 197 94); }
+      50% { background-color: rgb(234 179 8); }
+      100% { background-color: rgb(239 68 68); }
+    }
+    
+    .countdown-critical {
+      animation: countdown 1s ease-in-out infinite;
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900 min-h-screen flex items-center justify-center p-8">
+  
+  <div id="app" class="w-full max-w-7xl">
+    <!-- Schermata di Attesa -->
+    <div id="waiting-screen" class="text-center">
+      <div class="mb-12">
+        <h1 class="text-8xl font-bold text-white mb-6 slide-in">🎮 IL QUIZZONE</h1>
+        <p class="text-4xl text-purple-300 fade-in">In attesa della prossima domanda...</p>
+      </div>
+      
+      <!-- Classifica -->
+      <div id="leaderboard-waiting" class="bg-white/10 backdrop-blur-lg rounded-3xl p-12 max-w-4xl mx-auto">
+        <h2 class="text-5xl font-bold text-white mb-8">🏆 CLASSIFICA</h2>
+        <div id="leaderboard-content-waiting" class="space-y-4">
+          <!-- Inserito via JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Schermata Domanda -->
+    <div id="question-screen" class="hidden">
+      <!-- Header con modalità -->
+      <div id="mode-header" class="text-center mb-8 slide-in">
+        <div id="mode-badge" class="inline-block bg-white/20 backdrop-blur-lg px-8 py-4 rounded-full">
+          <span id="mode-icon" class="text-5xl"></span>
+          <span id="mode-text" class="text-4xl font-bold text-white ml-4"></span>
+        </div>
+      </div>
+
+      <!-- Progress per Raffica -->
+      <div id="raffica-progress" class="mb-8 hidden">
+        <div class="bg-white/20 backdrop-blur-lg rounded-full p-6 max-w-4xl mx-auto">
+          <div class="flex justify-between items-center mb-4">
+            <span class="text-3xl font-bold text-white" id="raffica-text">⚡ RAFFICA</span>
+            <span class="text-3xl text-white" id="raffica-counter">Domanda 1 di 5</span>
+          </div>
+          <div class="w-full bg-white/30 rounded-full h-6">
+            <div id="raffica-bar" class="bg-gradient-to-r from-orange-500 to-red-500 h-6 rounded-full transition-all duration-500" style="width: 20%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Domanda Principale -->
+      <div class="bg-white/10 backdrop-blur-lg rounded-3xl p-12 mb-8 slide-in">
+        <div class="text-center mb-8">
+          <div id="question-category" class="text-3xl text-purple-300 mb-4"></div>
+          <h2 id="question-text" class="text-6xl font-bold text-white leading-tight">
+            La domanda apparirà qui
+          </h2>
+        </div>
+
+        <!-- Timer -->
+        <div id="timer-container" class="mb-8">
+          <div class="flex justify-center items-center gap-6 mb-4">
+            <span class="text-3xl text-white font-semibold">Tempo rimasto:</span>
+            <span id="timer-display" class="text-7xl font-bold text-green-400">20</span>
+            <span class="text-4xl text-white">secondi</span>
+          </div>
+          <div class="w-full bg-white/30 rounded-full h-4 overflow-hidden">
+            <div id="timer-bar" class="bg-green-500 h-4 rounded-full transition-all duration-1000"></div>
+          </div>
+        </div>
+
+        <!-- Risposte -->
+        <div class="grid grid-cols-2 gap-6">
+          <div id="answer-0" class="answer-button bg-white/90 p-8 rounded-2xl border-4 border-purple-300 cursor-pointer hover:border-purple-500">
+            <div class="text-5xl font-bold text-purple-900 text-center">
+              <span class="block text-3xl mb-2">A</span>
+              <span id="answer-text-0">Risposta A</span>
+            </div>
+          </div>
+          <div id="answer-1" class="answer-button bg-white/90 p-8 rounded-2xl border-4 border-blue-300 cursor-pointer hover:border-blue-500">
+            <div class="text-5xl font-bold text-blue-900 text-center">
+              <span class="block text-3xl mb-2">B</span>
+              <span id="answer-text-1">Risposta B</span>
+            </div>
+          </div>
+          <div id="answer-2" class="answer-button bg-white/90 p-8 rounded-2xl border-4 border-green-300 cursor-pointer hover:border-green-500">
+            <div class="text-5xl font-bold text-green-900 text-center">
+              <span class="block text-3xl mb-2">C</span>
+              <span id="answer-text-2">Risposta C</span>
+            </div>
+          </div>
+          <div id="answer-3" class="answer-button bg-white/90 p-8 rounded-2xl border-4 border-orange-300 cursor-pointer hover:border-orange-500">
+            <div class="text-5xl font-bold text-orange-900 text-center">
+              <span class="block text-3xl mb-2">D</span>
+              <span id="answer-text-3">Risposta D</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Classifica Bottom -->
+      <div id="leaderboard-bottom" class="bg-white/10 backdrop-blur-lg rounded-3xl p-8 fade-in">
+        <h3 class="text-4xl font-bold text-white mb-6 text-center">🏆 TOP 5</h3>
+        <div id="leaderboard-content-bottom" class="grid grid-cols-5 gap-4">
+          <!-- Inserito via JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Schermata Risultati Raffica -->
+    <div id="raffica-results-screen" class="hidden text-center">
+      <div class="slide-in">
+        <h2 class="text-8xl font-bold text-white mb-8">🏁 RAFFICA COMPLETATA!</h2>
+        <div class="bg-white/10 backdrop-blur-lg rounded-3xl p-12 max-w-5xl mx-auto">
+          <div id="raffica-results-content" class="space-y-6">
+            <!-- Risultati inseriti via JS -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Schermata Buzzer -->
+    <div id="buzzer-screen" class="hidden text-center">
+      <div id="buzzer-waiting" class="slide-in">
+        <h2 class="text-7xl font-bold text-white mb-12">🔔 BUZZER GAME</h2>
+        <div class="bg-white/10 backdrop-blur-lg rounded-3xl p-12 mb-8">
+          <h3 id="buzzer-question" class="text-5xl font-bold text-white mb-8">
+            Chi ha inventato il telefono?
+          </h3>
+        </div>
+        <div class="text-8xl mb-8 pulse-timer">⏳</div>
+        <p class="text-4xl text-purple-300">In attesa del primo buzzer...</p>
+      </div>
+
+      <div id="buzzer-locked" class="hidden slide-in">
+        <h2 class="text-7xl font-bold text-white mb-12">🔔 BUZZER PREMUTO!</h2>
+        <div class="bg-yellow-400/90 backdrop-blur-lg rounded-3xl p-12 border-8 border-yellow-600">
+          <div class="text-8xl mb-6">⚡</div>
+          <h3 id="buzzer-team" class="text-7xl font-bold text-yellow-900 mb-4">
+            SQUADRA X
+          </h3>
+          <p class="text-4xl text-yellow-800">Ha premuto il buzzer!</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const socket = io();
+    
+    let currentMode = null;
+    let currentQuestion = null;
+    let timerInterval = null;
+    let timeLeft = 20;
+    let maxTime = 20;
+    let scores = {};
+
+    // Elements
+    const waitingScreen = document.getElementById('waiting-screen');
+    const questionScreen = document.getElementById('question-screen');
+    const rafficaResultsScreen = document.getElementById('raffica-results-screen');
+    const buzzerScreen = document.getElementById('buzzer-screen');
+    const rafficaProgress = document.getElementById('raffica-progress');
+    
+    function hideAllScreens() {
+      waitingScreen.classList.add('hidden');
+      questionScreen.classList.add('hidden');
+      rafficaResultsScreen.classList.add('hidden');
+      buzzerScreen.classList.add('hidden');
+    }
+
+    function showWaitingScreen() {
+      hideAllScreens();
+      waitingScreen.classList.remove('hidden');
+      updateLeaderboard('leaderboard-content-waiting', true);
+    }
+
+    function showQuestionScreen() {
+      hideAllScreens();
+      questionScreen.classList.remove('hidden');
+      // Trigger animation
+      questionScreen.querySelectorAll('.slide-in, .fade-in').forEach(el => {
+        el.style.animation = 'none';
+        setTimeout(() => el.style.animation = '', 10);
+      });
+    }
+
+    function updateLeaderboard(containerId, isLarge = false) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+
+      const scoresList = Object.entries(scores)
+        .map(([id, score]) => ({ id, score }))
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 5);
+
+      if (scoresList.length === 0) {
+        container.innerHTML = '<p class="text-2xl text-white/60">Nessun punteggio ancora</p>';
+        return;
+      }
+
+      if (isLarge) {
+        // Formato grande per schermata attesa
+        container.innerHTML = scoresList.map((team, idx) => {
+          const medals = ['🥇', '🥈', '🥉'];
+          const colors = [
+            'from-yellow-400 to-amber-500',
+            'from-gray-300 to-gray-400',
+            'from-orange-400 to-orange-500'
+          ];
+          
+          return `
+            <div class="bg-gradient-to-r ${colors[idx] || 'from-purple-400 to-purple-500'} rounded-2xl p-8 flex justify-between items-center">
+              <div class="flex items-center gap-6">
+                <span class="text-6xl">${medals[idx] || `${idx + 1}.`}</span>
+                <span class="text-4xl font-bold text-white">Squadra ${idx + 1}</span>
+              </div>
+              <span class="text-6xl font-bold text-white">${team.score}</span>
+            </div>
+          `;
+        }).join('');
+      } else {
+        // Formato compatto per bottom
+        container.innerHTML = scoresList.map((team, idx) => {
+          const medals = ['🥇', '🥈', '🥉'];
+          return `
+            <div class="bg-white/20 rounded-xl p-4 text-center">
+              <div class="text-4xl mb-2">${medals[idx] || `${idx + 1}.`}</div>
+              <div class="text-2xl font-bold text-white">${team.score}</div>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+    function updateModeHeader(mode) {
+      const modeIcons = {
+        'classico': '📝',
+        'raffica': '⚡',
+        'buzzer': '🔔',
+        'bonus': '💰'
+      };
+      
+      const modeNames = {
+        'classico': 'QUIZ CLASSICO',
+        'raffica': 'SFIDA A RAFFICA',
+        'buzzer': 'BUZZER GAME',
+        'bonus': 'DOMANDA BONUS'
+      };
+
+      document.getElementById('mode-icon').textContent = modeIcons[mode] || '🎮';
+      document.getElementById('mode-text').textContent = modeNames[mode] || 'QUIZ';
+    }
+
+    function startTimer(seconds) {
+      maxTime = seconds;
+      timeLeft = seconds;
+      
+      const timerDisplay = document.getElementById('timer-display');
+      const timerBar = document.getElementById('timer-bar');
+      const timerContainer = document.getElementById('timer-container');
+      
+      if (timerInterval) clearInterval(timerInterval);
+      
+      timerBar.style.width = '100%';
+      timerBar.classList.remove('countdown-critical');
+      timerBar.classList.add('bg-green-500');
+      
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        timerDisplay.textContent = timeLeft;
+        timerBar.style.width = `${(timeLeft / maxTime) * 100}%`;
+        
+        // Cambio colore
+        if (timeLeft <= 5) {
+          timerBar.classList.remove('bg-green-500', 'bg-yellow-500');
+          timerBar.classList.add('bg-red-500', 'countdown-critical');
+          timerDisplay.classList.add('pulse-timer');
+        } else if (timeLeft <= 10) {
+          timerBar.classList.remove('bg-green-500');
+          timerBar.classList.add('bg-yellow-500');
+        }
+        
+        if (timeLeft <= 0) {
+          clearInterval(timerInterval);
+          timerDisplay.textContent = '0';
+        }
+      }, 1000);
+    }
+
+    function stopTimer() {
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      }
+    }
+
+    function getCategoryEmoji(cat) {
+      const emojis = {
+        'cultura_generale': '📚',
+        'storia': '📜',
+        'sport': '⚽',
+        'gossip': '💬',
+        'cinema': '🎬',
+        'musica': '🎵',
+        'geografia': '🌍'
+      };
+      return emojis[cat] || '❓';
+    }
+
+    // Socket events
+    socket.on('new_question', (question) => {
+      currentMode = 'classico';
+      currentQuestion = question;
+      rafficaProgress.classList.add('hidden');
+      
+      updateModeHeader('classico');
+      showQuestionScreen();
+      
+      document.getElementById('question-category').textContent = 
+        question.categoria ? `${getCategoryEmoji(question.categoria)} ${question.categoria.replace('_', ' ').toUpperCase()}` : '';
+      document.getElementById('question-text').textContent = question.domanda;
+      
+      question.risposte.forEach((resp, idx) => {
+        document.getElementById(`answer-text-${idx}`).textContent = resp;
+        document.getElementById(`answer-${idx}`).className = 'answer-button bg-white/90 p-8 rounded-2xl border-4 border-purple-300';
+      });
+      
+      startTimer(20);
+      updateLeaderboard('leaderboard-content-bottom', false);
+    });
+
+    socket.on('bonus_question', (question) => {
+      currentMode = 'bonus';
+      currentQuestion = question;
+      rafficaProgress.classList.add('hidden');
+      
+      updateModeHeader('bonus');
+      showQuestionScreen();
+      
+      // Sfondo dorato per bonus
+      questionScreen.querySelector('.bg-white\\/10').classList.add('!bg-gradient-to-br', 'from-yellow-400/20', 'to-amber-500/20');
+      
+      document.getElementById('question-category').textContent = '💰 DOMANDA BONUS - ' + question.punti + ' PUNTI';
+      document.getElementById('question-text').textContent = question.domanda;
+      
+      question.risposte.forEach((resp, idx) => {
+        document.getElementById(`answer-text-${idx}`).textContent = resp;
+      });
+      
+      startTimer(question.timerSecondi || 10);
+      updateLeaderboard('leaderboard-content-bottom', false);
+    });
+
+    socket.on('raffica_question', (data) => {
+      currentMode = 'raffica';
+      currentQuestion = data;
+      
+      updateModeHeader('raffica');
+      rafficaProgress.classList.remove('hidden');
+      showQuestionScreen();
+      
+      document.getElementById('raffica-counter').textContent = `Domanda ${data.index + 1} di ${data.total}`;
+      document.getElementById('raffica-bar').style.width = `${((data.index + 1) / data.total) * 100}%`;
+      
+      document.getElementById('question-category').textContent = '⚡ RAFFICA - RISPOSTA RAPIDA';
+      document.getElementById('question-text').textContent = data.domanda;
+      
+      data.risposte.forEach((resp, idx) => {
+        document.getElementById(`answer-text-${idx}`).textContent = resp;
+      });
+      
+      startTimer(15);
+      updateLeaderboard('leaderboard-content-bottom', false);
+    });
+
+    socket.on('buzzer_question', (question) => {
+      currentMode = 'buzzer';
+      currentQuestion = question;
+      hideAllScreens();
+      buzzerScreen.classList.remove('hidden');
+      
+      document.getElementById('buzzer-question').textContent = question.domanda;
+      document.getElementById('buzzer-waiting').classList.remove('hidden');
+      document.getElementById('buzzer-locked').classList.add('hidden');
+    });
+
+    socket.on('buzzer_locked', (data) => {
+      document.getElementById('buzzer-waiting').classList.add('hidden');
+      document.getElementById('buzzer-locked').classList.remove('hidden');
+      document.getElementById('buzzer-team').textContent = data.teamName;
+    });
+
+    socket.on('question_results', (data) => {
+      stopTimer();
+      
+      // Evidenzia risposta corretta
+      document.getElementById(`answer-${data.correctAnswer}`).className = 
+        'answer-button bg-green-500 p-8 rounded-2xl border-4 border-green-700 scale-105';
+      
+      setTimeout(() => {
+        scores = data.scores;
+        updateLeaderboard('leaderboard-content-bottom', false);
+      }, 1000);
+      
+      // Torna alla schermata attesa dopo 5 secondi
+      setTimeout(() => {
+        showWaitingScreen();
+      }, 5000);
+    });
+
+    socket.on('raffica_results', (data) => {
+      stopTimer();
+      scores = data.scores;
+      
+      hideAllScreens();
+      rafficaResultsScreen.classList.remove('hidden');
+      
+      const resultsContent = document.getElementById('raffica-results-content');
+      resultsContent.innerHTML = data.results.map((res, idx) => {
+        const medals = ['🥇', '🥈', '🥉'];
+        return `
+          <div class="bg-gradient-to-r from-orange-400/80 to-red-500/80 rounded-2xl p-8">
+            <div class="flex justify-between items-center">
+              <div class="text-left">
+                <div class="text-5xl mb-2">${medals[idx] || `${idx + 1}.`}</div>
+                <div class="text-4xl font-bold text-white mb-2">Squadra ${idx + 1}</div>
+                <div class="text-2xl text-white/90">${res.correctCount}/5 corrette • ${res.avgTime}s medio</div>
+              </div>
+              <div class="text-6xl font-bold text-white">+${res.points}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+      
+      setTimeout(() => {
+        showWaitingScreen();
+      }, 8000);
+    });
+
+    socket.on('buzzer_results', (data) => {
+      scores = data.scores;
+      setTimeout(() => {
+        showWaitingScreen();
+      }, 3000);
+    });
+
+    socket.on('scores_update', (scoresData) => {
+      scores = scoresData;
+      updateLeaderboard('leaderboard-content-waiting', true);
+      updateLeaderboard('leaderboard-content-bottom', false);
+    });
+
+    socket.on('game_reset', () => {
+      scores = {};
+      showWaitingScreen();
+    });
+
+    // Inizializza
+    showWaitingScreen();
+  </script>
+</body>
+</html>

@@ -1,0 +1,296 @@
+{
+  "categorie": {
+    "cultura_generale": [
+      {
+        "id": 1,
+        "domanda": "Qual è la capitale della Francia?",
+        "risposte": ["Lione", "Marsiglia", "Parigi", "Nizza"],
+        "corretta": 2,
+        "punti": 100,
+        "categoria": "cultura_generale"
+      },
+      {
+        "id": 2,
+        "domanda": "Quanti continenti ci sono?",
+        "risposte": ["5", "6", "7", "8"],
+        "corretta": 2,
+        "punti": 100,
+        "categoria": "cultura_generale"
+      },
+      {
+        "id": 3,
+        "domanda": "Chi ha inventato il telefono?",
+        "risposte": ["Thomas Edison", "Alexander Graham Bell", "Nikola Tesla", "Guglielmo Marconi"],
+        "corretta": 1,
+        "punti": 100,
+        "categoria": "cultura_generale"
+      }
+    ],
+    "storia": [
+      {
+        "id": 10,
+        "domanda": "In che anno è caduto il muro di Berlino?",
+        "risposte": ["1987", "1989", "1991", "1993"],
+        "corretta": 1,
+        "punti": 100,
+        "categoria": "storia"
+      },
+      {
+        "id": 11,
+        "domanda": "In che anno l'uomo è sbarcato sulla Luna?",
+        "risposte": ["1965", "1967", "1969", "1971"],
+        "corretta": 2,
+        "punti": 100,
+        "categoria": "storia"
+      },
+      {
+        "id": 12,
+        "domanda": "Chi ha scoperto l'America?",
+        "risposte": ["Amerigo Vespucci", "Cristoforo Colombo", "Marco Polo", "Ferdinando Magellano"],
+        "corretta": 1,
+        "punti": 100,
+        "categoria": "storia"
+      },
+      {
+        "id": 13,
+        "domanda": "In che anno è iniziata la Prima Guerra Mondiale?",
+        "risposte": ["1912", "1914", "1916", "1918"],
+        "corretta": 1,
+        "punti": 100,
+        "categoria": "storia"
+      }
+    ],
+    "sport": [
+      {
+        "id": 20,
+        "domanda": "Quanti giocatori ci sono in una squadra di calcio in campo?",
+        "risposte": ["9", "10", "11", "12"],
+        "corretta": 2,
+        "punti": 100,
+        "categoria": "sport"
+      },
+      {
+        "id": 21,
+        "domanda": "In che sport si usa la racchetta?",
+        "risposte": ["Calcio", "Tennis", "Nuoto", "Atletica"],
+        "corretta": 1,
+        "punti": 100,
+        "categoria": "sport"
+      },
+      {
+        "id": 22,
+        "domanda": "Ogni quanto si svolgono le Olimpiadi estive?",
+        "risposte": ["2 anni", "3 anni", "4 anni", "5 anni"],
+        "corretta": 2,
+        "punti": 100,
+        "categoria": "sport"
+      },
+      {
+        "id": 23,
+        "domanda": "Quale paese ha vinto i Mondiali di calcio 2018?",
+        "risposte": ["Germania", "Francia", "Brasile", "Argentina"],
+        "corretta": 1,
+        "punti": 100,
+        "categoria": "sport"
+      }
+    ],
+    "gossip": [
+      {
+        "id": 30,
+        "domanda": "Chi ha sposato il principe Harry?",
+        "risposte": ["Kate Middleton", "Meghan Markle", "Lady Diana", "Camilla Parker"],
+        "corretta": 1,
+        "punti": 100,
+        "categoria": "gossip"
+      },
+      {
+        "id": 31,
+        "domanda": "Quale cantante è conosciuta come 'Queen Bey'?",
+        "risposte": ["Rihanna", "Beyoncé", "Ariana Grande", "Taylor Swift"],
+        "corretta": 1,
+        "punti": 100,
+        "categoria": "gossip"
+      },
+      {
+        "id": 32,
+        "domanda": "Chi ha interpretato Jack in Titanic?",
+        "risposte": ["Brad Pitt", "Johnny Depp", "Leonardo DiCaprio", "Tom Cruise"],
+        "corretta": 2,
+        "punti": 100,
+        "categoria": "gossip"
+      }
+    ],
+    "cinema": [
+      {
+        "id": 40,
+        "domanda": "Chi ha diretto 'Il Padrino'?",
+        "risposte": ["Martin Scorsese", "Francis Ford Coppola", "Steven Spielberg", "Quentin Tarantino"],
+        "corretta": 1,
+        "punti": 100,
+        "categoria": "cinema"
+      },
+      {
+        "id": 41,
+        "domanda": "In che anno è uscito il primo film di Star Wars?",
+        "risposte": ["1975", "1977", "1979", "1981"],
+        "corretta": 1,
+        "punti": 100,
+        "categoria": "cinema"
+      },
+      {
+        "id": 42,
+        "domanda": "Chi ha interpretato Iron Man nei film Marvel?",
+        "risposte": ["Chris Evans", "Chris Hemsworth", "Robert Downey Jr.", "Mark Ruffalo"],
+        "corretta": 2,
+        "punti": 100,
+        "categoria": "cinema"
+      }
+    ],
+    "musica": [
+      {
+        "id": 50,
+        "domanda": "Chi era il cantante dei Queen?",
+        "risposte": ["David Bowie", "Freddie Mercury", "Mick Jagger", "Elton John"],
+        "corretta": 1,
+        "punti": 100,
+        "categoria": "musica"
+      },
+      {
+        "id": 51,
+        "domanda": "Quale strumento suonava Mozart?",
+        "risposte": ["Violino", "Pianoforte", "Chitarra", "Flauto"],
+        "corretta": 1,
+        "punti": 100,
+        "categoria": "musica"
+      },
+      {
+        "id": 52,
+        "domanda": "In che anno si sono sciolti i Beatles?",
+        "risposte": ["1968", "1970", "1972", "1974"],
+        "corretta": 1,
+        "punti": 100,
+        "categoria": "musica"
+      }
+    ],
+    "geografia": [
+      {
+        "id": 60,
+        "domanda": "Qual è il fiume più lungo d'Italia?",
+        "risposte": ["Tevere", "Po", "Arno", "Adige"],
+        "corretta": 1,
+        "punti": 100,
+        "categoria": "geografia"
+      },
+      {
+        "id": 61,
+        "domanda": "Qual è la montagna più alta del mondo?",
+        "risposte": ["K2", "Monte Bianco", "Everest", "Kilimanjaro"],
+        "corretta": 2,
+        "punti": 100,
+        "categoria": "geografia"
+      },
+      {
+        "id": 62,
+        "domanda": "In quale continente si trova l'Egitto?",
+        "risposte": ["Asia", "Africa", "Europa", "Oceania"],
+        "corretta": 1,
+        "punti": 100,
+        "categoria": "geografia"
+      }
+    ]
+  },
+  "raffica": [
+    {
+      "id": "raffica_1",
+      "nome": "Raffica Cultura Pop",
+      "domande": [
+        {
+          "domanda": "Chi ha cantato 'Thriller'?",
+          "risposte": ["Prince", "Michael Jackson", "Madonna", "Whitney Houston"],
+          "corretta": 1
+        },
+        {
+          "domanda": "Qual è il social network con l'uccellino blu?",
+          "risposte": ["Facebook", "Instagram", "Twitter", "TikTok"],
+          "corretta": 2
+        },
+        {
+          "domanda": "Chi ha scritto Harry Potter?",
+          "risposte": ["J.R.R. Tolkien", "J.K. Rowling", "George R.R. Martin", "Stephen King"],
+          "corretta": 1
+        },
+        {
+          "domanda": "Qual è il pianeta più vicino al Sole?",
+          "risposte": ["Venere", "Mercurio", "Marte", "Terra"],
+          "corretta": 1
+        },
+        {
+          "domanda": "In che città si trova la Torre Eiffel?",
+          "risposte": ["Londra", "Roma", "Parigi", "Madrid"],
+          "corretta": 2
+        }
+      ],
+      "puntiBase": 50,
+      "bonusSerie": 100
+    },
+    {
+      "id": "raffica_2",
+      "nome": "Raffica Sport",
+      "domande": [
+        {
+          "domanda": "Quanti punti vale un canestro da 3 punti nel basket?",
+          "risposte": ["2", "3", "4", "5"],
+          "corretta": 1
+        },
+        {
+          "domanda": "Ogni quanto si svolge la Coppa del Mondo FIFA?",
+          "risposte": ["2 anni", "3 anni", "4 anni", "5 anni"],
+          "corretta": 2
+        },
+        {
+          "domanda": "Quanti set si giocano in una partita di tennis?",
+          "risposte": ["1 o 2", "2 o 3", "3 o 5", "5 o 7"],
+          "corretta": 2
+        },
+        {
+          "domanda": "Quale sport praticava Muhammad Ali?",
+          "risposte": ["Judo", "Boxe", "Wrestling", "Karate"],
+          "corretta": 1
+        },
+        {
+          "domanda": "Quanti giocatori formano una squadra di pallavolo in campo?",
+          "risposte": ["5", "6", "7", "8"],
+          "corretta": 1
+        }
+      ],
+      "puntiBase": 50,
+      "bonusSerie": 100
+    }
+  ],
+  "bonus": [
+    {
+      "id": 100,
+      "domanda": "BONUS: Chi ha dipinto la Cappella Sistina?",
+      "risposte": ["Leonardo da Vinci", "Michelangelo", "Raffaello", "Caravaggio"],
+      "corretta": 1,
+      "punti": 300,
+      "timerSecondi": 10
+    },
+    {
+      "id": 101,
+      "domanda": "BONUS: Quale elemento chimico ha simbolo 'Au'?",
+      "risposte": ["Argento", "Oro", "Alluminio", "Arsenico"],
+      "corretta": 1,
+      "punti": 300,
+      "timerSecondi": 10
+    },
+    {
+      "id": 102,
+      "domanda": "BONUS: Quanti tasti ha un pianoforte?",
+      "risposte": ["76", "78", "86", "88"],
+      "corretta": 3,
+      "punti": 300,
+      "timerSecondi": 10
+    }
+  ]
+}

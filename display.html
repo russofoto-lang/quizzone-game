@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DISPLAY - Il Quizzone</title>
-    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
     <style>
@@ -19,13 +19,12 @@
             <h1 class="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-red-600 drop-shadow-lg">
                 IL QUIZZONE
             </h1>
-            <p id="status-text" class="text-xl text-gray-400 mt-2 animate-pulse">In attesa...</p>
+            <p id="status-text" class="text-xl text-gray-400 mt-2 animate-pulse">Connessione al server...</p>
         </div>
         
         <div class="glass rounded-xl p-4 w-1/4">
             <h3 class="text-sm font-bold text-gray-400 uppercase mb-2 border-b border-gray-600">Top 5 Squadre</h3>
-            <ul id="leaderboard" class="text-sm space-y-2">
-                </ul>
+            <ul id="leaderboard" class="text-sm space-y-2"></ul>
         </div>
     </div>
 
@@ -34,9 +33,7 @@
         <div id="screen-wait" class="text-center w-full">
             <div id="buzzer-winner" class="hidden animate__animated animate__zoomIn">
                 <p class="text-2xl text-red-400 font-bold mb-4">HA PRENOTATO:</p>
-                <div id="winner-name" class="text-8xl font-black text-white bg-red-600 px-12 py-6 rounded-2xl shadow-2xl inline-block">
-                    SQUADRA X
-                </div>
+                <div id="winner-name" class="text-8xl font-black text-white bg-red-600 px-12 py-6 rounded-2xl shadow-2xl inline-block">SQUADRA</div>
             </div>
         </div>
 
@@ -44,7 +41,6 @@
             <div class="glass p-12 rounded-3xl border-t-8 border-blue-500 shadow-2xl animate__animated animate__fadeInUp">
                 <h2 id="cat" class="text-xl font-bold text-blue-400 tracking-widest mb-6">CATEGORIA</h2>
                 <div id="q-text" class="text-5xl font-bold leading-tight mb-10">...</div>
-                
                 <div id="opts" class="grid grid-cols-2 gap-6 text-2xl hidden"></div>
             </div>
 
@@ -58,87 +54,82 @@
     </div>
 
     <script>
-        const socket = io();
+        let socket;
+        try {
+            socket = io();
+        } catch (e) {
+            console.error("Errore Socket:", e);
+        }
 
-        // ELEMENTI DOM
+        // Elementi DOM
         const elWait = document.getElementById('screen-wait');
         const elGame = document.getElementById('screen-game');
         const elBuzzer = document.getElementById('buzzer-winner');
         const elSolution = document.getElementById('solution');
         const elLeaderboard = document.getElementById('leaderboard');
 
-        socket.on('connect', () => {
-            console.log("Display connesso!");
-            socket.emit('display_connect');
-        });
-
-        // NUOVA DOMANDA
-        socket.on('nuova_domanda', (data) => {
-            // Mostra schermata gioco
-            elWait.classList.add('hidden');
-            elBuzzer.classList.add('hidden');
-            elSolution.classList.add('hidden');
-            elGame.classList.remove('hidden');
-
-            // Setta testi
-            document.getElementById('cat').innerText = (data.categoria || "QUIZ").toUpperCase();
-            document.getElementById('q-text').innerText = data.domanda;
-            document.getElementById('status-text').innerText = "Domanda in corso...";
-
-            // Gestione opzioni
-            const optContainer = document.getElementById('opts');
-            optContainer.innerHTML = '';
-            
-            if(data.modalita === 'classico' && data.risposte.length > 0) {
-                optContainer.classList.remove('hidden');
-                data.risposte.forEach(r => {
-                    const div = document.createElement('div');
-                    div.className = "bg-white/10 p-4 rounded-xl border border-white/20";
-                    div.innerText = r;
-                    optContainer.appendChild(div);
-                });
-            } else {
-                optContainer.classList.add('hidden');
-            }
-        });
-
-        // BUZZER PREMUTO
-        socket.on('buzzer_bloccato', (data) => {
-            elGame.classList.add('hidden'); // Nascondi domanda temporaneamente
-            elWait.classList.remove('hidden');
-            elBuzzer.classList.remove('hidden'); // Mostra vinvitore
-            document.getElementById('winner-name').innerText = data.winner;
-            document.getElementById('status-text').innerText = "Buzzer bloccato!";
-        });
-
-        // MOSTRA SOLUZIONE
-        socket.on('mostra_soluzione', (sol) => {
-            elWait.classList.add('hidden');
-            elGame.classList.remove('hidden'); // Ritorna alla domanda
-            elSolution.classList.remove('hidden'); // Appare il box verde sotto
-            document.getElementById('sol-text').innerText = sol;
-            document.getElementById('status-text').innerText = "Fine round.";
-        });
-
-        // AGGIORNA CLASSIFICA
-        socket.on('update_teams', (teams) => {
-            teams.sort((a,b) => b.score - a.score);
-            elLeaderboard.innerHTML = '';
-            
-            teams.slice(0, 5).forEach((t, i) => {
-                const li = document.createElement('li');
-                li.className = "flex justify-between";
-                li.innerHTML = `
-                    <span class="truncate w-32">${i+1}. ${t.name}</span>
-                    <span class="font-bold text-yellow-400">${t.score}</span>
-                `;
-                elLeaderboard.appendChild(li);
+        if(socket) {
+            socket.on('connect', () => {
+                console.log("Display connesso!");
+                document.getElementById('status-text').innerText = "In attesa della regia...";
+                socket.emit('display_connect');
             });
-        });
-        
-        socket.on('reset_buzzer', () => {
-             elBuzzer.classList.add('hidden');
-        });
+
+            socket.on('nuova_domanda', (data) => {
+                elWait.classList.add('hidden');
+                elBuzzer.classList.add('hidden');
+                elSolution.classList.add('hidden');
+                elGame.classList.remove('hidden');
+
+                document.getElementById('cat').innerText = (data.categoria || "QUIZ").toUpperCase();
+                document.getElementById('q-text').innerText = data.domanda;
+                document.getElementById('status-text').innerText = "Domanda in corso...";
+
+                const optContainer = document.getElementById('opts');
+                optContainer.innerHTML = '';
+                
+                if(data.modalita === 'classico' && data.risposte.length > 0) {
+                    optContainer.classList.remove('hidden');
+                    data.risposte.forEach(r => {
+                        const div = document.createElement('div');
+                        div.className = "bg-white/10 p-4 rounded-xl border border-white/20";
+                        div.innerText = r;
+                        optContainer.appendChild(div);
+                    });
+                } else {
+                    optContainer.classList.add('hidden');
+                }
+            });
+
+            socket.on('buzzer_bloccato', (data) => {
+                elGame.classList.add('hidden');
+                elWait.classList.remove('hidden');
+                elBuzzer.classList.remove('hidden');
+                document.getElementById('winner-name').innerText = data.winner;
+                document.getElementById('status-text').innerText = "Buzzer bloccato!";
+            });
+
+            socket.on('mostra_soluzione', (sol) => {
+                elWait.classList.add('hidden');
+                elGame.classList.remove('hidden');
+                elSolution.classList.remove('hidden');
+                document.getElementById('sol-text').innerText = sol;
+                document.getElementById('status-text').innerText = "Fine round.";
+            });
+
+            socket.on('update_teams', (teams) => {
+                teams.sort((a,b) => b.score - a.score);
+                elLeaderboard.innerHTML = '';
+                teams.slice(0, 5).forEach((t, i) => {
+                    const li = document.createElement('li');
+                    li.className = "flex justify-between";
+                    li.innerHTML = `<span class="truncate w-32">${i+1}. ${t.name}</span><span class="font-bold text-yellow-400">${t.score}</span>`;
+                    elLeaderboard.appendChild(li);
+                });
+            });
+
+            socket.on('reset_buzzer', () => { elBuzzer.classList.add('hidden'); });
+        }
     </script>
 </body>
 </html>

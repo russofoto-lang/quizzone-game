@@ -4,10 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ADMIN - Il Quizzone</title>
-    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Stile base per evitare flash bianchi */
         body { background-color: #f3f4f6; }
         .btn { transition: transform 0.1s; }
         .btn:active { transform: scale(0.95); }
@@ -16,8 +15,8 @@
 <body class="p-4">
 
     <div class="mb-6 bg-white p-4 rounded-lg shadow flex justify-between items-center">
-        <h1 class="text-2xl font-bold text-gray-800">🎛️ Pannello di Controllo</h1>
-        <div id="connection-status" class="px-3 py-1 bg-red-500 text-white text-xs rounded-full font-bold uppercase">Disconnesso</div>
+        <h1 class="text-2xl font-bold text-gray-800">🎛️ Pannello Admin</h1>
+        <div id="connection-status" class="px-3 py-1 bg-red-500 text-white text-xs rounded-full font-bold uppercase">Connessione...</div>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -57,7 +56,6 @@
             <div class="bg-white p-6 rounded-lg shadow flex gap-4 items-center justify-between">
                 <div>
                     <h3 class="font-bold text-gray-700">Azioni Gioco</h3>
-                    <p class="text-xs text-gray-500">Gestisci la fase attuale</p>
                 </div>
                 <div class="flex gap-2">
                     <button onclick="rivela()" class="btn bg-green-500 text-white px-6 py-2 rounded font-bold hover:bg-green-600">MOSTRA SOLUZIONE</button>
@@ -70,7 +68,7 @@
                     <button onclick="document.getElementById('logs').innerHTML=''" class="text-xs text-gray-400 underline">Pulisci</button>
                 </div>
                 <div id="logs" class="space-y-2">
-                    <div class="text-gray-500 italic">In attesa di input...</div>
+                    <div class="text-gray-500 italic">In attesa...</div>
                 </div>
             </div>
         </div>
@@ -85,75 +83,72 @@
                     <thead>
                         <tr class="text-gray-400"><th class="pb-2">Team</th><th class="pb-2 text-right">Pt</th><th class="pb-2 text-right">Act</th></tr>
                     </thead>
-                    <tbody id="lista-squadre">
-                        </tbody>
+                    <tbody id="lista-squadre"></tbody>
                 </table>
             </div>
         </div>
     </div>
 
     <script>
-        const socket = io();
+        // Inizializzazione Socket con controllo errori
+        let socket;
+        try {
+            socket = io();
+        } catch (e) {
+            alert("Errore caricamento Socket.io. Controlla la console.");
+            console.error(e);
+        }
 
-        // 1. Connessione
-        socket.on('connect', () => {
-            document.getElementById('connection-status').innerText = "ONLINE";
-            document.getElementById('connection-status').className = "px-3 py-1 bg-green-500 text-white text-xs rounded-full font-bold uppercase";
-            socket.emit('admin_connect');
-        });
-
-        socket.on('disconnect', () => {
-            document.getElementById('connection-status').innerText = "OFFLINE";
-            document.getElementById('connection-status').className = "px-3 py-1 bg-red-500 text-white text-xs rounded-full font-bold uppercase";
-        });
-
-        // 2. Aggiornamento Squadre
-        socket.on('update_teams', (teams) => {
-            teams.sort((a,b) => b.score - a.score); // Ordina per punti
-            
-            const tbody = document.getElementById('lista-squadre');
-            tbody.innerHTML = '';
-            document.getElementById('team-count').innerText = teams.length;
-
-            teams.forEach(t => {
-                const tr = document.createElement('tr');
-                tr.className = "border-b hover:bg-gray-50";
-                tr.innerHTML = `
-                    <td class="py-2 font-bold truncate max-w-[100px]">${t.name}</td>
-                    <td class="py-2 text-right font-mono text-blue-600">${t.score}</td>
-                    <td class="py-2 text-right">
-                        <button onclick="daiPunti('${t.id}', 50)" class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded hover:bg-green-200">+50</button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
+        if(socket) {
+            socket.on('connect', () => {
+                document.getElementById('connection-status').innerText = "ONLINE";
+                document.getElementById('connection-status').className = "px-3 py-1 bg-green-500 text-white text-xs rounded-full font-bold uppercase";
+                socket.emit('admin_connect');
             });
-        });
 
-        // 3. Ricezione Risposte / Buzzer
-        socket.on('risposta_ricevuta', (data) => {
-            logEvent(`💬 <b>${data.teamName}</b>: ${data.risposta}`, data.teamId);
-        });
+            socket.on('disconnect', () => {
+                document.getElementById('connection-status').innerText = "OFFLINE";
+                document.getElementById('connection-status').className = "px-3 py-1 bg-red-500 text-white text-xs rounded-full font-bold uppercase";
+            });
 
-        socket.on('buzzer_bloccato', (data) => {
-            logEvent(`🚨 <b>BUZZER PREMUTO:</b> ${data.winner}`, null, 'red');
-        });
+            socket.on('update_teams', (teams) => {
+                teams.sort((a,b) => b.score - a.score);
+                const tbody = document.getElementById('lista-squadre');
+                tbody.innerHTML = '';
+                document.getElementById('team-count').innerText = teams.length;
 
-        // Funzioni Helper
+                teams.forEach(t => {
+                    const tr = document.createElement('tr');
+                    tr.className = "border-b hover:bg-gray-50";
+                    tr.innerHTML = `
+                        <td class="py-2 font-bold truncate max-w-[100px]">${t.name}</td>
+                        <td class="py-2 text-right font-mono text-blue-600">${t.score}</td>
+                        <td class="py-2 text-right">
+                            <button onclick="daiPunti('${t.id}', 50)" class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded hover:bg-green-200">+50</button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            });
+
+            socket.on('risposta_ricevuta', (data) => {
+                logEvent(`💬 <b>${data.teamName}</b>: ${data.risposta}`, data.teamId);
+            });
+
+            socket.on('buzzer_bloccato', (data) => {
+                logEvent(`🚨 <b>BUZZER:</b> ${data.winner}`, null, 'red');
+            });
+        }
+
         function logEvent(html, teamId = null, color = 'green') {
             const container = document.getElementById('logs');
             const div = document.createElement('div');
             div.className = "border-b border-gray-700 pb-1 mb-1";
-            
-            let btn = "";
-            if(teamId) {
-                btn = `<button onclick="daiPunti('${teamId}', 50)" class="ml-2 text-xs bg-${color}-600 px-2 py-0.5 rounded text-white">CORRETTA</button>`;
-            }
-            
+            let btn = teamId ? `<button onclick="daiPunti('${teamId}', 50)" class="ml-2 text-xs bg-${color}-600 px-2 py-0.5 rounded text-white">CORRETTA</button>` : "";
             div.innerHTML = `<span>${html}</span> ${btn}`;
             container.prepend(div);
         }
 
-        // --- COMANDI VERSO SERVER ---
         function lanciaQuiz(mode) {
             const data = {
                 domanda: document.getElementById('domanda').value,
@@ -167,22 +162,12 @@
                 corretta: document.getElementById('corretta').value,
                 modalita: mode
             };
-            if(!data.domanda) return alert("Scrivi almeno la domanda!");
-            
+            if(!data.domanda) return alert("Scrivi la domanda!");
             socket.emit('invia_domanda', data);
-            
-            // Feedback visivo
-            const logs = document.getElementById('logs');
-            logs.innerHTML = `<div class="text-yellow-400 font-bold">--- NUOVA DOMANDA LANCIATA (${mode}) ---</div>`;
         }
 
-        function rivela() {
-            socket.emit('rivela_risposta');
-        }
-
-        function daiPunti(id, pts) {
-            socket.emit('assegna_punti', { teamId: id, punti: pts });
-        }
+        function rivela() { socket.emit('rivela_risposta'); }
+        function daiPunti(id, pts) { socket.emit('assegna_punti', { teamId: id, punti: pts }); }
     </script>
 </body>
 </html>

@@ -27,6 +27,7 @@ try {
     } else if (data.categorie) {
       fullDb.pacchetti["1"] = data;
     }
+    console.log("Dati caricati correttamente da domande.json");
   } else {
     console.log("File domande.json non trovato, verrà creato un file di esempio.");
     createExampleData();
@@ -52,6 +53,7 @@ function createExampleData() {
   // Salva i dati di esempio nel file
   fs.writeFileSync(jsonPath, JSON.stringify(exampleData, null, 2), 'utf8');
   fullDb = exampleData;
+  console.log("Dati di esempio creati e salvati in domande.json");
 }
 
 // Funzione per creare un pacchetto completo
@@ -1122,6 +1124,34 @@ function inviaAggiornamentoCodaAdmin() {
     }
 }
 
+// Funzione per determinare e mostrare il vincitore
+function mostraVincitoreFinale() {
+    const teams = Object.values(gameState.teams);
+    
+    if (teams.length === 0) {
+        console.log("Nessuna squadra registrata");
+        io.emit('mostra_vincitore', { 
+            name: "Nessun vincitore", 
+            score: 0,
+            message: "Nessuna squadra registrata!" 
+        });
+        return;
+    }
+    
+    // Ordina le squadre per punteggio (decrescente)
+    teams.sort((a, b) => b.score - a.score);
+    
+    // La prima è il vincitore
+    const vincitore = teams[0];
+    
+    // Invia al display
+    io.emit('mostra_vincitore', vincitore);
+    console.log(`Vincitore: ${vincitore.name} con ${vincitore.score} punti`);
+    
+    // Invia anche la classifica completa
+    io.emit('classifica_finale', teams);
+}
+
 io.on('connection', (socket) => {
   socket.on('admin_connect', () => {
     socket.join('admin');
@@ -1143,9 +1173,26 @@ io.on('connection', (socket) => {
     if (fullDb.pacchetti[packageId]) {
       currentPackageId = packageId;
       const currentPackage = fullDb.pacchetti[currentPackageId];
+      
+      // Invia l'elenco aggiornato delle categorie
       io.to('admin').emit('package_selected', { 
         packageId: currentPackageId,
-        categories: currentPackage && currentPackage.categorie ? Object.keys(currentPackage.categorie) : []
+        packageName: currentPackage.nome || `Pacchetto ${currentPackageId}`,
+        categories: Object.keys(currentPackage.categorie)
+      });
+      
+      console.log(`Pacchetto selezionato: ${currentPackageId}, Categorie:`, Object.keys(currentPackage.categorie));
+    }
+  });
+
+  // Nuovo evento per ottenere le categorie
+  socket.on('get_categories', (data) => {
+    const packageId = data.packageId || currentPackageId;
+    if (fullDb.pacchetti[packageId]) {
+      const currentPackage = fullDb.pacchetti[packageId];
+      socket.emit('categories_list', {
+        packageId: packageId,
+        categories: Object.keys(currentPackage.categorie)
       });
     }
   });
@@ -1327,6 +1374,11 @@ io.on('connection', (socket) => {
   socket.on('reset_game', () => { gameState.teams={}; gameState.roundAnswers=[]; gameState.buzzerQueue=[]; io.emit('force_reload'); });
   socket.on('login', (n) => { gameState.teams[socket.id]={id:socket.id, name:n, score:0}; socket.emit('login_success', {id:socket.id, name:n}); io.emit('update_teams', Object.values(gameState.teams)); });
   socket.on('disconnect', () => { if(gameState.teams[socket.id]) { delete gameState.teams[socket.id]; io.emit('update_teams', Object.values(gameState.teams)); } });
+  
+  // Evento per mostrare il vincitore finale
+  socket.on('mostra_vincitore_finale', () => {
+    mostraVincitoreFinale();
+  });
 });
 
 http.listen(PORT, '0.0.0.0', () => console.log(`
@@ -1345,6 +1397,7 @@ Server in ascolto sulla porta: ${PORT}
 ✅ Sistema a pacchetti attivo! 3 pacchetti disponibili.
 ✅ Ogni pacchetto ha le stesse 7 categorie con domande diverse.
 ✅ Ogni pacchetto contiene: 35 domande categorie + 5 bonus + 5 stima + 5 anagrammi.
+✅ Funzionalità vincitore aggiunta!
 
 Pronto per il gioco!
 `));

@@ -2,74 +2,86 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <title>REGIA - Il Quizzone</title>
+    <title>REGIA MASTER - Il Quizzone</title>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-200 p-4 h-screen flex flex-col">
+<body class="bg-gray-800 p-2 h-screen flex flex-col text-sm">
 
-    <div class="flex justify-between items-center mb-4 bg-white p-3 rounded shadow">
-        <h1 class="text-xl font-bold text-gray-800">🎛️ REGIA MASTER</h1>
-        <div id="status" class="text-xs font-bold text-red-500 uppercase">Connessione...</div>
+    <div class="flex justify-between items-center bg-white p-2 rounded mb-2 shadow">
+        <h1 class="font-bold text-gray-800 text-lg">🎛️ REGIA</h1>
+        <div id="status" class="font-bold text-red-500 uppercase text-xs">Offline</div>
     </div>
 
-    <div class="grid grid-cols-3 gap-4 flex-1 overflow-hidden">
+    <div class="grid grid-cols-12 gap-2 flex-1 overflow-hidden">
         
-        <div class="col-span-2 flex flex-col gap-4">
-            
-            <div class="bg-white p-4 rounded shadow">
-                <h2 class="font-bold mb-3 text-gray-700 border-b pb-2">1. Selezione Gioco</h2>
+        <div class="col-span-4 flex flex-col gap-2 overflow-y-auto">
+            <div class="bg-white p-3 rounded shadow">
+                <h2 class="font-bold text-gray-600 mb-2">1. Selezione</h2>
                 
-                <div class="flex gap-2 mb-3">
-                    <select id="sel-tipo" class="border-2 border-blue-500 p-2 rounded w-1/3 font-bold text-blue-900">
-                        <option value="">-- TIPO GIOCO --</option>
-                        <option value="categorie">📂 CATEGORIE</option>
-                        <option value="bonus">💰 BONUS</option>
-                        <option value="raffica">⚡ RAFFICA</option>
-                    </select>
+                <select id="sel-tipo" class="w-full border-2 border-blue-500 p-2 rounded font-bold mb-2 text-blue-900">
+                    <option value="">-- TIPO GIOCO --</option>
+                    <option value="categorie">📂 CATEGORIE</option>
+                    <option value="bonus">💰 BONUS</option>
+                    <option value="raffica">⚡ RAFFICA</option>
+                </select>
 
-                    <select id="sel-cat" class="border p-2 rounded w-2/3 bg-gray-50 disabled:bg-gray-200" disabled>
-                        <option value="">-- Scegli Materia --</option>
-                    </select>
+                <select id="sel-cat" class="w-full border p-1 rounded mb-2 bg-gray-50 text-xs" disabled>
+                    <option value="">-- Materia --</option>
+                </select>
+
+                <select id="sel-dom" class="w-full border p-1 rounded bg-gray-50 text-xs" disabled>
+                    <option value="">-- Domanda --</option>
+                </select>
+
+                <div id="preview" class="mt-2 p-2 bg-blue-50 border border-blue-100 rounded text-xs text-gray-600 h-20 overflow-y-auto">
+                    ...
                 </div>
 
-                <div class="mb-3">
-                    <select id="sel-dom" class="w-full border p-2 rounded bg-gray-50 disabled:bg-gray-200" disabled>
-                        <option value="">-- Prima scegli il tipo --</option>
-                    </select>
-                </div>
-                
-                <div id="preview" class="p-3 bg-blue-50 border border-blue-200 rounded text-sm text-gray-600 mb-4 h-24 overflow-y-auto">
-                    Seleziona una domanda per vedere l'anteprima.
-                </div>
-
-                <div class="flex gap-2">
-                    <button onclick="lancia('classico')" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded shadow transition">
-                        LANCIA (Quiz Classico)
+                <div class="mt-2 flex gap-1">
+                    <button onclick="lancia('classico')" class="flex-1 bg-blue-600 text-white font-bold py-2 rounded shadow hover:bg-blue-700 text-xs">
+                        QUIZ (Opzioni)
                     </button>
-                    <button onclick="lancia('buzzer')" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded shadow transition">
-                        LANCIA (Buzzer)
+                    <button onclick="lancia('buzzer')" class="flex-1 bg-red-600 text-white font-bold py-2 rounded shadow hover:bg-red-700 text-xs">
+                        BUZZER (Rosso)
                     </button>
                 </div>
             </div>
-
-            <div class="bg-white p-4 rounded shadow flex-1 flex flex-col">
-                <div class="flex justify-between items-center mb-2">
-                    <h2 class="font-bold text-gray-700">2. Controllo Live</h2>
-                    <button onclick="rivela()" class="bg-green-500 hover:bg-green-600 text-white px-6 py-1 rounded font-bold shadow animate-pulse">
-                        SVELA RISPOSTA
-                    </button>
-                </div>
-                <div id="log-feed" class="flex-1 bg-gray-900 text-green-400 p-2 rounded font-mono text-xs overflow-y-auto border border-black shadow-inner">
-                    <div class="text-gray-500 italic">Attendo risposte...</div>
-                </div>
+            
+            <div class="bg-white p-3 rounded shadow text-center">
+                <button onclick="rivela()" class="w-full bg-green-500 text-white py-2 rounded font-bold shadow animate-pulse hover:bg-green-600">
+                    SVELA RISPOSTA
+                </button>
             </div>
         </div>
 
-        <div class="bg-white p-4 rounded shadow flex flex-col">
-            <h2 class="font-bold mb-2 text-gray-700 border-b pb-1">Squadre (<span id="team-cnt">0</span>)</h2>
+        <div class="col-span-5 bg-gray-900 p-3 rounded shadow flex flex-col border border-gray-700">
+            <h2 class="font-bold text-white mb-2 flex justify-between">
+                MONITOR ROUND
+                <span id="timer-badge" class="bg-gray-700 px-2 rounded text-xs">In attesa...</span>
+            </h2>
+            
+            <div class="flex-1 overflow-y-auto bg-black/50 rounded p-1">
+                <table class="w-full text-left text-xs text-gray-300">
+                    <thead class="border-b border-gray-700 text-gray-500">
+                        <tr>
+                            <th class="p-1">Squadra</th>
+                            <th class="p-1">Risp</th>
+                            <th class="p-1">Sec</th>
+                            <th class="p-1 text-right">Punti</th>
+                        </tr>
+                    </thead>
+                    <tbody id="round-table">
+                        </tbody>
+                </table>
+                <div id="round-msg" class="text-center text-gray-500 mt-4 italic">Nessuna risposta ricevuta</div>
+            </div>
+        </div>
+
+        <div class="col-span-3 bg-white p-3 rounded shadow flex flex-col">
+            <h2 class="font-bold text-gray-600 mb-2 border-b">Classifica</h2>
             <div class="flex-1 overflow-y-auto">
-                <table class="w-full text-sm text-left">
+                <table class="w-full text-xs">
                     <tbody id="team-list"></tbody>
                 </table>
             </div>
@@ -84,92 +96,74 @@
 
         socket.on('connect', () => {
             document.getElementById('status').innerText = "ONLINE";
-            document.getElementById('status').className = "text-xs font-bold text-green-500 uppercase";
+            document.getElementById('status').className = "font-bold text-green-500 uppercase text-xs";
             socket.emit('admin_connect');
         });
 
+        // --- INIT ---
         socket.on('init_data', (data) => {
             dbStructure = data;
             updateTeams(data.teams);
         });
 
+        // --- GESTIONE DOMANDE ---
         socket.on('receive_questions', (questions) => {
             currentQuestions = questions;
             const selDom = document.getElementById('sel-dom');
             selDom.disabled = false;
             selDom.innerHTML = '<option value="">-- Seleziona Domanda --</option>';
             questions.forEach((q, idx) => {
-                let text = q.domanda.length > 60 ? q.domanda.substring(0,60) + "..." : q.domanda;
-                let pts = q.punti ? `[${q.punti}pt]` : ""; 
-                selDom.innerHTML += `<option value="${idx}">${q.id}. ${pts} ${text}</option>`;
+                let text = q.domanda.length > 40 ? q.domanda.substring(0,40) + "..." : q.domanda;
+                selDom.innerHTML += `<option value="${idx}">${q.id}. ${text}</option>`;
             });
         });
 
-        socket.on('update_teams', updateTeams);
+        // --- MONITOR ROUND (CUORE DEL FIX) ---
         
-        socket.on('risposta_ricevuta', (data) => {
-            log(`💬 <b>${data.teamName}</b>: ${data.risposta}`, data.teamId);
-        });
+        socket.on('update_round_monitor', (answers) => {
+            const tbody = document.getElementById('round-table');
+            const msg = document.getElementById('round-msg');
+            msg.style.display = 'none';
+            tbody.innerHTML = '';
 
-        socket.on('buzzer_bloccato', (data) => {
-            log(`🚨 <b>BUZZER:</b> ${data.winner}`, null, 'red');
-        });
-
-        // MENU CHANGE HANDLERS
-        document.getElementById('sel-tipo').addEventListener('change', (e) => {
-            const type = e.target.value;
-            const selCat = document.getElementById('sel-cat');
-            const selDom = document.getElementById('sel-dom');
-            
-            selCat.innerHTML = '<option value="">-- Scegli --</option>';
-            selDom.innerHTML = '<option value="">-- --</option>';
-            selDom.disabled = true;
-            selCat.disabled = true;
-
-            if (type === 'categorie') {
-                selCat.disabled = false;
-                dbStructure.categories.forEach(c => {
-                    selCat.innerHTML += `<option value="${c}">${c.toUpperCase()}</option>`;
-                });
-            } else if (type === 'bonus' || type === 'raffica') {
-                socket.emit('get_questions', { type: type });
-            }
-        });
-
-        document.getElementById('sel-cat').addEventListener('change', (e) => {
-            const cat = e.target.value;
-            if(cat) socket.emit('get_questions', { type: 'categoria', key: cat });
-        });
-
-        document.getElementById('sel-dom').addEventListener('change', (e) => {
-            const idx = e.target.value;
-            if (idx !== "") {
-                selectedQ = currentQuestions[idx];
-                let rispHTML = "";
-                if(selectedQ.risposte) {
-                    rispHTML = selectedQ.risposte.map((r, i) => 
-                        (i === selectedQ.corretta ? `<b class="text-green-600">${r}</b>` : r)
-                    ).join(' | ');
-                }
-                document.getElementById('preview').innerHTML = `
-                    <div class="font-bold text-blue-800">${selectedQ.domanda}</div>
-                    <div class="mt-1 text-xs text-gray-500">Risposte: ${rispHTML}</div>
-                    <div class="mt-1 text-xs font-bold text-purple-600">Punti: ${selectedQ.punti || 0}</div>
+            answers.forEach(entry => {
+                const tr = document.createElement('tr');
+                // Colore riga: Verde se corretto, Rosso se sbagliato
+                const colorClass = entry.corretta ? 'text-green-400 font-bold' : 'text-red-400';
+                const statusIcon = entry.corretta ? '✅' : '❌';
+                
+                tr.className = "border-b border-gray-800 hover:bg-white/5";
+                tr.innerHTML = `
+                    <td class="p-2 text-white">${entry.teamName}</td>
+                    <td class="p-2 ${colorClass}">${entry.risposta}</td>
+                    <td class="p-2 text-gray-400 font-mono">${entry.tempo}s</td>
+                    <td class="p-2 text-right">
+                        ${entry.corretta ? 
+                            `<button onclick="daiPunti('${entry.teamId}', 100)" class="bg-green-600 text-white px-2 rounded text-[10px] hover:bg-green-500">+100</button>` 
+                            : `<span class="text-gray-600">-</span>`
+                        }
+                    </td>
                 `;
-            }
+                tbody.appendChild(tr);
+            });
         });
 
-        function lancia(mode) {
-            if(!selectedQ) return alert("Seleziona una domanda!");
-            const payload = { ...selectedQ, modalita: mode };
-            socket.emit('invia_domanda', payload);
-            document.getElementById('log-feed').innerHTML = 
-                `<div class="text-yellow-400 font-bold border-b border-yellow-600 mb-2">🚀 DOMANDA LANCIATA (${mode.toUpperCase()})</div>`;
-        }
+        socket.on('reset_round_monitor', () => {
+            document.getElementById('round-table').innerHTML = '';
+            document.getElementById('round-msg').style.display = 'block';
+            document.getElementById('round-msg').innerText = "Domanda lanciata. Attendo risposte...";
+            document.getElementById('timer-badge').innerText = "GARA APERTA";
+            document.getElementById('timer-badge').className = "bg-green-600 text-white px-2 rounded text-xs animate-pulse";
+        });
 
-        function rivela() { socket.emit('rivela_risposta'); }
-        function daiPunti(id, pts) { socket.emit('assegna_punti', { teamId: id, punti: pts }); }
+        socket.on('buzzer_admin_alert', (winnerName) => {
+            document.getElementById('round-msg').innerHTML = `<span class="text-red-400 font-bold text-lg animate-bounce">🚨 HA PRENOTATO: ${winnerName}</span>`;
+            document.getElementById('timer-badge').innerText = "BUZZER BLOCCATO";
+            document.getElementById('timer-badge').className = "bg-red-600 text-white px-2 rounded text-xs";
+        });
 
+        // --- CLASSIFICA ---
+        socket.on('update_teams', updateTeams);
         function updateTeams(teams) {
             teams.sort((a,b) => b.score - a.score);
             const list = document.getElementById('team-list');
@@ -178,20 +172,49 @@
             teams.forEach(t => {
                 list.innerHTML += `
                     <tr class="border-b hover:bg-gray-50">
-                        <td class="py-2 font-bold">${t.name}</td>
-                        <td class="text-right text-blue-600 font-mono">${t.score}</td>
-                        <td class="text-right">
-                            <button onclick="daiPunti('${t.id}', 50)" class="bg-green-100 text-green-700 px-2 rounded text-xs hover:bg-green-200">+50</button>
-                        </td>
+                        <td class="py-1 font-bold truncate max-w-[80px]">${t.name}</td>
+                        <td class="text-right text-blue-600 font-mono font-bold">${t.score}</td>
                     </tr>`;
             });
         }
 
-        function log(msg, id, color='green') {
-            const feed = document.getElementById('log-feed');
-            let btn = id ? `<button onclick="daiPunti('${id}', 50)" class="ml-2 bg-${color}-600 text-white px-2 rounded text-[10px]">OK (+50)</button>` : '';
-            feed.innerHTML = `<div class="mb-1 pb-1 border-b border-gray-700 flex justify-between items-center"><span>${msg}</span>${btn}</div>` + feed.innerHTML;
+        // --- MENU LOGIC ---
+        document.getElementById('sel-tipo').addEventListener('change', (e) => {
+            const type = e.target.value;
+            const selCat = document.getElementById('sel-cat');
+            selCat.innerHTML = '<option value="">-- Scegli --</option>';
+            document.getElementById('sel-dom').innerHTML = '';
+            document.getElementById('sel-dom').disabled = true;
+
+            if (type === 'categorie') {
+                selCat.disabled = false;
+                dbStructure.categories.forEach(c => selCat.innerHTML += `<option value="${c}">${c.toUpperCase()}</option>`);
+            } else if (type === 'bonus' || type === 'raffica') {
+                selCat.disabled = true;
+                socket.emit('get_questions', { type: type });
+            }
+        });
+
+        document.getElementById('sel-cat').addEventListener('change', (e) => {
+            if(e.target.value) socket.emit('get_questions', { type: 'categoria', key: e.target.value });
+        });
+
+        document.getElementById('sel-dom').addEventListener('change', (e) => {
+            const idx = e.target.value;
+            if (idx !== "") {
+                selectedQ = currentQuestions[idx];
+                let rispHTML = selectedQ.risposte ? selectedQ.risposte.map((r, i) => i === selectedQ.corretta ? `<b class='text-green-600'>${r}</b>` : r).join(', ') : '';
+                document.getElementById('preview').innerHTML = `<b>${selectedQ.domanda}</b><br><span class='text-[10px]'>${rispHTML}</span>`;
+            }
+        });
+
+        // --- COMANDI ---
+        function lancia(mode) {
+            if(!selectedQ) return alert("Scegli domanda!");
+            socket.emit('invia_domanda', { ...selectedQ, modalita: mode });
         }
+        function rivela() { socket.emit('rivela_risposta'); }
+        function daiPunti(id, pts) { socket.emit('assegna_punti', { teamId: id, punti: pts }); }
     </script>
 </body>
 </html>

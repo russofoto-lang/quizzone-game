@@ -37,7 +37,6 @@ app.get('/', (req, res) => res.sendFile(path.join(publicPath, 'index.html')));
 
 io.on('connection', (socket) => {
   
-  // SETUP INIZIALE
   socket.on('admin_connect', () => {
     socket.join('admin');
     socket.emit('init_data', { 
@@ -60,14 +59,13 @@ io.on('connection', (socket) => {
 
   socket.on('regia_cmd', (cmd) => {
       if(cmd === 'classifica_round') {
-          // Manda i dati attuali del round
           io.emit('cambia_vista', { view: 'classifica_round', data: gameState.roundAnswers });
       } else {
           io.emit('cambia_vista', { view: cmd });
       }
   });
 
-  // --- START DOMANDA ---
+  // --- START DOMANDA (MODIFICATO PER FIX) ---
   socket.on('invia_domanda', (dati) => {
     gameState.currentQuestion = dati;
     gameState.questionStartTime = Date.now();
@@ -75,14 +73,23 @@ io.on('connection', (socket) => {
     gameState.buzzerQueue = [];
     gameState.buzzerLocked = (dati.modalita === 'buzzer'); 
 
-    // Reset Display e Player
+    // CREA VERSIONE PULITA PER I CLIENT (SENZA RISPOSTE SE NON SERVONO)
+    // Questo impedisce che l'anagramma mostri la soluzione come bottone
+    let datiPerClient = { ...dati };
+    
+    if (dati.modalita === 'anagramma' || dati.modalita === 'stima') {
+        // Rimuoviamo la soluzione dai dati inviati ai telefoni!
+        delete datiPerClient.risposte; 
+        delete datiPerClient.corretta;
+    }
+
     io.emit('cambia_vista', { view: 'game' });
-    io.emit('nuova_domanda', dati);
+    io.emit('nuova_domanda', datiPerClient); // Invia dati puliti
     io.emit('stato_buzzer', { locked: gameState.buzzerLocked }); 
     io.to('admin').emit('reset_round_monitor');
   });
 
-  // --- LOGICA BUZZER ---
+  // --- BUZZER LOGIC ---
   socket.on('prenoto', () => {
     if (!gameState.buzzerLocked && gameState.teams[socket.id]) {
       if(!gameState.buzzerQueue.find(p => p.id === socket.id)) {
@@ -98,7 +105,6 @@ io.on('connection', (socket) => {
              const q = gameState.currentQuestion;
              solText = (typeof q.corretta === 'number' && q.risposte) ? q.risposte[q.corretta] : q.corretta;
           }
-
           io.emit('buzzer_vinto_display', { winner: winner.name });
           io.to(winner.id).emit('prenotazione_vinta'); 
           io.to('admin').emit('buzzer_admin_alert', { winner: winner.name, queueLen: gameState.buzzerQueue.length, correctAnswer: solText });
@@ -111,8 +117,7 @@ io.on('connection', (socket) => {
       if(gameState.buzzerQueue.length > 0) {
           const next = gameState.buzzerQueue[0];
           let solText = "";
-          if(gameState.currentQuestion) solText = gameState.currentQuestion.corretta; // Semplificato
-          
+          if(gameState.currentQuestion) solText = gameState.currentQuestion.corretta;
           io.emit('buzzer_vinto_display', { winner: next.name });
           io.to(next.id).emit('prenotazione_vinta');
           io.to('admin').emit('buzzer_admin_alert', { winner: next.name, queueLen: gameState.buzzerQueue.length, correctAnswer: solText });
@@ -128,7 +133,6 @@ io.on('connection', (socket) => {
       if(gameState.buzzerQueue.length > 0) {
           const winner = gameState.buzzerQueue[0];
           if(gameState.teams[winner.id]) gameState.teams[winner.id].score += parseInt(data.points);
-          
           gameState.roundAnswers.push({
               teamName: winner.name, risposta: "Buzzer", corretta: true, tempo: "0.00", punti: data.points
           });
@@ -141,57 +145,47 @@ io.on('connection', (socket) => {
 
   socket.on('toggle_buzzer_lock', (s) => { gameState.buzzerLocked=s; io.emit('stato_buzzer', {locked:s}); });
 
-  // --- RISPOSTE (TEXT, STIMA, CLASSICO) ---
+  // --- RISPOSTE ---
   socket.on('invia_risposta', (risp) => {
       const team = gameState.teams[socket.id];
       if(!team || !gameState.currentQuestion) return;
-      if(gameState.roundAnswers.find(x => x.teamId === socket.id)) return; // Evita doppie risposte
+      if(gameState.roundAnswers.find(x => x.teamId === socket.id)) return;
 
       const q = gameState.currentQuestion;
       const modalita = q.modalita || 'classico';
       const tempo = ((Date.now() - gameState.questionStartTime)/1000).toFixed(2);
 
-      // 1. ANAGRAMMA: Vince chi indovina subito
+      // 1. ANAGRAMMA
       if (modalita === 'anagramma') {
           let isCorrect = false;
-          // Cerca se la risposta è nella lista delle risposte accettate
+          // Verifica lato server (qui abbiamo i dati completi)
           if(q.risposte && q.risposte.some(r => String(r).toUpperCase().trim() === String(risp).toUpperCase().trim())) {
               isCorrect = true;
           }
-
           if (isCorrect) {
-              gameState.roundAnswers.push({
-                  teamId: socket.id, teamName: team.name, risposta: risp, corretta: true, tempo: tempo
-              });
+              gameState.roundAnswers.push({ teamId: socket.id, teamName: team.name, risposta: risp, corretta: true, tempo: tempo });
               team.score += (q.punti || 150);
-              
               io.emit('update_teams', Object.values(gameState.teams));
-              // Mostra la soluzione a tutti perché qualcuno ha indovinato!
               io.emit('mostra_soluzione', { soluzione: risp.toUpperCase(), risultati: gameState.roundAnswers });
               io.to('admin').emit('update_round_monitor', gameState.roundAnswers);
           }
-          return; // Se sbaglia anagramma, non salviamo la risposta sbagliata (o potremmo farlo, ma meglio di no per non intasare)
+          return; 
       }
 
-      // 2. STIMA: Salviamo la risposta e basta (calcoliamo alla fine)
+      // 2. STIMA
       if (modalita === 'stima') {
-          gameState.roundAnswers.push({
-              teamId: socket.id, teamName: team.name, risposta: risp, corretta: false, tempo: tempo
-          });
+          gameState.roundAnswers.push({ teamId: socket.id, teamName: team.name, risposta: risp, corretta: false, tempo: tempo });
           io.to('admin').emit('update_round_monitor', gameState.roundAnswers);
           return;
       }
 
-      // 3. CLASSICO / BONUS: Giusto o Sbagliato
+      // 3. CLASSICO
       let isCorrect = false;
       let corrStr = String(q.corretta);
       if(typeof q.corretta==='number' && q.risposte) corrStr = q.risposte[q.corretta];
-
       if(String(risp).trim().toLowerCase() === String(corrStr).trim().toLowerCase()) isCorrect = true;
 
-      gameState.roundAnswers.push({
-          teamId: socket.id, teamName: team.name, risposta: risp, corretta: isCorrect, tempo: tempo
-      });
+      gameState.roundAnswers.push({ teamId: socket.id, teamName: team.name, risposta: risp, corretta: isCorrect, tempo: tempo });
       io.to('admin').emit('update_round_monitor', gameState.roundAnswers);
   });
 
@@ -199,47 +193,33 @@ io.on('connection', (socket) => {
       if (!gameState.currentQuestion) return;
       const q = gameState.currentQuestion;
       
-      // LOGICA STIMA: Calcola chi è più vicino
       if (q.modalita === 'stima') {
           const target = parseInt(q.corretta);
-          
           gameState.roundAnswers.forEach(a => {
               const val = parseInt(a.risposta);
-              if (isNaN(val)) a.diff = 999999999;
-              else a.diff = Math.abs(target - val);
-              a.isStima = true; // Flag per il display
+              if (isNaN(val)) a.diff = 999999999; else a.diff = Math.abs(target - val);
+              a.isStima = true; 
           });
-          
-          // Ordina dal più piccolo scarto al più grande
           gameState.roundAnswers.sort((a,b) => a.diff - b.diff);
-          
-          // Segna il primo come "corretto" visualmente
           if(gameState.roundAnswers.length > 0) gameState.roundAnswers[0].corretta = true;
-          
           io.emit('mostra_soluzione', { soluzione: q.corretta, risultati: gameState.roundAnswers });
           return;
       }
 
-      // STANDARD
       let text = typeof q.corretta==='number'&&q.risposte ? q.risposte[q.corretta] : q.corretta;
       io.emit('mostra_soluzione', { soluzione: text, risultati: gameState.roundAnswers });
   });
 
   socket.on('assegna_punti_auto', () => {
       const q = gameState.currentQuestion;
-      
       if (q && q.modalita === 'stima') {
-          // Solo il primo vince
           if(gameState.roundAnswers.length > 0) {
               const w = gameState.roundAnswers[0];
               if(gameState.teams[w.teamId]) gameState.teams[w.teamId].score += (q.punti || 200);
           }
       } else {
-          // Podio classico (1°, 2°, 3°)
           gameState.roundAnswers.forEach((e, i) => {
-              if(e.corretta && gameState.teams[e.teamId]) {
-                  gameState.teams[e.teamId].score += (i===0?150:(i===1?125:100));
-              }
+              if(e.corretta && gameState.teams[e.teamId]) gameState.teams[e.teamId].score += (i===0?150:(i===1?125:100));
           });
       }
       io.emit('update_teams', Object.values(gameState.teams));

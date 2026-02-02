@@ -67,10 +67,31 @@ io.on('connection', (socket) => {
     gameState.questionStartTime = Date.now();
     gameState.roundAnswers = [];
     gameState.buzzerQueue = [];
+    
+    // Il buzzer è bloccato all'inizio solo se siamo in modalità buzzer
     gameState.buzzerLocked = (d.modalita === 'buzzer'); 
+
+    let datiPerClient = {
+        id: d.id,
+        domanda: d.domanda,
+        modalita: d.modalita,
+        categoria: d.categoria
+    };
+
+    // Invio le risposte ABCD ai telefoni SOLO se NON è modalità buzzer
+    if (d.modalita !== 'buzzer') {
+        if (d.risposte) datiPerClient.risposte = d.risposte;
+    }
+
     io.emit('cambia_vista', { view: 'game' });
-    io.emit('nuova_domanda', d);
-    io.emit('stato_buzzer', { locked: gameState.buzzerLocked }); 
+    io.emit('nuova_domanda', datiPerClient);
+    
+    // Comunica ai telefoni se attivare l'interfaccia buzzer o quella quiz
+    io.emit('stato_buzzer', { 
+        locked: gameState.buzzerLocked, 
+        attiva: (d.modalita === 'buzzer') 
+    }); 
+    
     io.to('admin').emit('reset_round_monitor');
   });
 
@@ -88,7 +109,7 @@ io.on('connection', (socket) => {
       }
       if (gameState.buzzerQueue.length === 1) {
           gameState.buzzerLocked = true;
-          io.emit('stato_buzzer', { locked: true });
+          io.emit('stato_buzzer', { locked: true, attiva: true });
           io.emit('buzzer_bloccato', { winner: gameState.buzzerQueue[0].name });
           io.to(gameState.buzzerQueue[0].id).emit('prenotazione_vinta');
       }
@@ -105,7 +126,7 @@ io.on('connection', (socket) => {
         inviaAggiornamentoCodaAdmin();
     } else {
         gameState.buzzerLocked = false;
-        io.emit('stato_buzzer', { locked: false });
+        io.emit('stato_buzzer', { locked: false, attiva: true });
         io.emit('reset_buzzer_display'); 
         io.to('admin').emit('reset_buzzer_admin'); 
     }
@@ -123,11 +144,34 @@ io.on('connection', (socket) => {
     }
   });
 
-  socket.on('toggle_buzzer_lock', (s) => { gameState.buzzerLocked = s; io.emit('stato_buzzer', { locked: s }); });
+  socket.on('toggle_buzzer_lock', (s) => { 
+    gameState.buzzerLocked = s; 
+    io.emit('stato_buzzer', { locked: s, attiva: true }); 
+  });
+
+  socket.on('invia_risposta', (risp) => {
+      const team = gameState.teams[socket.id];
+      if(!team || !gameState.currentQuestion) return;
+      if(gameState.roundAnswers.find(x => x.teamId === socket.id)) return;
+
+      const q = gameState.currentQuestion;
+      let isCorrect = false;
+      let corrStr = String(q.corretta);
+      if(typeof q.corretta==='number' && q.risposte) corrStr = q.risposte[q.corretta];
+
+      if(String(risp).trim().toLowerCase() === String(corrStr).trim().toLowerCase()) isCorrect = true;
+
+      gameState.roundAnswers.push({
+          teamId: socket.id, teamName: team.name, risposta: risp, corretta: isCorrect,
+          tempo: ((Date.now() - gameState.questionStartTime)/1000).toFixed(2)
+      });
+      io.to('admin').emit('update_round_monitor', gameState.roundAnswers);
+  });
+
   socket.on('regia_cmd', (cmd) => io.emit('cambia_vista', { view: cmd, data: gameState.roundAnswers }));
   socket.on('reset_game', () => { gameState.teams={}; gameState.roundAnswers=[]; gameState.buzzerQueue=[]; io.emit('force_reload'); });
   socket.on('login', (n) => { gameState.teams[socket.id]={id:socket.id, name:n, score:0}; socket.emit('login_success', {id:socket.id, name:n}); io.emit('update_teams', Object.values(gameState.teams)); });
   socket.on('disconnect', () => { if(gameState.teams[socket.id]) { delete gameState.teams[socket.id]; io.emit('update_teams', Object.values(gameState.teams)); } });
 });
 
-http.listen(PORT, '0.0.0.0', () => console.log(`Server Pronto su porta ${PORT}`));
+http.listen(PORT, '0.0.0.0', () => console.log(`Server Siponto Forever Young Pronto!`));

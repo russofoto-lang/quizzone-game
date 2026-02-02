@@ -9,16 +9,16 @@
 <body class="bg-gray-800 p-2 h-screen flex flex-col text-sm text-gray-800">
 
     <div class="flex justify-between items-center bg-white p-2 rounded mb-2 shadow">
-        <h1 class="font-bold text-lg">🎛️ REGIA MASTER</h1>
+        <h1 class="font-bold text-lg">🎛️ REGIA</h1>
         
-        <div class="flex gap-2 items-center bg-gray-200 p-1 rounded">
-            <span class="text-xs font-bold text-gray-600 mr-2">DISPLAY:</span>
-            <button onclick="regia('logo')" class="bg-gray-600 text-white px-2 py-1 rounded text-xs hover:bg-gray-700">⬛ LOGO</button>
-            <button onclick="regia('classifica')" class="bg-yellow-600 text-white px-2 py-1 rounded text-xs hover:bg-yellow-700">🏆 CLASSIFICA</button>
-            <button onclick="regia('gioco')" class="bg-blue-600 text-white px-2 py-1 rounded text-xs hover:bg-blue-700">🎮 GIOCO</button>
+        <div class="flex gap-2 bg-gray-200 p-1 rounded">
+            <span class="text-xs font-bold pt-1">DISPLAY:</span>
+            <button onclick="regia('logo')" class="px-2 py-0.5 bg-gray-600 text-white rounded text-xs">LOGO</button>
+            <button onclick="regia('gioco')" class="px-2 py-0.5 bg-blue-600 text-white rounded text-xs">GIOCO</button>
+            <button onclick="regia('classifica_round')" class="px-2 py-0.5 bg-purple-600 text-white rounded text-xs">PODIO ROUND</button>
+            <button onclick="regia('classifica_gen')" class="px-2 py-0.5 bg-yellow-600 text-white rounded text-xs">GENERALE</button>
         </div>
-        
-        <div id="status" class="font-bold text-red-500 uppercase text-xs">Offline</div>
+        <div id="status" class="text-xs font-bold text-red-500">OFFLINE</div>
     </div>
 
     <div class="grid grid-cols-12 gap-2 flex-1 overflow-hidden">
@@ -26,181 +26,139 @@
         <div class="col-span-4 flex flex-col gap-2 overflow-y-auto">
             <div class="bg-white p-3 rounded shadow">
                 <h2 class="font-bold text-gray-600 mb-2">1. Domande</h2>
+                <select id="sel-tipo" class="w-full border p-1 rounded mb-2 text-xs font-bold"><option value="">-- TIPO --</option><option value="categorie">CATEGORIE</option><option value="bonus">BONUS</option><option value="raffica">RAFFICA</option></select>
+                <select id="sel-cat" class="w-full border p-1 rounded mb-2 text-xs" disabled></select>
+                <select id="sel-dom" class="w-full border p-1 rounded mb-2 text-xs" disabled></select>
                 
-                <select id="sel-tipo" class="w-full border-2 border-blue-500 p-2 rounded font-bold mb-2 text-blue-900">
-                    <option value="">-- TIPO GIOCO --</option>
-                    <option value="categorie">📂 CATEGORIE</option>
-                    <option value="bonus">💰 BONUS</option>
-                    <option value="raffica">⚡ RAFFICA</option>
-                </select>
-
-                <select id="sel-cat" class="w-full border p-1 rounded mb-2 bg-gray-50 text-xs" disabled><option value="">-- Materia --</option></select>
-                <select id="sel-dom" class="w-full border p-1 rounded bg-gray-50 text-xs" disabled><option value="">-- Domanda --</option></select>
-
-                <div class="mt-2 flex gap-1">
-                    <button onclick="lancia('classico')" class="flex-1 bg-blue-600 text-white font-bold py-2 rounded shadow hover:bg-blue-700 text-xs">QUIZ</button>
-                    <button onclick="lancia('buzzer')" class="flex-1 bg-red-600 text-white font-bold py-2 rounded shadow hover:bg-red-700 text-xs">BUZZER</button>
+                <div class="grid grid-cols-2 gap-2 mt-2">
+                    <button onclick="lancia('classico')" class="bg-blue-600 text-white py-2 rounded font-bold hover:bg-blue-700">LANCIA QUIZ</button>
+                    <button onclick="lancia('buzzer')" class="bg-red-600 text-white py-2 rounded font-bold hover:bg-red-700">LANCIA BUZZER</button>
+                </div>
+            </div>
+            
+            <div id="manual-buzzer-ctrl" class="hidden bg-red-100 p-3 rounded border border-red-300">
+                <div class="font-bold text-red-800 mb-2 text-center">CONTROLLO BUZZER</div>
+                <div class="flex gap-2">
+                    <button onclick="toggleLock(false)" class="flex-1 bg-green-600 text-white py-2 rounded font-bold">🔓 APRI (VIA!)</button>
+                    <button onclick="toggleLock(true)" class="flex-1 bg-gray-600 text-white py-2 rounded font-bold">🔒 BLOCCA</button>
                 </div>
             </div>
 
             <div class="mt-auto">
-                <button onclick="resetGame()" class="w-full bg-red-900 text-red-100 py-2 rounded text-xs border border-red-700 hover:bg-red-800">
-                    ⚠️ RESETTA PARTITA
-                </button>
+                <button onclick="resetGame()" class="w-full bg-red-900 text-red-200 text-xs py-1 rounded">RESET GAME</button>
             </div>
         </div>
 
-        <div class="col-span-5 bg-gray-900 p-3 rounded shadow flex flex-col border border-gray-700 text-white">
-            <h2 class="font-bold mb-2 flex justify-between">
-                MONITOR LIVE
-                <span id="timer-badge" class="bg-gray-700 px-2 rounded text-xs">Attesa</span>
-            </h2>
+        <div class="col-span-5 bg-gray-900 p-3 rounded shadow flex flex-col text-white border border-gray-700">
+            <h2 class="font-bold mb-2 flex justify-between">MONITOR <span id="timer-badge" class="bg-gray-700 px-2 rounded text-xs">Attesa</span></h2>
             
-            <div id="buzzer-actions" class="hidden bg-red-900 p-2 mb-2 rounded border border-red-500 flex justify-between items-center">
-                <div>
-                    <span class="text-xs text-red-200">Ha prenotato:</span>
-                    <div id="buzzer-who" class="text-lg font-bold">...</div>
-                </div>
-                <button onclick="buzzerNext()" class="bg-white text-red-900 font-bold px-3 py-1 rounded text-xs shadow hover:bg-gray-200">
-                    ❌ ERRATA / NEXT
+            <div id="buzzer-alert" class="hidden bg-red-600 p-4 rounded mb-2 text-center animate-pulse">
+                <div class="text-xs uppercase">Ha prenotato:</div>
+                <div id="buzzer-winner" class="text-2xl font-black">NOME SQUADRA</div>
+                <div id="queue-info" class="text-xs mt-1"></div>
+            </div>
+
+            <div id="buzzer-actions" class="hidden grid grid-cols-2 gap-2 mb-4">
+                <button onclick="buzzerCorrect()" class="bg-green-500 hover:bg-green-400 text-white py-4 rounded-xl font-bold shadow-lg text-lg">
+                    ✅ GIUSTA (+100)
+                </button>
+                <button onclick="buzzerWrong()" class="bg-red-500 hover:bg-red-400 text-white py-4 rounded-xl font-bold shadow-lg text-lg">
+                    ❌ ERRATA (NEXT)
                 </button>
             </div>
 
-            <div class="flex-1 overflow-y-auto bg-black/50 rounded p-1 mb-2">
-                <table class="w-full text-left text-xs text-gray-300">
-                    <tbody id="round-table">
-                        <div class="text-center p-4 text-gray-500 italic">Pronto per iniziare...</div>
-                    </tbody>
-                </table>
+            <div id="classic-monitor" class="flex-1 overflow-y-auto bg-black/50 rounded p-1 mb-2">
+                <table class="w-full text-xs text-gray-300"><tbody id="round-table"></tbody></table>
             </div>
 
             <div class="grid grid-cols-2 gap-2">
-                <button onclick="rivela()" class="bg-yellow-600 text-white py-3 rounded font-bold hover:bg-yellow-500 border-b-4 border-yellow-800 active:border-b-0">
-                    👁️ SVELA RISPOSTA
-                </button>
-                <button onclick="assegnaAuto()" class="bg-green-600 text-white py-3 rounded font-bold hover:bg-green-500 animate-pulse border-b-4 border-green-800 active:border-b-0">
-                    🏆 PUNTI AUTO
-                </button>
+                <button onclick="rivela()" class="bg-yellow-600 py-2 rounded font-bold">👁️ SVELA RISPOSTA</button>
+                <button onclick="assegnaAuto()" class="bg-green-600 py-2 rounded font-bold">🏆 PUNTI AUTO</button>
             </div>
         </div>
 
         <div class="col-span-3 bg-white p-3 rounded shadow flex flex-col">
-            <h2 class="font-bold text-gray-600 mb-2 border-b">Classifica</h2>
+            <h2 class="font-bold text-gray-600 border-b">Classifica</h2>
             <div class="flex-1 overflow-y-auto">
-                <table class="w-full text-xs">
-                    <tbody id="team-list"></tbody>
-                </table>
+                <table class="w-full text-xs"><tbody id="team-list"></tbody></table>
             </div>
         </div>
     </div>
 
     <script>
         const socket = io();
-        let currentQuestions = [];
-        let selectedQ = null;
-        let dbStructure = {};
+        let currentQuestions=[], selectedQ=null, dbStructure={};
 
-        socket.on('connect', () => {
-            document.getElementById('status').innerText = "ONLINE";
-            document.getElementById('status').className = "font-bold text-green-500 uppercase text-xs";
-            socket.emit('admin_connect');
-        });
-        
-        socket.on('force_reload', () => window.location.reload());
+        socket.on('connect', () => { document.getElementById('status').innerText="ONLINE"; document.getElementById('status').className="text-green-500 font-bold text-xs"; socket.emit('admin_connect'); });
+        socket.on('init_data', (d) => { dbStructure=d; updateTeams(d.teams); });
+        socket.on('force_reload', () => location.reload());
 
-        socket.on('init_data', (data) => {
-            dbStructure = data;
-            updateTeams(data.teams);
+        socket.on('receive_questions', (q) => {
+            currentQuestions = q;
+            const s = document.getElementById('sel-dom'); s.disabled=false; s.innerHTML='<option>-- Seleziona --</option>';
+            q.forEach((item,i) => s.innerHTML+=`<option value="${i}">${item.id}. ${item.domanda.substring(0,30)}...</option>`);
         });
 
-        socket.on('receive_questions', (questions) => {
-            currentQuestions = questions;
-            const selDom = document.getElementById('sel-dom');
-            selDom.disabled = false;
-            selDom.innerHTML = '<option value="">-- Seleziona --</option>';
-            questions.forEach((q, idx) => {
-                let text = q.domanda.length > 40 ? q.domanda.substring(0,40) + "..." : q.domanda;
-                selDom.innerHTML += `<option value="${idx}">${q.id}. ${text}</option>`;
-            });
-        });
-
-        // UPDATE MONITOR
-        socket.on('update_round_monitor', (answers) => {
-            const tbody = document.getElementById('round-table');
-            tbody.innerHTML = '';
+        // --- BUZZER LOGIC ---
+        socket.on('buzzer_admin_alert', (data) => {
+            // Nascondi tabella classico, mostra alert buzzer
+            document.getElementById('classic-monitor').classList.add('hidden');
+            document.getElementById('buzzer-alert').classList.remove('hidden');
+            document.getElementById('buzzer-actions').classList.remove('hidden');
             
-            // Se arrivano risposte scritte, nascondi il pannello buzzer
-            if(answers.length > 0) document.getElementById('buzzer-actions').classList.add('hidden');
+            document.getElementById('buzzer-winner').innerText = data.winner;
+            document.getElementById('queue-info').innerText = data.queueLen > 1 ? `(+${data.queueLen-1} in coda)` : "Nessun altro in coda";
+        });
 
-            answers.forEach((entry, idx) => {
-                const color = entry.corretta ? 'text-green-400 font-bold' : 'text-red-400';
-                tbody.innerHTML += `
-                    <tr class="border-b border-gray-800">
-                        <td class="p-2 text-white">${idx+1}. ${entry.teamName}</td>
-                        <td class="p-2 ${color}">${entry.risposta}</td>
-                        <td class="p-2 text-gray-400">${entry.tempo}s</td>
-                    </tr>`;
-            });
+        socket.on('reset_buzzer_admin', () => {
+            document.getElementById('buzzer-alert').classList.add('hidden');
+            document.getElementById('buzzer-actions').classList.add('hidden');
+            document.getElementById('classic-monitor').classList.remove('hidden'); // Torna monitor normale
         });
 
         socket.on('reset_round_monitor', () => {
-            document.getElementById('round-table').innerHTML = '<div class="text-center p-4 text-gray-500">In Corso...</div>';
-            document.getElementById('timer-badge').innerText = "LIVE";
-            document.getElementById('timer-badge').className = "bg-green-600 px-2 rounded text-xs animate-pulse text-white";
+            document.getElementById('round-table').innerHTML='';
+            document.getElementById('buzzer-alert').classList.add('hidden');
             document.getElementById('buzzer-actions').classList.add('hidden');
+            document.getElementById('classic-monitor').classList.remove('hidden');
         });
 
-        socket.on('buzzer_admin_alert', (winner) => {
-            // MOSTRA BOX BUZZER
-            document.getElementById('buzzer-actions').classList.remove('hidden');
-            document.getElementById('buzzer-who').innerText = winner;
-            document.getElementById('timer-badge').innerText = "BUZZER!";
-            document.getElementById('timer-badge').className = "bg-red-600 px-2 rounded text-xs animate-pulse text-white";
+        socket.on('update_round_monitor', (list) => {
+            const t = document.getElementById('round-table'); t.innerHTML='';
+            list.forEach((e,i) => t.innerHTML+=`<tr><td class="p-1 text-white">${i+1}. ${e.teamName}</td><td class="p-1 ${e.corretta?'text-green-400':'text-red-400'}">${e.risposta}</td></tr>`);
         });
 
         socket.on('update_teams', updateTeams);
-        function updateTeams(teams) {
-            teams.sort((a,b) => b.score - a.score);
-            const list = document.getElementById('team-list');
-            list.innerHTML = '';
-            teams.forEach(t => {
-                list.innerHTML += `<tr class="border-b"><td class="py-1 font-bold">${t.name}</td><td class="text-right text-blue-600 font-bold">${t.score}</td></tr>`;
-            });
+        function updateTeams(t) {
+            t.sort((a,b)=>b.score-a.score);
+            const l=document.getElementById('team-list'); l.innerHTML='';
+            t.forEach(x=>l.innerHTML+=`<tr class="border-b"><td class="font-bold">${x.name}</td><td class="text-right text-blue-600">${x.score}</td></tr>`);
         }
 
-        // LOGICA MENU
+        // --- MENU ---
         document.getElementById('sel-tipo').addEventListener('change', (e) => {
-            const type = e.target.value;
-            const selCat = document.getElementById('sel-cat');
-            selCat.innerHTML = '<option value="">-- Scegli --</option>';
-            document.getElementById('sel-dom').innerHTML = '';
-            
-            if (type === 'categorie') {
-                selCat.disabled = false;
-                dbStructure.categories.forEach(c => selCat.innerHTML += `<option value="${c}">${c.toUpperCase()}</option>`);
-            } else {
-                selCat.disabled = true;
-                socket.emit('get_questions', { type: type });
-            }
+            const t=e.target.value; const sc=document.getElementById('sel-cat'); 
+            sc.innerHTML='<option>-- --</option>'; document.getElementById('sel-dom').innerHTML='';
+            if(t==='categorie') { sc.disabled=false; dbStructure.categories.forEach(c=>sc.innerHTML+=`<option value="${c}">${c}</option>`); }
+            else { sc.disabled=true; socket.emit('get_questions', {type:t}); }
         });
+        document.getElementById('sel-cat').addEventListener('change', (e) => socket.emit('get_questions', {type:'categoria', key:e.target.value}));
+        document.getElementById('sel-dom').addEventListener('change', (e) => selectedQ=currentQuestions[e.target.value]);
 
-        document.getElementById('sel-cat').addEventListener('change', (e) => {
-            if(e.target.value) socket.emit('get_questions', { type: 'categoria', key: e.target.value });
-        });
-
-        document.getElementById('sel-dom').addEventListener('change', (e) => {
-            if (e.target.value !== "") selectedQ = currentQuestions[e.target.value];
-        });
-
-        function lancia(mode) {
-            if(!selectedQ) return alert("Scegli domanda!");
-            socket.emit('invia_domanda', { ...selectedQ, modalita: mode });
+        // --- ACTIONS ---
+        function lancia(m) {
+            if(!selectedQ) return alert("Scegli domanda");
+            socket.emit('invia_domanda', {...selectedQ, modalita:m});
+            if(m==='buzzer') document.getElementById('manual-buzzer-ctrl').classList.remove('hidden');
+            else document.getElementById('manual-buzzer-ctrl').classList.add('hidden');
         }
+        function toggleLock(s) { socket.emit('toggle_buzzer_lock', s); }
+        function buzzerCorrect() { socket.emit('buzzer_correct_assign', {points:100}); }
+        function buzzerWrong() { socket.emit('buzzer_wrong_next'); }
         function rivela() { socket.emit('rivela_risposta'); }
         function assegnaAuto() { socket.emit('assegna_punti_auto'); }
-        function regia(cmd) { socket.emit('regia_cmd', cmd); }
-        function buzzerNext() { socket.emit('buzzer_errato'); }
-        function resetGame() { if(confirm("Cancellare tutto?")) socket.emit('reset_game'); }
+        function regia(v) { socket.emit('regia_cmd', v); }
+        function resetGame() { if(confirm("Reset?")) socket.emit('reset_game'); }
     </script>
 </body>
 </html>

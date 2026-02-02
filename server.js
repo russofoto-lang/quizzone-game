@@ -32,14 +32,9 @@ app.get('/', (req, res) => res.sendFile(path.join(publicPath, 'index.html')));
 
 function inviaAggiornamentoCodaAdmin() {
     if (gameState.buzzerQueue.length > 0) {
-        const winner = gameState.buzzerQueue[0];
-        const codaRestante = gameState.buzzerQueue.slice(1).map(p => p.name);
-        const solText = gameState.currentQuestion ? (gameState.currentQuestion.corretta || "---") : "---";
-        io.to('admin').emit('buzzer_admin_alert', { 
-            winner: winner.name, 
-            queueLen: gameState.buzzerQueue.length,
-            others: codaRestante,
-            correctAnswer: solText 
+        io.to('admin').emit('buzzer_queue_full', { 
+            queue: gameState.buzzerQueue,
+            correctAnswer: gameState.currentQuestion ? (gameState.currentQuestion.corretta || "---") : "---"
         });
     }
 }
@@ -101,26 +96,43 @@ io.on('connection', (socket) => {
   });
 
   socket.on('prenoto', () => {
+    // Buzzer aperto: tutti possono premere!
     if (!gameState.buzzerLocked && gameState.teams[socket.id]) {
+      // Controlla se ha già premuto
       if (!gameState.buzzerQueue.find(p => p.id === socket.id)) {
-          gameState.buzzerQueue.push({ id: socket.id, name: gameState.teams[socket.id].name });
+          const reactionTime = ((Date.now() - gameState.questionStartTime) / 1000).toFixed(2);
+          const position = gameState.buzzerQueue.length + 1;
+          
+          gameState.buzzerQueue.push({ 
+              id: socket.id, 
+              name: gameState.teams[socket.id].name,
+              time: reactionTime,
+              position: position
+          });
+          
+          // Notifica al giocatore la sua posizione
+          io.to(socket.id).emit('buzzer_position', { position: position, time: reactionTime });
+          
+          // Aggiorna display e admin con lista completa
+          io.emit('buzzer_queue_update', { queue: gameState.buzzerQueue });
+          inviaAggiornamentoCodaAdmin();
       }
-      if (gameState.buzzerQueue.length === 1) {
-          gameState.buzzerLocked = true;
-          io.emit('stato_buzzer', { locked: true, attiva: true });
-          io.emit('buzzer_bloccato', { winner: gameState.buzzerQueue[0].name });
-          io.to(gameState.buzzerQueue[0].id).emit('prenotazione_vinta');
-      }
-      inviaAggiornamentoCodaAdmin();
+    }
+  });
+
+  // Nuovo evento: assegna punti a una squadra specifica dal buzzer
+  socket.on('buzzer_assign_points', (data) => {
+    // data = { teamId: 'socket-id', points: 100 }
+    if(gameState.teams[data.teamId]) {
+        gameState.teams[data.teamId].score += parseInt(data.points);
+        io.emit('update_teams', Object.values(gameState.teams));
     }
   });
 
   socket.on('buzzer_wrong_next', () => {
+    // Rimuovi il primo dalla coda (non più usato, ma lo tengo per compatibilità)
     gameState.buzzerQueue.shift();
     if (gameState.buzzerQueue.length > 0) {
-        const next = gameState.buzzerQueue[0];
-        io.emit('buzzer_bloccato', { winner: next.name });
-        io.to(next.id).emit('prenotazione_vinta');
         inviaAggiornamentoCodaAdmin();
     } else {
         gameState.buzzerLocked = false;
@@ -131,15 +143,22 @@ io.on('connection', (socket) => {
   });
 
   socket.on('buzzer_correct_assign', (data) => {
+    // Vecchio sistema, lo tengo per compatibilità
     if(gameState.buzzerQueue.length > 0) {
         const winner = gameState.buzzerQueue[0];
         if(gameState.teams[winner.id]) gameState.teams[winner.id].score += parseInt(data.points);
-        gameState.roundAnswers.push({ teamName: winner.name, risposta: "Risposta Vocale", corretta: true, tempo: "---", punti: data.points });
+        gameState.roundAnswers.push({ teamName: winner.name, risposta: "Risposta Vocale", corretta: true, tempo: winner.time || "---", punti: data.points });
         io.emit('update_teams', Object.values(gameState.teams));
         io.emit('mostra_soluzione', { soluzione: gameState.currentQuestion.corretta, risultati: gameState.roundAnswers });
         gameState.buzzerQueue = [];
         io.to('admin').emit('reset_buzzer_admin');
     }
+  });
+
+  // Chiudi il buzzer manualmente
+  socket.on('buzzer_close', () => {
+    gameState.buzzerLocked = true;
+    io.emit('stato_buzzer', { locked: true, attiva: false });
   });
 
   socket.on('toggle_buzzer_lock', (s) => { 

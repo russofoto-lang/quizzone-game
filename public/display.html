@@ -11,11 +11,8 @@
 <body class="flex flex-col h-screen p-6">
 
     <div class="h-[10%] flex justify-between items-center border-b border-gray-700 pb-2">
-        <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-red-600">
-            IL QUIZZONE
-        </h1>
-        <div id="mini-leaderboard" class="text-sm text-gray-400">
-            </div>
+        <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-red-600">IL QUIZZONE</h1>
+        <div id="mini-leaderboard" class="text-sm text-gray-400 font-mono"></div>
     </div>
 
     <div class="h-[90%] relative flex items-center justify-center">
@@ -26,38 +23,30 @@
         </div>
 
         <div id="view-game" class="view-section hidden absolute inset-0 flex flex-col items-center justify-center">
-            
             <div id="buzzer-overlay" class="hidden absolute inset-0 bg-black/90 z-50 flex flex-col items-center justify-center animate__animated animate__zoomIn">
                 <p class="text-5xl text-red-500 font-bold mb-8 animate-bounce">🚨 PRENOTATO 🚨</p>
-                <div id="winner-name" class="text-8xl font-black text-white bg-red-600 px-12 py-6 rounded-2xl shadow-2xl">
-                    SQUADRA
-                </div>
+                <div id="winner-name" class="text-8xl font-black text-white bg-red-600 px-12 py-6 rounded-2xl shadow-2xl">SQUADRA</div>
             </div>
 
             <div class="bg-gray-800/80 w-full max-w-6xl p-10 rounded-3xl border-t-8 border-blue-600 shadow-2xl text-center">
                 <h2 id="cat" class="text-xl font-bold text-blue-400 tracking-[0.5em] mb-8 uppercase">CATEGORIA</h2>
-                
-                <div id="q-text" class="text-5xl font-bold leading-tight mb-10">
-                    In attesa della domanda...
-                </div>
-                
+                <div id="q-text" class="text-5xl font-bold leading-tight mb-10">...</div>
                 <div id="opts" class="grid grid-cols-2 gap-6 text-3xl hidden mb-8"></div>
-
                 <div id="solution" class="hidden mt-8 border-t border-gray-600 pt-8 animate__animated animate__fadeInUp">
-                    <div class="inline-block bg-green-600 text-white px-10 py-4 rounded-full text-4xl font-bold shadow-lg mb-6">
-                        ✅ <span id="sol-text">RISPOSTA</span>
-                    </div>
+                    <div class="inline-block bg-green-600 text-white px-10 py-4 rounded-full text-4xl font-bold shadow-lg">✅ <span id="sol-text">RISPOSTA</span></div>
                 </div>
             </div>
         </div>
 
-        <div id="view-leaderboard" class="view-section hidden absolute inset-0 bg-gray-900 z-40 flex flex-col items-center pt-10">
-            <h2 class="text-5xl font-black text-yellow-400 mb-8">🏆 CLASSIFICA 🏆</h2>
+        <div id="view-classifica_round" class="view-section hidden absolute inset-0 bg-indigo-900 z-40 flex flex-col items-center justify-center">
+            <h2 class="text-5xl font-black text-white mb-10 bg-indigo-600 px-10 py-4 rounded-full shadow-lg">⚡ PODIO ROUND ⚡</h2>
+            <div id="round-podium" class="grid grid-cols-3 gap-8 items-end h-[400px] w-full max-w-5xl"></div>
+        </div>
+
+        <div id="view-classifica_gen" class="view-section hidden absolute inset-0 bg-gray-900 z-40 flex flex-col items-center pt-10">
+            <h2 class="text-5xl font-black text-yellow-400 mb-8">🏆 CLASSIFICA GENERALE 🏆</h2>
             <div class="w-full max-w-4xl overflow-y-auto">
-                <table class="w-full text-left text-2xl">
-                    <thead class="text-gray-500 border-b"><tr><th class="p-4">#</th><th class="p-4">SQUADRA</th><th class="p-4 text-right">PUNTI</th></tr></thead>
-                    <tbody id="full-leaderboard-body"></tbody>
-                </table>
+                <table class="w-full text-left text-2xl"><tbody id="full-leaderboard-body"></tbody></table>
             </div>
         </div>
 
@@ -66,82 +55,74 @@
     <script>
         const socket = io();
         
-        // Gestione Viste
-        function showView(viewId) {
+        function showView(id) {
             document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
-            document.getElementById('view-' + viewId).classList.remove('hidden');
+            const el = document.getElementById('view-'+id);
+            if(el) el.classList.remove('hidden');
         }
 
         socket.on('connect', () => { socket.emit('display_connect'); });
         socket.on('force_reload', () => window.location.reload());
 
-        // --- REGIA ---
         socket.on('cambia_vista', (data) => {
-            // Mapping comandi admin -> ID HTML
-            if(data.view === 'logo') showView('logo');
-            if(data.view === 'game' || data.view === 'gioco') showView('game');
-            if(data.view === 'classifica' || data.view === 'classifica_gen') showView('leaderboard');
+            showView(data.view);
+            if(data.view === 'classifica_round' && data.data) renderRoundPodium(data.data);
         });
 
-        // --- GIOCO ---
-        socket.on('nuova_domanda', (data) => {
-            showView('game'); // FORZA VISUALIZZAZIONE
+        function renderRoundPodium(data) {
+            const container = document.getElementById('round-podium'); container.innerHTML = '';
+            const wins = data.filter(d => d.corretta).slice(0,3);
+            if(wins.length===0) { container.innerHTML='<div class="col-span-3 text-center text-3xl text-gray-400">NESSUN VINCITORE!</div>'; return; }
             
+            // Logica visualizzazione anche con 1 solo vincitore
+            const order = wins.length === 1 ? [0] : (wins.length === 2 ? [1,0] : [1,0,2]);
+            
+            // Centriamo il singolo vincitore
+            if(wins.length === 1) container.className = "flex justify-center items-end h-[400px] w-full";
+            else container.className = "grid grid-cols-3 gap-8 items-end h-[400px] w-full max-w-5xl";
+
+            order.forEach(i => {
+                const w = wins[i];
+                let h=i===0?'h-64':(i===1?'h-48':'h-32');
+                let bg=i===0?'bg-yellow-500':(i===1?'bg-gray-400':'bg-orange-600');
+                container.innerHTML += `
+                    <div class="flex flex-col items-center animate__animated animate__fadeInUp ${wins.length===1?'w-64':''}">
+                        <div class="text-4xl font-bold mb-2 text-center">${w.teamName}</div>
+                        <div class="${h} w-full ${bg} rounded-t-xl shadow-2xl flex items-end justify-center pb-4 text-4xl font-black text-black/50">${i+1}</div>
+                    </div>`;
+            });
+        }
+
+        socket.on('nuova_domanda', (d) => {
+            showView('game');
             document.getElementById('buzzer-overlay').classList.add('hidden');
             document.getElementById('solution').classList.add('hidden');
-            
-            document.getElementById('cat').innerText = (data.categoria || "QUIZ").toUpperCase();
-            document.getElementById('q-text').innerText = data.domanda;
-
-            const opt = document.getElementById('opts');
-            opt.innerHTML = '';
-            if(data.modalita === 'classico' && data.risposte) {
-                opt.classList.remove('hidden');
-                data.risposte.forEach(r => {
-                    opt.innerHTML += `<div class="bg-white/10 p-4 rounded-xl border border-white/20">${r}</div>`;
-                });
-            } else {
-                opt.classList.add('hidden');
-            }
+            document.getElementById('cat').innerText=(d.categoria||"QUIZ").toUpperCase();
+            document.getElementById('q-text').innerText=d.domanda;
+            const o = document.getElementById('opts'); o.innerHTML='';
+            if(d.modalita==='classico' && d.risposte) { o.classList.remove('hidden'); d.risposte.forEach(r=>o.innerHTML+=`<div class="bg-white/10 p-4 rounded-xl border border-white/20">${r}</div>`); }
+            else o.classList.add('hidden');
         });
 
-        socket.on('buzzer_bloccato', (data) => {
+        socket.on('buzzer_bloccato', (d) => {
             document.getElementById('buzzer-overlay').classList.remove('hidden');
-            document.getElementById('winner-name').innerText = data.winner;
+            document.getElementById('winner-name').innerText = d.winner;
         });
+        socket.on('reset_buzzer_display', () => { document.getElementById('buzzer-overlay').classList.add('hidden'); });
 
-        socket.on('mostra_soluzione', (data) => {
-            showView('game'); // Assicura che siamo sulla schermata giusta
+        socket.on('mostra_soluzione', (d) => {
+            showView('game');
             document.getElementById('solution').classList.remove('hidden');
             document.getElementById('buzzer-overlay').classList.add('hidden');
-            document.getElementById('sol-text').innerText = data.soluzione;
+            document.getElementById('sol-text').innerText = d.soluzione;
         });
 
-        socket.on('reset_buzzer', () => {
-            document.getElementById('buzzer-overlay').classList.add('hidden');
-        });
-
-        // --- CLASSIFICHE ---
-        socket.on('update_teams', (teams) => {
-            teams.sort((a,b) => b.score - a.score);
-            
-            // Full Screen
-            const fullBody = document.getElementById('full-leaderboard-body');
-            fullBody.innerHTML = '';
-            teams.forEach((t, i) => {
-                let color = i < 3 ? 'text-white font-bold' : 'text-gray-400';
-                fullBody.innerHTML += `
-                    <tr class="border-b border-gray-800">
-                        <td class="p-4 ${color}">${i+1}</td>
-                        <td class="p-4 ${color}">${t.name}</td>
-                        <td class="p-4 text-right text-yellow-500 font-mono">${t.score}</td>
-                    </tr>`;
-            });
-
-            // Mini (Top 3)
-            const mini = document.getElementById('mini-leaderboard');
-            let txt = teams.slice(0,3).map((t,i) => `${i+1}. ${t.name} (${t.score})`).join('  |  ');
-            mini.innerText = txt;
+        socket.on('update_teams', (t) => {
+            t.sort((a,b)=>b.score-a.score);
+            const fb=document.getElementById('full-leaderboard-body'); fb.innerHTML='';
+            t.forEach((x,i)=>{ fb.innerHTML+=`<tr class="border-b border-gray-700"><td class="p-4 text-3xl text-gray-400">${i+1}.</td><td class="p-4 text-3xl font-bold">${x.name}</td><td class="p-4 text-right text-3xl text-yellow-500">${x.score}</td></tr>`; });
+            const mini=document.getElementById('mini-leaderboard');
+            mini.innerText = t.slice(0,3).map((x,i)=>`${i+1}. ${x.name} (${x.score})`).join('  |  ');
         });
     </script>
 </body>

@@ -2,63 +2,79 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <title>DISPLAY SHOW</title>
+    <title>DISPLAY SHOW - Siponto Forever Young</title>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
-    <style>body { background: #0f172a; color: white; overflow: hidden; }</style>
+    <style>
+        body { background: #0f172a; color: white; overflow: hidden; font-family: 'Inter', sans-serif; }
+        .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        #qrcode img { margin: 0 auto; border: 15px solid white; border-radius: 10px; }
+    </style>
 </head>
 <body class="flex flex-col h-screen p-6">
 
     <div class="h-[10%] flex justify-between items-center border-b border-gray-700 pb-2">
-        <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-red-600">IL QUIZZONE</h1>
-        <div id="mini-leaderboard" class="text-sm text-gray-400 font-mono"></div>
+        <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-red-600">SIPONTO FOREVER YOUNG</h1>
+        <div id="mini-leaderboard" class="text-xl font-mono text-blue-400"></div>
     </div>
 
     <div class="h-[90%] relative flex items-center justify-center">
 
         <div id="view-logo" class="view-section absolute inset-0 flex flex-col items-center justify-center">
-            <div class="text-9xl animate-pulse">🎬</div>
-            <h2 class="text-3xl font-bold mt-4 text-gray-500">ATTESA REGIA...</h2>
+            <div class="glass p-10 rounded-[3rem] shadow-2xl text-center animate__animated animate__fadeInDown">
+                <h2 class="text-3xl font-bold mb-6 text-white uppercase tracking-tighter">Inquadra per partecipare</h2>
+                <div id="qrcode" class="shadow-2xl"></div>
+                <p class="mt-6 text-2xl font-black text-yellow-500">quizzone-game.onrender.com</p>
+            </div>
+            <div class="mt-10 text-gray-500 animate-pulse text-xl uppercase tracking-widest">Attesa inizio sessione...</div>
         </div>
 
         <div id="view-game" class="view-section hidden absolute inset-0 flex flex-col items-center justify-center">
-            
-            <div id="buzzer-overlay" class="hidden absolute inset-0 bg-black/90 z-50 flex flex-col items-center justify-center animate__animated animate__zoomIn">
-                <p class="text-5xl text-red-500 font-bold mb-8 animate-bounce">🚨 PRENOTATO 🚨</p>
-                <div id="winner-name" class="text-8xl font-black text-white bg-red-600 px-12 py-6 rounded-2xl shadow-2xl">SQUADRA</div>
+            <div id="buzzer-overlay" class="hidden absolute inset-0 bg-black/90 z-50 flex flex-col items-center justify-center">
+                <p class="text-6xl text-red-500 font-black mb-8 animate__animated animate__bounceIn">🚨 PRENOTATO 🚨</p>
+                <div id="winner-name" class="text-9xl font-black text-white bg-red-600 px-16 py-8 rounded-3xl shadow-2xl border-4 border-white uppercase">SQUADRA</div>
             </div>
 
-            <div class="bg-gray-800/80 w-full max-w-6xl p-10 rounded-3xl border-t-8 border-blue-600 shadow-2xl text-center">
-                <h2 id="cat" class="text-xl font-bold text-blue-400 tracking-[0.5em] mb-8 uppercase">CATEGORIA</h2>
-                <div id="q-text" class="text-5xl font-bold leading-tight mb-10">...</div>
+            <div class="bg-gray-800/80 w-full max-w-6xl p-12 rounded-[3rem] border-t-8 border-blue-500 shadow-2xl text-center glass">
+                <h2 id="cat" class="text-2xl font-bold text-blue-400 mb-6 uppercase tracking-[0.3em]">CATEGORIA</h2>
+                <div id="q-text" class="text-6xl font-black leading-tight mb-10 text-white">Caricamento domanda...</div>
                 
-                <div id="opts" class="grid grid-cols-2 gap-6 text-3xl hidden mb-8"></div>
+                <div id="opts" class="grid grid-cols-2 gap-6 text-3xl hidden"></div>
 
                 <div id="solution" class="hidden mt-8 border-t border-gray-600 pt-8 animate__animated animate__fadeInUp">
-                    <div class="inline-block bg-green-600 text-white px-10 py-4 rounded-full text-4xl font-bold shadow-lg">✅ <span id="sol-text">RISPOSTA</span></div>
+                    <div class="inline-block bg-green-600 text-white px-12 py-5 rounded-full text-5xl font-black shadow-2xl uppercase italic">
+                        ✅ <span id="sol-text">RISPOSTA</span>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div id="view-classifica_round" class="view-section hidden absolute inset-0 bg-indigo-900 z-40 flex flex-col items-center pt-10">
-            <h2 class="text-4xl font-black text-white mb-6 bg-indigo-600 px-8 py-2 rounded-full shadow-lg">📊 RISULTATI ROUND</h2>
-            <div class="w-full max-w-5xl h-[70vh] overflow-y-auto bg-black/20 rounded-xl p-4">
-                <table class="w-full text-left text-xl">
-                    <thead class="text-indigo-300 border-b border-indigo-700">
-                        <tr><th class="p-4">#</th><th class="p-4">SQUADRA</th><th class="p-4">RISPOSTA</th><th class="p-4 text-right">INFO</th></tr>
+        <div id="view-classifica_round" class="view-section hidden absolute inset-0 bg-indigo-950 z-40 flex flex-col items-center pt-10">
+            <h2 class="text-5xl font-black text-white mb-8 bg-indigo-600 px-12 py-3 rounded-full shadow-2xl italic">⚡ RISULTATI ROUND ⚡</h2>
+            <div class="w-full max-w-5xl h-[70vh] overflow-y-auto glass rounded-3xl p-6">
+                <table class="w-full text-left text-2xl border-collapse">
+                    <thead class="text-indigo-300 border-b-2 border-indigo-800">
+                        <tr>
+                            <th class="p-4">POS</th>
+                            <th class="p-4">SQUADRA</th>
+                            <th class="p-4">RISPOSTA</th>
+                            <th class="p-4 text-right">TEMPO</th>
+                        </tr>
                     </thead>
                     <tbody id="round-list-body"></tbody>
                 </table>
             </div>
         </div>
 
-        <div id="view-classifica_gen" class="view-section hidden absolute inset-0 bg-gray-900 z-40 flex flex-col items-center pt-10">
-            <h2 class="text-5xl font-black text-yellow-400 mb-8">🏆 CLASSIFICA GENERALE 🏆</h2>
-            <div class="w-full max-w-4xl overflow-y-auto">
-                <table class="w-full text-left text-2xl"><tbody id="full-leaderboard-body"></tbody></table>
+        <div id="view-classifica_gen" class="view-section hidden absolute inset-0 bg-slate-900 z-40 flex flex-col items-center pt-10">
+            <h2 class="text-6xl font-black text-yellow-500 mb-10 uppercase tracking-tighter">🏆 Classifica Generale 🏆</h2>
+            <div class="w-full max-w-4xl h-[70vh] overflow-y-auto glass rounded-[3rem] p-8">
+                <table class="w-full text-left text-3xl"><tbody id="full-leaderboard-body"></tbody></table>
             </div>
         </div>
+
     </div>
 
     <script>
@@ -70,40 +86,40 @@
             if(el) el.classList.remove('hidden');
         }
 
-        socket.on('connect', () => { socket.emit('display_connect'); });
-        socket.on('force_reload', () => window.location.reload());
+        socket.on('connect', () => { console.log("Display Connesso!"); });
 
         socket.on('cambia_vista', (data) => {
             showView(data.view);
+            if(data.view === 'logo') {
+                document.getElementById("qrcode").innerHTML = "";
+                new QRCode(document.getElementById("qrcode"), {
+                    text: "https://quizzone-game.onrender.com",
+                    width: 320,
+                    height: 320,
+                    colorDark : "#000000",
+                    colorLight : "#ffffff"
+                });
+            }
             if(data.view === 'classifica_round' && data.data) renderRoundList(data.data);
         });
 
         function renderRoundList(data) {
             const tbody = document.getElementById('round-list-body'); 
             tbody.innerHTML = '';
-            
-            if(data.length === 0) { tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-gray-400">Nessuna risposta</td></tr>'; return; }
+            if(data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="p-10 text-center text-gray-500 text-4xl">Nessuna risposta ricevuta</td></tr>';
+                return;
+            }
 
             data.forEach((entry, i) => {
-                let colorClass = 'text-white';
-                let icon = '';
-                
-                if(entry.isStima) {
-                    // Stima: Verde il primo, bianco gli altri
-                    colorClass = i===0 ? 'text-green-400 font-bold' : 'text-gray-300';
-                    icon = `Scarto: ${entry.diff}`;
-                } else {
-                    // Classico: Verde/Rosso
-                    colorClass = entry.corretta ? 'text-green-400 font-bold' : 'text-red-400';
-                    icon = entry.corretta ? '✅' : '❌';
-                }
-
+                const isCorrect = entry.corretta;
+                const rowClass = isCorrect ? 'bg-green-500/20 text-green-400' : 'text-white opacity-80';
                 tbody.innerHTML += `
-                    <tr class="border-b border-indigo-800 hover:bg-white/5">
-                        <td class="p-4 text-indigo-400 font-mono">${i+1}.</td>
-                        <td class="p-4 font-bold">${entry.teamName}</td>
-                        <td class="p-4 ${colorClass}">${entry.risposta}</td>
-                        <td class="p-4 text-right text-sm text-gray-400">${icon} (${entry.tempo}s)</td>
+                    <tr class="border-b border-white/5 ${rowClass} animate__animated animate__fadeInLeft" style="animation-delay: ${i*0.1}s">
+                        <td class="p-6 font-mono text-3xl text-indigo-400">${i+1}</td>
+                        <td class="p-6 font-black">${entry.teamName}</td>
+                        <td class="p-6 italic">${entry.risposta}</td>
+                        <td class="p-6 text-right font-mono">${entry.tempo}s</td>
                     </tr>`;
             });
         }
@@ -112,18 +128,16 @@
             showView('game');
             document.getElementById('buzzer-overlay').classList.add('hidden');
             document.getElementById('solution').classList.add('hidden');
-            document.getElementById('cat').innerText=(d.categoria||"QUIZ").toUpperCase();
+            document.getElementById('cat').innerText=(d.categoria||"PROVA").toUpperCase();
             document.getElementById('q-text').innerText=d.domanda;
             
             const o = document.getElementById('opts'); 
             o.innerHTML='';
-            
-            // Logica visualizzazione opzioni:
-            // Mostra solo se ci sono risposte E NON è anagramma
-            if(d.risposte && d.modalita !== 'anagramma' && d.modalita !== 'stima') { 
+            // Mostra opzioni solo se esistono e non siamo in buzzer/stima/anagramma
+            if(d.risposte && d.modalita !== 'buzzer' && d.modalita !== 'stima' && d.modalita !== 'anagramma') { 
                 o.classList.remove('hidden'); 
-                d.risposte.forEach(r => {
-                    o.innerHTML += `<div class="bg-white/10 p-4 rounded-xl border border-white/20">${r}</div>`;
+                d.risposte.forEach((r, idx) => {
+                    o.innerHTML += `<div class="bg-white/10 p-6 rounded-2xl border-2 border-white/10 shadow-lg text-4xl font-bold">${String.fromCharCode(65+idx)}: ${r}</div>`;
                 });
             } else {
                 o.classList.add('hidden');
@@ -134,22 +148,33 @@
             document.getElementById('buzzer-overlay').classList.remove('hidden');
             document.getElementById('winner-name').innerText = d.winner;
         });
+
         socket.on('reset_buzzer_display', () => { document.getElementById('buzzer-overlay').classList.add('hidden'); });
 
         socket.on('mostra_soluzione', (d) => {
             showView('game');
             document.getElementById('solution').classList.remove('hidden');
-            document.getElementById('buzzer-overlay').classList.add('hidden');
             document.getElementById('sol-text').innerText = d.soluzione;
+            document.getElementById('buzzer-overlay').classList.add('hidden');
         });
 
         socket.on('update_teams', (t) => {
             t.sort((a,b)=>b.score-a.score);
             const fb=document.getElementById('full-leaderboard-body'); fb.innerHTML='';
-            t.forEach((x,i)=>{ fb.innerHTML+=`<tr class="border-b border-gray-700"><td class="p-4 text-3xl text-gray-400">${i+1}.</td><td class="p-4 text-3xl font-bold">${x.name}</td><td class="p-4 text-right text-3xl text-yellow-500">${x.score}</td></tr>`; });
-            const mini=document.getElementById('mini-leaderboard');
-            mini.innerText = t.slice(0,3).map((x,i)=>`${i+1}. ${x.name} (${x.score})`).join('  |  ');
+            t.forEach((x,i)=>{
+                const medal = i === 0 ? '🥇' : (i === 1 ? '🥈' : (i === 2 ? '🥉' : i+1));
+                fb.innerHTML+=`
+                <tr class="border-b border-white/10 animate__animated animate__fadeInUp">
+                    <td class="p-6 font-black text-4xl text-gray-400 w-24">${medal}</td>
+                    <td class="p-6 text-4xl font-bold uppercase">${x.name}</td>
+                    <td class="p-6 text-right text-5xl font-black text-yellow-500">${x.score}</td>
+                </tr>`;
+            });
+            const mini = document.getElementById('mini-leaderboard');
+            mini.innerText = t.slice(0,3).map(x => `${x.name}: ${x.score}`).join(' | ');
         });
+
+        socket.on('force_reload', () => window.location.reload());
     </script>
 </body>
 </html>

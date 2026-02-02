@@ -8,69 +8,90 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
     <style>
-        body { background: #0f172a; color: white; overflow: hidden; font-family: 'Inter', sans-serif; }
-        .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
-        #qrcode img { margin: 0 auto; border: 15px solid white; border-radius: 10px; }
+        body { 
+            background: #0f172a; 
+            color: white; 
+            overflow: hidden; 
+            font-family: 'Inter', sans-serif; 
+        }
+        .glass { 
+            background: rgba(255, 255, 255, 0.05); 
+            backdrop-filter: blur(10px); 
+            border: 1px solid rgba(255, 255, 255, 0.1); 
+        }
+        #qrcode img { 
+            margin: 0 auto; 
+            border: 8px solid white; 
+            border-radius: 8px; 
+        }
         
         @keyframes countdown-pulse {
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.1); }
         }
         .countdown-critical { animation: countdown-pulse 0.5s ease-in-out infinite; }
+        
+        /* Ottimizzazioni per schermi più piccoli */
+        .responsive-text {
+            font-size: clamp(1.5rem, 4vw, 3rem);
+        }
+        .responsive-heading {
+            font-size: clamp(1.8rem, 5vw, 3.5rem);
+        }
     </style>
 </head>
-<body class="flex flex-col h-screen p-6">
+<body class="flex flex-col h-screen p-2 sm:p-4">
 
-    <div class="h-[10%] flex justify-between items-center border-b border-gray-700 pb-2">
-        <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-red-600">SIPONTO FOREVER YOUNG</h1>
-        <div id="mini-leaderboard" class="text-xl font-mono text-blue-400"></div>
+    <div class="h-[8%] flex justify-between items-center border-b border-gray-700 pb-1 mb-1">
+        <h1 class="responsive-heading font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-red-600">SIPONTO FOREVER YOUNG</h1>
+        <div id="mini-leaderboard" class="text-sm sm:text-lg font-mono text-blue-400 truncate max-w-[40%]"></div>
     </div>
 
-    <div class="h-[90%] relative flex items-center justify-center">
+    <div class="h-[92%] relative flex items-center justify-center">
 
         <!-- VISTA LOGO/QR -->
         <div id="view-logo" class="view-section absolute inset-0 flex flex-col items-center justify-center">
-            <div class="glass p-10 rounded-[3rem] shadow-2xl text-center animate__animated animate__fadeInDown">
-                <h2 class="text-3xl font-bold mb-6 text-white uppercase tracking-tighter">Inquadra per partecipare</h2>
-                <div id="qrcode" class="shadow-2xl"></div>
-                <p class="mt-6 text-2xl font-black text-yellow-500">quizzone-game.onrender.com</p>
+            <div class="glass p-4 sm:p-6 rounded-2xl sm:rounded-[2rem] shadow-lg text-center animate__animated animate__fadeInDown">
+                <h2 class="text-xl sm:text-2xl font-bold mb-4 text-white uppercase tracking-tighter">Inquadra per partecipare</h2>
+                <div id="qrcode" class="shadow-lg mx-auto" style="width: 200px; height: 200px;"></div>
+                <p class="mt-4 text-base sm:text-xl font-black text-yellow-500">quizzone-game.onrender.com</p>
             </div>
-            <div class="mt-10 text-gray-500 animate-pulse text-xl uppercase tracking-widest">Attesa inizio sessione...</div>
+            <div class="mt-4 text-gray-500 animate-pulse text-sm sm:text-base uppercase tracking-widest">Attesa inizio sessione...</div>
         </div>
 
         <!-- VISTA GIOCO -->
-        <div id="view-gioco" class="view-section hidden absolute inset-0 flex flex-col items-center justify-center">
-            <div id="buzzer-overlay" class="hidden absolute inset-0 bg-black/90 z-50 flex flex-col items-center justify-center">
-                <p class="text-6xl text-red-500 font-black mb-8 animate__animated animate__bounceIn">⚡ PRENOTAZIONI BUZZER ⚡</p>
+        <div id="view-gioco" class="view-section hidden absolute inset-0 flex flex-col items-center justify-center p-2">
+            <div id="buzzer-overlay" class="hidden absolute inset-0 bg-black/90 z-50 flex flex-col items-center justify-center p-2">
+                <p class="text-2xl sm:text-4xl text-red-500 font-black mb-4 animate__animated animate__bounceIn text-center">⚡ PRENOTAZIONI BUZZER ⚡</p>
                 
-                <div class="bg-red-900/50 rounded-3xl p-8 max-w-4xl w-full">
-                    <div id="buzzer-queue-display" class="space-y-4">
+                <div class="bg-red-900/50 rounded-xl sm:rounded-2xl p-4 w-full max-w-2xl">
+                    <div id="buzzer-queue-display" class="space-y-2 max-h-[60vh] overflow-y-auto">
                         <!-- Popolato via JS -->
                     </div>
                 </div>
             </div>
 
-            <div class="bg-gray-800/80 w-full max-w-5xl p-8 rounded-[2rem] border-t-8 border-blue-500 shadow-2xl text-center glass">
+            <div class="bg-gray-800/80 w-full p-4 sm:p-6 rounded-xl sm:rounded-2xl border-t-4 sm:border-t-8 border-blue-500 shadow-lg text-center glass max-w-4xl">
                 
                 <!-- TIMER DISPLAY -->
-                <div id="timer-display-container" class="hidden mb-8">
-                    <div class="flex justify-center items-center gap-6 mb-4">
-                        <span class="text-2xl text-white font-semibold">Tempo rimasto:</span>
-                        <span id="timer-display-text" class="text-7xl font-black" style="color: #10b981;">20</span>
-                        <span class="text-3xl text-white">secondi</span>
+                <div id="timer-display-container" class="hidden mb-4">
+                    <div class="flex justify-center items-center gap-2 sm:gap-4 mb-2">
+                        <span class="text-sm sm:text-base text-white font-semibold">Tempo rimasto:</span>
+                        <span id="timer-display-text" class="text-4xl sm:text-5xl font-black" style="color: #10b981;">20</span>
+                        <span class="text-base sm:text-xl text-white">sec</span>
                     </div>
-                    <div class="w-full bg-gray-700 rounded-full h-4 overflow-hidden">
-                        <div id="timer-display-bar" class="h-4 rounded-full transition-all duration-1000" style="background-color: #10b981; width: 100%;"></div>
+                    <div class="w-full bg-gray-700 rounded-full h-2 sm:h-3 overflow-hidden">
+                        <div id="timer-display-bar" class="h-full rounded-full transition-all duration-1000" style="background-color: #10b981; width: 100%;"></div>
                     </div>
                 </div>
 
-                <h2 id="cat" class="text-2xl font-bold text-blue-400 mb-6 uppercase tracking-[0.3em]">CATEGORIA</h2>
-                <div id="q-text" class="text-6xl font-black leading-tight mb-10 text-white">Caricamento domanda...</div>
+                <h2 id="cat" class="text-base sm:text-lg font-bold text-blue-400 mb-2 sm:mb-4 uppercase tracking-wider">CATEGORIA</h2>
+                <div id="q-text" class="responsive-text font-black leading-tight mb-4 sm:mb-6 text-white px-2">Caricamento domanda...</div>
                 
-                <div id="opts" class="grid grid-cols-2 gap-6 text-3xl hidden"></div>
+                <div id="opts" class="grid grid-cols-2 gap-2 sm:gap-4 text-lg sm:text-xl hidden max-h-[40vh] overflow-y-auto"></div>
 
-                <div id="solution" class="hidden mt-8 border-t border-gray-600 pt-8 animate__animated animate__fadeInUp">
-                    <div class="inline-block bg-green-600 text-white px-12 py-5 rounded-full text-5xl font-black shadow-2xl uppercase italic">
+                <div id="solution" class="hidden mt-4 sm:mt-6 border-t border-gray-600 pt-4 animate__animated animate__fadeInUp">
+                    <div class="inline-block bg-green-600 text-white px-4 sm:px-8 py-2 sm:py-3 rounded-full text-xl sm:text-2xl font-black shadow-lg uppercase italic">
                         ✅ <span id="sol-text">RISPOSTA</span>
                     </div>
                 </div>
@@ -78,29 +99,35 @@
         </div>
 
         <!-- VISTA CLASSIFICA ROUND -->
-        <div id="view-classifica_round" class="view-section hidden absolute inset-0 bg-indigo-950 z-40 flex flex-col items-center pt-10">
-            <h2 class="text-5xl font-black text-white mb-8 bg-indigo-600 px-12 py-3 rounded-full shadow-2xl italic">⚡ RISULTATI ROUND ⚡</h2>
-            <div class="w-full max-w-5xl h-[70vh] overflow-y-auto glass rounded-3xl p-6">
-                <table class="w-full text-left text-2xl border-collapse">
-                    <thead class="text-indigo-300 border-b-2 border-indigo-800">
-                        <tr>
-                            <th class="p-4">POS</th>
-                            <th class="p-4">SQUADRA</th>
-                            <th class="p-4">RISPOSTA</th>
-                            <th class="p-4 text-right">TEMPO</th>
-                            <th class="p-4 text-right">PUNTI</th>
-                        </tr>
-                    </thead>
-                    <tbody id="round-list-body"></tbody>
-                </table>
+        <div id="view-classifica_round" class="view-section hidden absolute inset-0 bg-indigo-950 z-40 flex flex-col items-center p-2 sm:p-4 overflow-hidden">
+            <h2 class="text-xl sm:text-3xl font-black text-white mb-4 sm:mb-6 bg-indigo-600 px-4 sm:px-8 py-2 rounded-full shadow-lg italic">⚡ RISULTATI ROUND ⚡</h2>
+            <div class="w-full h-[calc(100%-80px)] overflow-y-auto glass rounded-xl sm:rounded-2xl p-2 sm:p-4">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse min-w-[500px]">
+                        <thead class="text-indigo-300 border-b border-indigo-800 text-xs sm:text-sm">
+                            <tr>
+                                <th class="p-2">POS</th>
+                                <th class="p-2">SQUADRA</th>
+                                <th class="p-2">RISPOSTA</th>
+                                <th class="p-2 text-right">TEMPO</th>
+                                <th class="p-2 text-right">PUNTI</th>
+                            </tr>
+                        </thead>
+                        <tbody id="round-list-body" class="text-xs sm:text-sm"></tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
         <!-- VISTA CLASSIFICA GENERALE -->
-        <div id="view-classifica_gen" class="view-section hidden absolute inset-0 bg-slate-900 z-40 flex flex-col items-center pt-10">
-            <h2 class="text-6xl font-black text-yellow-500 mb-10 uppercase tracking-tighter">🏆 Classifica Generale 🏆</h2>
-            <div class="w-full max-w-4xl h-[70vh] overflow-y-auto glass rounded-[3rem] p-8">
-                <table class="w-full text-left text-3xl"><tbody id="full-leaderboard-body"></tbody></table>
+        <div id="view-classifica_gen" class="view-section hidden absolute inset-0 bg-slate-900 z-40 flex flex-col items-center p-2 sm:p-4 overflow-hidden">
+            <h2 class="text-xl sm:text-3xl font-black text-yellow-500 mb-4 sm:mb-6 uppercase tracking-tighter text-center">🏆 Classifica Generale 🏆</h2>
+            <div class="w-full h-[calc(100%-80px)] overflow-y-auto glass rounded-xl sm:rounded-2xl p-2 sm:p-4">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left min-w-[400px]">
+                        <tbody id="full-leaderboard-body" class="text-sm sm:text-base"></tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
@@ -146,8 +173,8 @@
                 try {
                     new QRCode(qrDiv, {
                         text: window.location.origin || "https://quizzone-game.onrender.com",
-                        width: 320,
-                        height: 320,
+                        width: 200,
+                        height: 200,
                         colorDark : "#000000",
                         colorLight : "#ffffff"
                     });
@@ -168,7 +195,7 @@
             tbody.innerHTML = '';
             
             if(data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" class="p-10 text-center text-gray-500 text-4xl">Nessuna risposta ricevuta</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-gray-500">Nessuna risposta ricevuta</td></tr>';
                 return;
             }
 
@@ -181,11 +208,11 @@
                 const punti = entry.punti || 0;
                 tbody.innerHTML += `
                     <tr class="border-b border-white/5 ${rowClass} animate__animated animate__fadeInLeft" style="animation-delay: ${i*0.1}s">
-                        <td class="p-6 font-mono text-3xl text-indigo-400">${i+1}</td>
-                        <td class="p-6 font-black">${entry.teamName}</td>
-                        <td class="p-6 italic">${entry.risposta}</td>
-                        <td class="p-6 text-right font-mono">${entry.tempo}s</td>
-                        <td class="p-6 text-right font-black text-2xl ${isCorrect ? 'text-green-400' : 'text-red-400'}">
+                        <td class="p-2 font-mono">${i+1}</td>
+                        <td class="p-2 font-bold truncate max-w-[100px]">${entry.teamName}</td>
+                        <td class="p-2 italic truncate max-w-[150px]">${entry.risposta}</td>
+                        <td class="p-2 text-right font-mono">${entry.tempo}s</td>
+                        <td class="p-2 text-right font-bold ${isCorrect ? 'text-green-400' : 'text-red-400'}">
                             ${isCorrect ? '+' + punti : punti}
                         </td>
                     </tr>`;
@@ -210,7 +237,7 @@
             if(d.risposte && d.modalita !== 'buzzer' && d.modalita !== 'stima' && d.modalita !== 'anagramma') { 
                 o.classList.remove('hidden'); 
                 d.risposte.forEach((r, idx) => {
-                    o.innerHTML += `<div class="bg-white/10 p-6 rounded-2xl border-2 border-white/10 shadow-lg text-4xl font-bold">${String.fromCharCode(65+idx)}: ${r}</div>`;
+                    o.innerHTML += `<div class="bg-white/10 p-3 sm:p-4 rounded-lg sm:rounded-xl border border-white/10 shadow text-base sm:text-lg font-bold break-words">${String.fromCharCode(65+idx)}: ${r}</div>`;
                 });
                 
                 // Avvia timer
@@ -285,12 +312,12 @@
                     const medal = medals[idx] || `${idx + 1}°`;
                     
                     queueDiv.innerHTML += `
-                        <div class="bg-white/10 rounded-2xl p-6 flex justify-between items-center animate__animated animate__fadeInLeft" style="animation-delay: ${idx * 0.1}s">
-                            <div class="flex items-center gap-6">
-                                <span class="text-6xl">${medal}</span>
-                                <span class="text-5xl font-black text-white uppercase">${player.name}</span>
+                        <div class="bg-white/10 rounded-lg sm:rounded-xl p-3 sm:p-4 flex justify-between items-center animate__animated animate__fadeInLeft" style="animation-delay: ${idx * 0.1}s">
+                            <div class="flex items-center gap-2 sm:gap-4">
+                                <span class="text-2xl sm:text-3xl">${medal}</span>
+                                <span class="text-lg sm:text-xl font-bold text-white truncate max-w-[150px]">${player.name}</span>
                             </div>
-                            <span class="text-4xl text-yellow-400 font-mono">${player.time}s</span>
+                            <span class="text-base sm:text-lg text-yellow-400 font-mono">${player.time}s</span>
                         </div>
                     `;
                 });
@@ -308,14 +335,14 @@
         });
 
         // MOSTRA SOLUZIONE
-       socket.on('mostra_soluzione', (d) => {
-    showView('gioco');// <--- CAMBIATO: Ora resta sulla schermata del gioco
-    document.getElementById('solution').classList.remove('hidden');
-    document.getElementById('sol-text').innerText = d.soluzione;
-    document.getElementById('buzzer-overlay').classList.add('hidden');
-    // Se vuoi vedere chi ha risposto sotto la soluzione, lascia la riga sotto:
-    if(d.risultati) renderRoundList(d.risultati); 
-});
+        socket.on('mostra_soluzione', (d) => {
+            showView('gioco'); // Resta sulla schermata del gioco
+            document.getElementById('solution').classList.remove('hidden');
+            document.getElementById('sol-text').innerText = d.soluzione;
+            document.getElementById('buzzer-overlay').classList.add('hidden');
+            // Se vuoi vedere chi ha risposto sotto la soluzione, lascia la riga sotto:
+            if(d.risultati) renderRoundList(d.risultati); 
+        });
 
         // CLASSIFICA GENERALE
         socket.on('update_teams', (t) => {
@@ -328,15 +355,17 @@
                 const medal = i === 0 ? '🥇' : (i === 1 ? '🥈' : (i === 2 ? '🥉' : i+1));
                 fb.innerHTML += `
                 <tr class="border-b border-white/10 animate__animated animate__fadeInUp">
-                    <td class="p-6 font-black text-4xl text-gray-400 w-24">${medal}</td>
-                    <td class="p-6 text-4xl font-bold uppercase">${x.name}</td>
-                    <td class="p-6 text-right text-5xl font-black text-yellow-500">${x.score}</td>
+                    <td class="p-2 sm:p-3 font-bold text-gray-400 w-10">${medal}</td>
+                    <td class="p-2 sm:p-3 font-bold truncate max-w-[200px]">${x.name}</td>
+                    <td class="p-2 sm:p-3 text-right font-black text-yellow-500">${x.score}</td>
                 </tr>`;
             });
             
             // Mini classifica in alto
             const mini = document.getElementById('mini-leaderboard');
-            mini.innerText = t.slice(0,3).map(x => `${x.name}: ${x.score}`).join(' | ');
+            if(t.length > 0) {
+                mini.innerText = t.slice(0,3).map(x => `${x.name}: ${x.score}`).join(' | ');
+            }
         });
 
         socket.on('force_reload', () => window.location.reload());

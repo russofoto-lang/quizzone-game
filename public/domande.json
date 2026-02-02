@@ -68,6 +68,32 @@
             "corretta": 0,
             "punti": 100,
             "difficolta": "difficile"
+          },
+          {
+            "id": 6,
+            "domanda": "STORIA: Domanda avanzata 1",
+            "risposte": [
+              "A",
+              "B",
+              "C",
+              "D"
+            ],
+            "corretta": 2,
+            "punti": 160,
+            "difficolta": "difficile"
+          },
+          {
+            "id": 7,
+            "domanda": "STORIA: Domanda avanzata 2",
+            "risposte": [
+              "A",
+              "B",
+              "C",
+              "D"
+            ],
+            "corretta": 1,
+            "punti": 200,
+            "difficolta": "molto difficile"
           }
         ],
         "Geografia": [
@@ -135,6 +161,32 @@
             "corretta": 0,
             "punti": 100,
             "difficolta": "difficile"
+          },
+          {
+            "id": 11,
+            "domanda": "GEOGRAFIA: Domanda avanzata 1",
+            "risposte": [
+              "A",
+              "B",
+              "C",
+              "D"
+            ],
+            "corretta": 2,
+            "punti": 160,
+            "difficolta": "difficile"
+          },
+          {
+            "id": 12,
+            "domanda": "GEOGRAFIA: Domanda avanzata 2",
+            "risposte": [
+              "A",
+              "B",
+              "C",
+              "D"
+            ],
+            "corretta": 1,
+            "punti": 200,
+            "difficolta": "molto difficile"
           }
         ],
         "Scienze": [
@@ -202,6 +254,32 @@
             "corretta": 0,
             "punti": 100,
             "difficolta": "difficile"
+          },
+          {
+            "id": 16,
+            "domanda": "SCIENZE: Domanda avanzata 1",
+            "risposte": [
+              "A",
+              "B",
+              "C",
+              "D"
+            ],
+            "corretta": 2,
+            "punti": 160,
+            "difficolta": "difficile"
+          },
+          {
+            "id": 17,
+            "domanda": "SCIENZE: Domanda avanzata 2",
+            "risposte": [
+              "A",
+              "B",
+              "C",
+              "D"
+            ],
+            "corretta": 1,
+            "punti": 200,
+            "difficolta": "molto difficile"
           }
         ],
         "Cinema": [
@@ -269,6 +347,32 @@
             "corretta": 0,
             "punti": 100,
             "difficolta": "difficile"
+          },
+          {
+            "id": 21,
+            "domanda": "CINEMA: Domanda avanzata 1",
+            "risposte": [
+              "A",
+              "B",
+              "C",
+              "D"
+            ],
+            "corretta": 2,
+            "punti": 160,
+            "difficolta": "difficile"
+          },
+          {
+            "id": 22,
+            "domanda": "CINEMA: Domanda avanzata 2",
+            "risposte": [
+              "A",
+              "B",
+              "C",
+              "D"
+            ],
+            "corretta": 1,
+            "punti": 200,
+            "difficolta": "molto difficile"
           }
         ],
         "Musica": [
@@ -336,6 +440,32 @@
             "corretta": 0,
             "punti": 100,
             "difficolta": "difficile"
+          },
+          {
+            "id": 26,
+            "domanda": "MUSICA: Domanda avanzata 1",
+            "risposte": [
+              "A",
+              "B",
+              "C",
+              "D"
+            ],
+            "corretta": 2,
+            "punti": 160,
+            "difficolta": "difficile"
+          },
+          {
+            "id": 27,
+            "domanda": "MUSICA: Domanda avanzata 2",
+            "risposte": [
+              "A",
+              "B",
+              "C",
+              "D"
+            ],
+            "corretta": 1,
+            "punti": 200,
+            "difficolta": "molto difficile"
           }
         ],
         "Arte": [
@@ -403,6 +533,32 @@
             "corretta": 0,
             "punti": 100,
             "difficolta": "difficile"
+          },
+          {
+            "id": 31,
+            "domanda": "ARTE: Domanda avanzata 1",
+            "risposte": [
+              "A",
+              "B",
+              "C",
+              "D"
+            ],
+            "corretta": 2,
+            "punti": 160,
+            "difficolta": "difficile"
+          },
+          {
+            "id": 32,
+            "domanda": "ARTE: Domanda avanzata 2",
+            "risposte": [
+              "A",
+              "B",
+              "C",
+              "D"
+            ],
+            "corretta": 1,
+            "punti": 200,
+            "difficolta": "molto difficile"
           }
         ],
         "Sport": [
@@ -470,6 +626,32 @@
             "corretta": 0,
             "punti": 100,
             "difficolta": "difficile"
+          },
+          {
+            "id": 36,
+            "domanda": "SPORT: Domanda avanzata 1",
+            "risposte": [
+              "A",
+              "B",
+              "C",
+              "D"
+            ],
+            "corretta": 2,
+            "punti": 160,
+            "difficolta": "difficile"
+          },
+          {
+            "id": 37,
+            "domanda": "SPORT: Domanda avanzata 2",
+            "risposte": [
+              "A",
+              "B",
+              "C",
+              "D"
+            ],
+            "corretta": 1,
+            "punti": 200,
+            "difficolta": "molto difficile"
           }
         ],
         "Giochi di logica": [
@@ -541,136 +723,161 @@
         ],
         "Raddoppi": [
           {
-            "id": 2001,
-            "domanda": "RADDOPPIO: 5 raddoppiato quanto fa?",
+            "id": 2101,
+            "domanda": "RADDOPPIO: In quale anno è entrata in vigore la Costituzione Italiana?",
             "risposte": [
-              "5",
-              "10",
-              "15",
-              "20"
-            ],
-            "corretta": 1,
-            "punti": 50,
-            "difficolta": "facile"
-          },
-          {
-            "id": 2002,
-            "domanda": "RADDOPPIO: 12 raddoppiato?",
-            "risposte": [
-              "20",
-              "22",
-              "24",
-              "26"
+              "1946",
+              "1947",
+              "1948",
+              "1950"
             ],
             "corretta": 2,
-            "punti": 80,
-            "difficolta": "medio"
+            "punti": 400,
+            "difficolta": "molto difficile"
           },
           {
-            "id": 2003,
-            "domanda": "RADDOPPIO: Se raddoppio 2 volte il numero 4 ottengo?",
+            "id": 2102,
+            "domanda": "RADDOPPIO: Quale legge fisica è espressa dalla formula F = q·v×B?",
             "risposte": [
-              "8",
-              "12",
-              "16",
-              "32"
-            ],
-            "corretta": 2,
-            "punti": 120,
-            "difficolta": "medio"
-          },
-          {
-            "id": 2004,
-            "domanda": "RADDOPPIO: 7 raddoppiato 3 volte?",
-            "risposte": [
-              "28",
-              "42",
-              "49",
-              "56"
+              "Legge di Coulomb",
+              "Forza di Lorentz",
+              "Legge di Ohm",
+              "Principio di Archimede"
             ],
             "corretta": 1,
-            "punti": 160,
-            "difficolta": "difficile"
-          },
-          {
-            "id": 2005,
-            "domanda": "RADDOPPIO: Qual è il risultato di 3 raddoppi consecutivi partendo da 5?",
-            "risposte": [
-              "20",
-              "30",
-              "40",
-              "80"
-            ],
-            "corretta": 3,
-            "punti": 200,
+            "punti": 400,
             "difficolta": "molto difficile"
           }
         ],
         "Logica verbale": [
           {
-            "id": 3001,
-            "domanda": "LOGICA VERBALE: Quale parola è il contrario di 'espandere'?",
+            "id": 3101,
+            "domanda": "LOGICA VERBALE: Individua la parola che NON appartiene al gruppo.",
             "risposte": [
-              "Allargare",
-              "Dilatare",
-              "Contrarre",
-              "Crescere"
+              "Assioma",
+              "Teorema",
+              "Postulato",
+              "Ipotesi"
             ],
-            "corretta": 2,
-            "punti": 50,
-            "difficolta": "facile"
-          },
-          {
-            "id": 3002,
-            "domanda": "LOGICA VERBALE: Cane sta a cucciolo come gatto sta a…",
-            "risposte": [
-              "Felino",
-              "Gattino",
-              "Micio",
-              "Leone"
-            ],
-            "corretta": 1,
+            "corretta": 3,
             "punti": 80,
             "difficolta": "medio"
           },
           {
-            "id": 3003,
-            "domanda": "LOGICA VERBALE: Individua l’intruso",
+            "id": 3102,
+            "domanda": "LOGICA VERBALE: Quale relazione lega 'metallo' a 'conducibilità' come 'legno' a…",
             "risposte": [
-              "Sedia",
-              "Tavolo",
-              "Divano",
-              "Letto"
+              "Resistenza",
+              "Isolamento",
+              "Elasticità",
+              "Fragilità"
             ],
-            "corretta": 2,
+            "corretta": 1,
             "punti": 120,
             "difficolta": "medio"
           },
           {
-            "id": 3004,
-            "domanda": "LOGICA VERBALE: Se oggi è lunedì, che giorno sarà tra 10 giorni?",
+            "id": 3103,
+            "domanda": "LOGICA VERBALE: Tutti i filosofi sono pensatori. Alcuni pensatori sono scrittori. Quale affermazione è certamente vera?",
             "risposte": [
-              "Giovedì",
-              "Venerdì",
-              "Sabato",
-              "Domenica"
+              "Tutti i filosofi sono scrittori",
+              "Alcuni filosofi potrebbero essere scrittori",
+              "Nessun filosofo è scrittore",
+              "Tutti gli scrittori sono filosofi"
             ],
             "corretta": 1,
             "punti": 160,
             "difficolta": "difficile"
           },
           {
-            "id": 3005,
-            "domanda": "LOGICA VERBALE: Completa il proverbio: 'Chi dorme non…'",
+            "id": 3104,
+            "domanda": "LOGICA VERBALE: Se A implica B e B implica C, quale affermazione è corretta?",
             "risposte": [
-              "mangia",
-              "pensa",
-              "prende pesci",
-              "lavora"
+              "A implica C",
+              "C implica A",
+              "A e C sono indipendenti",
+              "B non implica C"
             ],
-            "corretta": 2,
+            "corretta": 0,
             "punti": 200,
             "difficolta": "molto difficile"
+          }
+        ],
+        "ALL IN": [
+          {
+            "id": 9001,
+            "domanda": "ALL IN (FACOLTATIVO) — REGOLA: la squadra può scegliere se giocare. Se risponde GIUSTO raddoppia il punteggio totale; se sbaglia azzera il punteggio totale. (I punti di questa domanda nel file sono 0 perché la gestione è esterna).",
+            "risposte": [
+              "Ricevuto"
+            ],
+            "corretta": 0,
+            "punti": 0,
+            "difficolta": "all in"
+          },
+          {
+            "id": 9002,
+            "domanda": "ALL IN: Quale affermazione è corretta riguardo al numero e (≈2,71828…)?",
+            "risposte": [
+              "È una radice di un polinomio a coefficienti interi",
+              "È un numero trascendente",
+              "È un numero razionale",
+              "È un numero primo"
+            ],
+            "corretta": 1,
+            "punti": 0,
+            "difficolta": "all in"
+          },
+          {
+            "id": 9003,
+            "domanda": "ALL IN: In chimica, quale affermazione descrive correttamente un catalizzatore?",
+            "risposte": [
+              "Aumenta la resa teorica della reazione",
+              "Aumenta l’energia di attivazione",
+              "Aumenta la velocità di reazione abbassando l’energia di attivazione senza consumarsi",
+              "Si trasforma irreversibilmente nei prodotti"
+            ],
+            "corretta": 2,
+            "punti": 0,
+            "difficolta": "all in"
+          },
+          {
+            "id": 9004,
+            "domanda": "ALL IN: Quale evento è avvenuto per primo?",
+            "risposte": [
+              "Rivoluzione francese (1789)",
+              "Riforma protestante (1517)",
+              "Caduta di Costantinopoli (1453)",
+              "Scoperta dell’America (1492)"
+            ],
+            "corretta": 2,
+            "punti": 0,
+            "difficolta": "all in"
+          },
+          {
+            "id": 9005,
+            "domanda": "ALL IN: In logica, quale delle seguenti forme è una tautologia?",
+            "risposte": [
+              "p ∧ ¬p",
+              "p → q",
+              "p ∨ ¬p",
+              "p ∧ q"
+            ],
+            "corretta": 2,
+            "punti": 0,
+            "difficolta": "all in"
+          },
+          {
+            "id": 9006,
+            "domanda": "ALL IN: Se una funzione è continua in [a,b] e derivabile in (a,b), quale teorema garantisce l’esistenza di c in (a,b) tale che f'(c) = (f(b)−f(a))/(b−a)?",
+            "risposte": [
+              "Teorema di Rolle",
+              "Teorema di Lagrange (del valor medio)",
+              "Teorema di Pitagora",
+              "Teorema di Gauss"
+            ],
+            "corretta": 1,
+            "punti": 0,
+            "difficolta": "all in"
           }
         ]
       },

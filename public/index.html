@@ -22,7 +22,7 @@
         </div>
 
         <div class="flex-1 flex flex-col p-4 justify-center items-center relative">
-            <div id="msg-box" class="absolute top-4 text-center w-full text-gray-400 animate-pulse text-lg font-bold">Attendi la domanda...</div>
+            <div id="msg-box" class="absolute top-4 text-center w-full text-gray-400 animate-pulse font-bold text-lg">Attendi la domanda...</div>
 
             <button id="btn-buzzer" onclick="prenota()" class="hidden w-64 h-64 rounded-full bg-gray-600 border-8 border-gray-700 shadow-2xl flex items-center justify-center active:scale-95 transition-all">
                 <span class="text-4xl font-black pointer-events-none">PREMI</span>
@@ -55,25 +55,25 @@
             document.getElementById('my-name').innerText = data.name;
         });
 
-        // GESTIONE CAMBIO MODALITÀ
+        // UI LOGIC
         socket.on('nuova_domanda', (d) => {
             resetUI();
             document.getElementById('msg-box').innerText = d.domanda;
 
-            // BUZZER
-            if(d.modalita === 'buzzer') {
-                const btn = document.getElementById('btn-buzzer');
-                btn.classList.remove('hidden');
-            } 
-            // STIMA / ANAGRAMMA
-            else if(d.modalita === 'stima' || d.modalita === 'anagramma') {
+            // CASO 1: STIMA O ANAGRAMMA (Priorità alta)
+            // Se modalità è stima/anagramma, mostriamo SEMPRE l'input, anche se ci fossero risposte (che ora il server ha rimosso)
+            if(d.modalita === 'stima' || d.modalita === 'anagramma') {
                 document.getElementById('input-area').classList.remove('hidden');
                 document.getElementById('txt-answer').value = '';
                 document.getElementById('txt-answer').type = d.modalita==='stima' ? 'number' : 'text';
                 document.getElementById('input-label').innerText = d.modalita==='stima' ? 'SCRIVI IL NUMERO:' : 'SCRIVI LA PAROLA:';
             }
-            // CLASSICO (Se ci sono risposte array)
-            else if(d.risposte) {
+            // CASO 2: BUZZER
+            else if(d.modalita === 'buzzer') {
+                document.getElementById('btn-buzzer').classList.remove('hidden');
+            } 
+            // CASO 3: CLASSICO (Bottoni)
+            else if(d.risposte && d.risposte.length > 0) {
                 const grid = document.getElementById('opts-grid');
                 grid.classList.remove('hidden');
                 d.risposte.forEach(r => {
@@ -89,6 +89,7 @@
             }
         });
 
+        // BUZZER
         socket.on('stato_buzzer', (d) => {
             buzzerLocked = d.locked;
             const btn = document.getElementById('btn-buzzer');
@@ -97,9 +98,7 @@
                 else btn.className = "w-64 h-64 rounded-full bg-red-600 border-8 border-red-800 shadow-[0_0_30px_rgba(220,38,38,0.6)] flex items-center justify-center active:scale-95 cursor-pointer animate-pulse";
             }
         });
-
         function prenota() { if(!buzzerLocked) socket.emit('prenoto'); }
-        
         socket.on('prenotazione_vinta', () => {
             const btn = document.getElementById('btn-buzzer');
             btn.className = "w-64 h-64 rounded-full bg-green-500 border-8 border-green-700 shadow-2xl flex items-center justify-center animate-bounce";

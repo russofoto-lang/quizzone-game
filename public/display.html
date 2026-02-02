@@ -19,7 +19,7 @@
             <p id="status-text" class="text-xl text-gray-400 mt-2">Live Show</p>
         </div>
         <div id="mini-leaderboard" class="glass rounded-xl p-4 w-1/4">
-            <h3 class="text-xs font-bold text-gray-400 uppercase mb-2 border-b border-gray-600">Top 5</h3>
+            <h3 class="text-xs font-bold text-gray-400 uppercase mb-2 border-b border-gray-600">Generale</h3>
             <ul id="leaderboard-list" class="text-sm space-y-1"></ul>
         </div>
     </div>
@@ -34,7 +34,7 @@
         <div id="view-game" class="hidden absolute inset-0 w-full flex flex-col items-center justify-center">
             
             <div id="buzzer-overlay" class="hidden absolute inset-0 bg-black/80 z-50 flex flex-col items-center justify-center animate__animated animate__zoomIn">
-                <p class="text-4xl text-red-500 font-bold mb-4 animate-bounce">🚨 HA PRENOTATO</p>
+                <p class="text-4xl text-red-500 font-bold mb-4 animate-bounce">🚨 TURNO DI:</p>
                 <div id="winner-name" class="text-9xl font-black text-white bg-red-600 px-16 py-8 rounded-3xl shadow-[0_0_50px_rgba(220,38,38,0.8)]">SQUADRA</div>
             </div>
 
@@ -50,17 +50,12 @@
                         <div class="bg-green-600 text-white px-10 py-4 rounded-full text-4xl font-bold shadow-lg mb-8">
                             ✅ <span id="sol-text">RISPOSTA</span>
                         </div>
-                        
-                        <div class="w-full max-w-3xl bg-black/30 rounded-xl p-6">
-                            <h3 class="text-left text-gray-400 font-bold mb-4">ESITO SQUADRE:</h3>
-                            <div class="grid grid-cols-2 gap-4" id="round-results-grid"></div>
-                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div id="view-leaderboard" class="hidden absolute inset-0 bg-gray-900 z-40 flex flex-col items-center justify-start pt-10 animate__animated animate__slideInUp">
+        <div id="view-classifica_gen" class="hidden absolute inset-0 bg-gray-900 z-40 flex flex-col items-center justify-start pt-10 animate__animated animate__slideInUp">
             <h2 class="text-6xl font-black text-yellow-400 mb-10">🏆 CLASSIFICA GENERALE 🏆</h2>
             <div class="w-full max-w-4xl h-[70vh] overflow-y-auto pr-4">
                 <table class="w-full text-left text-2xl">
@@ -72,50 +67,85 @@
             </div>
         </div>
 
+        <div id="view-classifica_round" class="hidden absolute inset-0 bg-indigo-900 z-40 flex flex-col items-center justify-center animate__animated animate__zoomIn">
+            <h2 class="text-5xl font-black text-white mb-8 bg-indigo-600 px-8 py-2 rounded-full shadow-lg">⚡ VELOCITÀ ROUND ⚡</h2>
+            <div class="w-full max-w-5xl">
+                <div id="round-podium" class="grid grid-cols-3 gap-8 items-end h-[400px]">
+                    </div>
+            </div>
+        </div>
+
     </div>
 
     <script>
         const socket = io();
-
-        // Elementi
         const views = {
             logo: document.getElementById('view-logo'),
             game: document.getElementById('view-game'),
-            leaderboard: document.getElementById('view-leaderboard')
+            classifica_gen: document.getElementById('view-classifica_gen'),
+            classifica_round: document.getElementById('view-classifica_round')
         };
         const miniLb = document.getElementById('mini-leaderboard');
 
-        socket.on('connect', () => {
-            console.log("Display On");
-            socket.emit('display_connect');
-        });
+        socket.on('connect', () => { socket.emit('display_connect'); });
+        socket.on('force_reload', () => window.location.reload());
 
-        // --- CAMBIO VISTA (REGIA) ---
-        socket.on('cambia_vista', (vista) => {
-            // Nascondi tutto
+        // --- CAMBIO VISTA ---
+        socket.on('cambia_vista', (payload) => {
+            const vista = payload.view;
             Object.values(views).forEach(el => el.classList.add('hidden'));
             
-            // Logica specifica
-            if(vista === 'logo') {
-                views.logo.classList.remove('hidden');
-                miniLb.style.opacity = '1';
-            }
-            else if(vista === 'gioco') {
-                views.game.classList.remove('hidden');
-                miniLb.style.opacity = '1';
-            }
-            else if(vista === 'classifica') {
-                views.leaderboard.classList.remove('hidden');
-                miniLb.style.opacity = '0'; // Nascondi mini classifica se c'è quella grande
+            if(views[vista]) {
+                views[vista].classList.remove('hidden');
+                
+                // Gestione Mini Classifica
+                if(vista === 'logo' || vista === 'gioco') miniLb.style.opacity = '1';
+                else miniLb.style.opacity = '0';
+
+                // Se è la vista round, popola i dati
+                if(vista === 'classifica_round' && payload.data) {
+                    renderRoundPodium(payload.data);
+                }
             }
         });
 
-        // --- EVENTI GIOCO ---
-        socket.on('nuova_domanda', (data) => {
-            // Se siamo in view classifica, forziamo il ritorno al gioco? 
-            // Meglio di no, lasciamo il controllo alla regia. Ma aggiorniamo il contenuto.
-            // Se la regia è su "gioco", aggiorniamo la UI
+        function renderRoundPodium(data) {
+            const container = document.getElementById('round-podium');
+            container.innerHTML = '';
             
+            // Filtra solo quelli che hanno risposto giusto
+            const winners = data.filter(d => d.corretta).slice(0,3);
+            
+            if(winners.length === 0) {
+                container.innerHTML = '<div class="col-span-3 text-center text-2xl text-gray-400">Nessuna risposta corretta!</div>';
+                return;
+            }
+
+            // Ordine visuale: 2° - 1° - 3°
+            const order = [1, 0, 2]; 
+            order.forEach(idx => {
+                const w = winners[idx];
+                if(!w) { container.innerHTML += '<div></div>'; return; }
+                
+                let height = idx === 0 ? 'h-64' : (idx === 1 ? 'h-48' : 'h-32');
+                let color = idx === 0 ? 'bg-yellow-500' : (idx === 1 ? 'bg-gray-400' : 'bg-orange-600');
+                let medal = idx === 0 ? '🥇' : (idx === 1 ? '🥈' : '🥉');
+                let scale = idx === 0 ? 'scale-110' : 'scale-100';
+
+                container.innerHTML += `
+                    <div class="flex flex-col items-center ${scale} transition-transform">
+                        <div class="text-6xl mb-4 animate-bounce">${medal}</div>
+                        <div class="text-2xl font-bold mb-2 text-center">${w.teamName}</div>
+                        <div class="text-sm bg-black/30 px-3 py-1 rounded mb-2">${w.tempo}s</div>
+                        <div class="${height} w-full ${color} rounded-t-xl shadow-2xl flex items-end justify-center pb-4">
+                           <span class="text-black/50 font-black text-4xl">${idx+1}</span>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        socket.on('nuova_domanda', (data) => {
             document.getElementById('buzzer-overlay').classList.add('hidden');
             document.getElementById('solution').classList.add('hidden');
             document.getElementById('cat').innerText = (data.categoria || "QUIZ").toUpperCase();
@@ -139,52 +169,30 @@
         });
 
         socket.on('mostra_soluzione', (data) => {
-            // Mostra il box soluzione
             const solBox = document.getElementById('solution');
             solBox.classList.remove('hidden');
             document.getElementById('buzzer-overlay').classList.add('hidden');
-            
             document.getElementById('sol-text').innerText = data.soluzione;
-            
-            // Popola griglia risultati
-            const grid = document.getElementById('round-results-grid');
-            grid.innerHTML = '';
-            
-            // Mostra solo i primi 6 per non intasare, o tutti se pochi
-            data.risultati.slice(0, 6).forEach(res => {
-                const color = res.corretta ? 'bg-green-500/20 border-green-500' : 'bg-red-500/20 border-red-500';
-                const icon = res.corretta ? '✅' : '❌';
-                grid.innerHTML += `
-                    <div class="flex justify-between items-center p-2 rounded border ${color}">
-                        <span class="font-bold truncate">${res.teamName}</span>
-                        <div class="flex gap-2 text-sm">
-                            <span>${res.tempo}s</span>
-                            <span>${icon}</span>
-                        </div>
-                    </div>
-                `;
-            });
         });
 
         socket.on('update_teams', (teams) => {
             teams.sort((a,b) => b.score - a.score);
             
-            // Update Mini
+            // Mini
             const miniList = document.getElementById('leaderboard-list');
             miniList.innerHTML = '';
             teams.slice(0,5).forEach((t, i) => {
                 miniList.innerHTML += `<li class="flex justify-between"><span class="truncate w-24">${i+1}. ${t.name}</span><span class="text-yellow-400 font-bold">${t.score}</span></li>`;
             });
 
-            // Update Full Screen
+            // Generale
             const fullBody = document.getElementById('full-leaderboard-body');
             fullBody.innerHTML = '';
             teams.forEach((t, i) => {
-                let medal = i===0?'🥇':(i===1?'🥈':(i===2?'🥉':`${i+1}.`));
                 let style = i<3 ? 'text-white font-bold' : 'text-gray-400';
                 fullBody.innerHTML += `
                     <tr class="border-b border-gray-800 hover:bg-white/5">
-                        <td class="p-4 ${style} text-3xl">${medal}</td>
+                        <td class="p-4 ${style} text-3xl">${i+1}.</td>
                         <td class="p-4 ${style} text-3xl">${t.name}</td>
                         <td class="p-4 text-right font-mono text-yellow-500 text-3xl">${t.score}</td>
                     </tr>
@@ -193,7 +201,6 @@
         });
         
         socket.on('reset_buzzer', () => { document.getElementById('buzzer-overlay').classList.add('hidden'); });
-
     </script>
 </body>
 </html>

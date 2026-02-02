@@ -6,119 +6,138 @@
     <title>DISPLAY - Il Quizzone</title>
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
     <style>
-        body { background-color: #1a1a2e; color: white; font-family: 'Segoe UI', sans-serif; }
-        .big-text { font-size: 3rem; font-weight: bold; text-align: center; margin-top: 20px; }
-        .question-box { background: #16213e; padding: 40px; border-radius: 20px; border: 4px solid #0f3460; margin: 20px; }
-        .answer-box { font-size: 2rem; color: #e94560; margin-top: 20px; display: none; }
-        .winner-buzzer { animation: pulse 1s infinite; color: #facc15; }
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+        body { background: #0f172a; color: white; overflow: hidden; }
+        .glass { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2); }
     </style>
 </head>
-<body class="flex flex-col items-center justify-center h-screen">
+<body class="flex flex-col h-screen p-8">
 
-    <div id="waiting-screen" class="text-center">
-        <h1 class="text-6xl font-bold mb-4">IL QUIZZONE</h1>
-        <p class="text-2xl text-gray-400">In attesa della prossima domanda...</p>
-        <div id="buzzer-status" class="mt-10 text-4xl hidden">
-            🚨 HA PRENOTATO: <span id="buzzer-name" class="font-bold text-yellow-400"></span> 🚨
+    <div class="flex justify-between items-start h-1/4">
+        <div>
+            <h1 class="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-red-600 drop-shadow-lg">
+                IL QUIZZONE
+            </h1>
+            <p id="status-text" class="text-xl text-gray-400 mt-2 animate-pulse">In attesa...</p>
+        </div>
+        
+        <div class="glass rounded-xl p-4 w-1/4">
+            <h3 class="text-sm font-bold text-gray-400 uppercase mb-2 border-b border-gray-600">Top 5 Squadre</h3>
+            <ul id="leaderboard" class="text-sm space-y-2">
+                </ul>
         </div>
     </div>
 
-    <div id="game-container" class="hidden w-full max-w-4xl text-center">
-        <div class="question-box">
-            <h2 id="cat-text" class="text-xl text-yellow-500 mb-4 uppercase tracking-widest">CATEGORIA</h2>
-            <div id="domanda-text" class="text-4xl font-bold mb-8">Testo della domanda qui...</div>
-            
-            <div id="options-container" class="grid grid-cols-2 gap-4 text-2xl hidden">
+    <div class="flex-1 flex flex-col items-center justify-center relative">
+        
+        <div id="screen-wait" class="text-center w-full">
+            <div id="buzzer-winner" class="hidden animate__animated animate__zoomIn">
+                <p class="text-2xl text-red-400 font-bold mb-4">HA PRENOTATO:</p>
+                <div id="winner-name" class="text-8xl font-black text-white bg-red-600 px-12 py-6 rounded-2xl shadow-2xl inline-block">
+                    SQUADRA X
                 </div>
-
-            <div id="soluzione-box" class="answer-box">
-                RISPOSTA ESATTA: <br>
-                <span id="soluzione-text" class="text-white"></span>
             </div>
         </div>
-    </div>
 
-    <div id="leaderboard" class="absolute top-5 right-5 bg-white/10 p-4 rounded-lg">
-        <h3 class="font-bold border-b border-white/20 mb-2">TOP TEAMS</h3>
-        <ul id="leaderboard-list" class="text-sm"></ul>
+        <div id="screen-game" class="hidden w-full max-w-5xl text-center">
+            <div class="glass p-12 rounded-3xl border-t-8 border-blue-500 shadow-2xl animate__animated animate__fadeInUp">
+                <h2 id="cat" class="text-xl font-bold text-blue-400 tracking-widest mb-6">CATEGORIA</h2>
+                <div id="q-text" class="text-5xl font-bold leading-tight mb-10">...</div>
+                
+                <div id="opts" class="grid grid-cols-2 gap-6 text-2xl hidden"></div>
+            </div>
+
+            <div id="solution" class="hidden mt-8 animate__animated animate__bounceIn">
+                <div class="inline-block bg-green-600 text-white px-12 py-4 rounded-full text-3xl font-bold shadow-lg border-4 border-green-400">
+                    ✅ <span id="sol-text">Risposta</span>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <script>
         const socket = io();
 
-        // 1. Identificazione
+        // ELEMENTI DOM
+        const elWait = document.getElementById('screen-wait');
+        const elGame = document.getElementById('screen-game');
+        const elBuzzer = document.getElementById('buzzer-winner');
+        const elSolution = document.getElementById('solution');
+        const elLeaderboard = document.getElementById('leaderboard');
+
         socket.on('connect', () => {
-            console.log("Display connesso");
+            console.log("Display connesso!");
             socket.emit('display_connect');
         });
 
-        // 2. Ricezione Nuova Domanda
-        socket.on('nuova_domanda', (domanda) => {
-            document.getElementById('waiting-screen').style.display = 'none';
-            document.getElementById('game-container').style.display = 'block';
-            document.getElementById('soluzione-box').style.display = 'none';
-            document.getElementById('buzzer-status').classList.add('hidden');
+        // NUOVA DOMANDA
+        socket.on('nuova_domanda', (data) => {
+            // Mostra schermata gioco
+            elWait.classList.add('hidden');
+            elBuzzer.classList.add('hidden');
+            elSolution.classList.add('hidden');
+            elGame.classList.remove('hidden');
 
-            document.getElementById('cat-text').innerText = domanda.categoria || "QUIZ";
-            document.getElementById('domanda-text').innerText = domanda.domanda;
+            // Setta testi
+            document.getElementById('cat').innerText = (data.categoria || "QUIZ").toUpperCase();
+            document.getElementById('q-text').innerText = data.domanda;
+            document.getElementById('status-text').innerText = "Domanda in corso...";
 
-            const optsContainer = document.getElementById('options-container');
-            optsContainer.innerHTML = '';
+            // Gestione opzioni
+            const optContainer = document.getElementById('opts');
+            optContainer.innerHTML = '';
             
-            // Se ci sono opzioni (quiz classico) mostrale, altrimenti nascondi
-            if(domanda.risposte && domanda.risposte.length > 0) {
-                optsContainer.classList.remove('hidden');
-                domanda.risposte.forEach((r, index) => {
+            if(data.modalita === 'classico' && data.risposte.length > 0) {
+                optContainer.classList.remove('hidden');
+                data.risposte.forEach(r => {
                     const div = document.createElement('div');
-                    div.className = "bg-blue-600 p-4 rounded-lg";
+                    div.className = "bg-white/10 p-4 rounded-xl border border-white/20";
                     div.innerText = r;
-                    optsContainer.appendChild(div);
+                    optContainer.appendChild(div);
                 });
             } else {
-                optsContainer.classList.add('hidden');
+                optContainer.classList.add('hidden');
             }
         });
 
-        // 3. Gestione Buzzer
+        // BUZZER PREMUTO
         socket.on('buzzer_bloccato', (data) => {
-            document.getElementById('game-container').style.display = 'none';
-            document.getElementById('waiting-screen').style.display = 'block';
-            document.getElementById('buzzer-status').classList.remove('hidden');
-            document.getElementById('buzzer-name').innerText = data.winner;
-            document.getElementById('buzzer-name').className = "font-bold text-yellow-400 winner-buzzer";
+            elGame.classList.add('hidden'); // Nascondi domanda temporaneamente
+            elWait.classList.remove('hidden');
+            elBuzzer.classList.remove('hidden'); // Mostra vinvitore
+            document.getElementById('winner-name').innerText = data.winner;
+            document.getElementById('status-text').innerText = "Buzzer bloccato!";
         });
 
-        // 4. Mostra Soluzione
-        socket.on('mostra_soluzione', (soluzione) => {
-            // Se siamo nella schermata domanda
-            document.getElementById('game-container').style.display = 'block';
-            document.getElementById('waiting-screen').style.display = 'none';
-            
-            const box = document.getElementById('soluzione-box');
-            box.style.display = 'block';
-            
-            // Se la soluzione è un indice (0,1,2,3) o testo
-            // Qui assumiamo arrivi il testo o l'indice corretto
-            document.getElementById('soluzione-text').innerText = soluzione;
+        // MOSTRA SOLUZIONE
+        socket.on('mostra_soluzione', (sol) => {
+            elWait.classList.add('hidden');
+            elGame.classList.remove('hidden'); // Ritorna alla domanda
+            elSolution.classList.remove('hidden'); // Appare il box verde sotto
+            document.getElementById('sol-text').innerText = sol;
+            document.getElementById('status-text').innerText = "Fine round.";
         });
 
-        // 5. Aggiorna Classifica
-        socket.on('update_classifica', (teams) => {
-            // Ordina per punteggio decrescente
+        // AGGIORNA CLASSIFICA
+        socket.on('update_teams', (teams) => {
             teams.sort((a,b) => b.score - a.score);
-            const list = document.getElementById('leaderboard-list');
-            list.innerHTML = '';
-            teams.slice(0, 5).forEach(t => {
+            elLeaderboard.innerHTML = '';
+            
+            teams.slice(0, 5).forEach((t, i) => {
                 const li = document.createElement('li');
-                li.innerText = `${t.name}: ${t.score}`;
-                list.appendChild(li);
+                li.className = "flex justify-between";
+                li.innerHTML = `
+                    <span class="truncate w-32">${i+1}. ${t.name}</span>
+                    <span class="font-bold text-yellow-400">${t.score}</span>
+                `;
+                elLeaderboard.appendChild(li);
             });
         });
-
+        
         socket.on('reset_buzzer', () => {
-             document.getElementById('buzzer-status').classList.add('hidden');
+             elBuzzer.classList.add('hidden');
         });
     </script>
 </body>

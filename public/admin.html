@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <title>REGIA MASTER - Il Quizzone</title>
+    <title>REGIA MASTER</title>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
@@ -17,7 +17,7 @@
         
         <div class="col-span-4 flex flex-col gap-2 overflow-y-auto">
             <div class="bg-white p-3 rounded shadow">
-                <h2 class="font-bold text-gray-600 mb-2">1. Selezione</h2>
+                <h2 class="font-bold text-gray-600 mb-2">1. Domande</h2>
                 
                 <select id="sel-tipo" class="w-full border-2 border-blue-500 p-2 rounded font-bold mb-2 text-blue-900">
                     <option value="">-- TIPO GIOCO --</option>
@@ -26,55 +26,35 @@
                     <option value="raffica">⚡ RAFFICA</option>
                 </select>
 
-                <select id="sel-cat" class="w-full border p-1 rounded mb-2 bg-gray-50 text-xs" disabled>
-                    <option value="">-- Materia --</option>
-                </select>
-
-                <select id="sel-dom" class="w-full border p-1 rounded bg-gray-50 text-xs" disabled>
-                    <option value="">-- Domanda --</option>
-                </select>
-
-                <div id="preview" class="mt-2 p-2 bg-blue-50 border border-blue-100 rounded text-xs text-gray-600 h-20 overflow-y-auto">
-                    ...
-                </div>
+                <select id="sel-cat" class="w-full border p-1 rounded mb-2 bg-gray-50 text-xs" disabled><option value="">-- Materia --</option></select>
+                <select id="sel-dom" class="w-full border p-1 rounded bg-gray-50 text-xs" disabled><option value="">-- Domanda --</option></select>
 
                 <div class="mt-2 flex gap-1">
-                    <button onclick="lancia('classico')" class="flex-1 bg-blue-600 text-white font-bold py-2 rounded shadow hover:bg-blue-700 text-xs">
-                        QUIZ (Opzioni)
-                    </button>
-                    <button onclick="lancia('buzzer')" class="flex-1 bg-red-600 text-white font-bold py-2 rounded shadow hover:bg-red-700 text-xs">
-                        BUZZER (Rosso)
-                    </button>
+                    <button onclick="lancia('classico')" class="flex-1 bg-blue-600 text-white font-bold py-2 rounded shadow hover:bg-blue-700 text-xs">QUIZ</button>
+                    <button onclick="lancia('buzzer')" class="flex-1 bg-red-600 text-white font-bold py-2 rounded shadow hover:bg-red-700 text-xs">BUZZER</button>
                 </div>
-            </div>
-            
-            <div class="bg-white p-3 rounded shadow text-center">
-                <button onclick="rivela()" class="w-full bg-green-500 text-white py-2 rounded font-bold shadow animate-pulse hover:bg-green-600">
-                    SVELA RISPOSTA
-                </button>
             </div>
         </div>
 
         <div class="col-span-5 bg-gray-900 p-3 rounded shadow flex flex-col border border-gray-700">
             <h2 class="font-bold text-white mb-2 flex justify-between">
-                MONITOR ROUND
-                <span id="timer-badge" class="bg-gray-700 px-2 rounded text-xs">In attesa...</span>
+                MONITOR
+                <span id="timer-badge" class="bg-gray-700 px-2 rounded text-xs">Attesa</span>
             </h2>
             
-            <div class="flex-1 overflow-y-auto bg-black/50 rounded p-1">
+            <div class="flex-1 overflow-y-auto bg-black/50 rounded p-1 mb-2">
                 <table class="w-full text-left text-xs text-gray-300">
-                    <thead class="border-b border-gray-700 text-gray-500">
-                        <tr>
-                            <th class="p-1">Squadra</th>
-                            <th class="p-1">Risp</th>
-                            <th class="p-1">Sec</th>
-                            <th class="p-1 text-right">Punti</th>
-                        </tr>
-                    </thead>
-                    <tbody id="round-table">
-                        </tbody>
+                    <tbody id="round-table"></tbody>
                 </table>
-                <div id="round-msg" class="text-center text-gray-500 mt-4 italic">Nessuna risposta ricevuta</div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2">
+                <button onclick="rivela()" class="bg-yellow-600 text-white py-3 rounded font-bold hover:bg-yellow-500">
+                    👁️ SVELA RISPOSTA
+                </button>
+                <button onclick="assegnaAuto()" class="bg-green-600 text-white py-3 rounded font-bold hover:bg-green-500 animate-pulse">
+                    🏆 ASSEGNA PUNTI (AUTO)
+                </button>
             </div>
         </div>
 
@@ -100,96 +80,77 @@
             socket.emit('admin_connect');
         });
 
-        // --- INIT ---
         socket.on('init_data', (data) => {
             dbStructure = data;
             updateTeams(data.teams);
         });
 
-        // --- GESTIONE DOMANDE ---
         socket.on('receive_questions', (questions) => {
             currentQuestions = questions;
             const selDom = document.getElementById('sel-dom');
             selDom.disabled = false;
-            selDom.innerHTML = '<option value="">-- Seleziona Domanda --</option>';
+            selDom.innerHTML = '<option value="">-- Seleziona --</option>';
             questions.forEach((q, idx) => {
                 let text = q.domanda.length > 40 ? q.domanda.substring(0,40) + "..." : q.domanda;
                 selDom.innerHTML += `<option value="${idx}">${q.id}. ${text}</option>`;
             });
         });
 
-        // --- MONITOR ROUND (CUORE DEL FIX) ---
-        
+        // UPDATE TABELLA LIVE
         socket.on('update_round_monitor', (answers) => {
             const tbody = document.getElementById('round-table');
-            const msg = document.getElementById('round-msg');
-            msg.style.display = 'none';
             tbody.innerHTML = '';
-
-            answers.forEach(entry => {
-                const tr = document.createElement('tr');
-                // Colore riga: Verde se corretto, Rosso se sbagliato
-                const colorClass = entry.corretta ? 'text-green-400 font-bold' : 'text-red-400';
-                const statusIcon = entry.corretta ? '✅' : '❌';
+            answers.forEach((entry, idx) => {
+                const color = entry.corretta ? 'text-green-400 font-bold' : 'text-red-400';
+                const pos = idx + 1;
+                let bonus = "";
+                if(entry.corretta) {
+                    if(pos === 1) bonus = "<span class='text-yellow-400'>[150pt]</span>";
+                    else if(pos === 2) bonus = "<span class='text-gray-400'>[125pt]</span>";
+                    else bonus = "<span class='text-green-600'>[100pt]</span>";
+                }
                 
-                tr.className = "border-b border-gray-800 hover:bg-white/5";
-                tr.innerHTML = `
-                    <td class="p-2 text-white">${entry.teamName}</td>
-                    <td class="p-2 ${colorClass}">${entry.risposta}</td>
-                    <td class="p-2 text-gray-400 font-mono">${entry.tempo}s</td>
-                    <td class="p-2 text-right">
-                        ${entry.corretta ? 
-                            `<button onclick="daiPunti('${entry.teamId}', 100)" class="bg-green-600 text-white px-2 rounded text-[10px] hover:bg-green-500">+100</button>` 
-                            : `<span class="text-gray-600">-</span>`
-                        }
-                    </td>
-                `;
-                tbody.appendChild(tr);
+                tbody.innerHTML += `
+                    <tr class="border-b border-gray-800">
+                        <td class="p-2 text-white">${pos}. ${entry.teamName}</td>
+                        <td class="p-2 ${color}">${entry.risposta}</td>
+                        <td class="p-2 text-gray-400">${entry.tempo}s</td>
+                        <td class="p-2 text-right">${bonus}</td>
+                    </tr>`;
             });
         });
 
         socket.on('reset_round_monitor', () => {
-            document.getElementById('round-table').innerHTML = '';
-            document.getElementById('round-msg').style.display = 'block';
-            document.getElementById('round-msg').innerText = "Domanda lanciata. Attendo risposte...";
+            document.getElementById('round-table').innerHTML = '<div class="text-center p-4 text-gray-500">Attendo risposte...</div>';
             document.getElementById('timer-badge').innerText = "GARA APERTA";
-            document.getElementById('timer-badge').className = "bg-green-600 text-white px-2 rounded text-xs animate-pulse";
+            document.getElementById('timer-badge').className = "bg-green-600 px-2 rounded text-xs animate-pulse text-white";
         });
 
-        socket.on('buzzer_admin_alert', (winnerName) => {
-            document.getElementById('round-msg').innerHTML = `<span class="text-red-400 font-bold text-lg animate-bounce">🚨 HA PRENOTATO: ${winnerName}</span>`;
-            document.getElementById('timer-badge').innerText = "BUZZER BLOCCATO";
-            document.getElementById('timer-badge').className = "bg-red-600 text-white px-2 rounded text-xs";
+        socket.on('buzzer_admin_alert', (winner) => {
+            document.getElementById('round-table').innerHTML = `<div class='p-4 text-center text-red-400 font-bold text-xl'>🚨 ${winner} 🚨</div>`;
         });
 
-        // --- CLASSIFICA ---
         socket.on('update_teams', updateTeams);
         function updateTeams(teams) {
             teams.sort((a,b) => b.score - a.score);
             const list = document.getElementById('team-list');
             list.innerHTML = '';
-            document.getElementById('team-cnt').innerText = teams.length;
             teams.forEach(t => {
-                list.innerHTML += `
-                    <tr class="border-b hover:bg-gray-50">
-                        <td class="py-1 font-bold truncate max-w-[80px]">${t.name}</td>
-                        <td class="text-right text-blue-600 font-mono font-bold">${t.score}</td>
-                    </tr>`;
+                list.innerHTML += `<tr class="border-b"><td class="py-1 font-bold">${t.name}</td><td class="text-right text-blue-600 font-bold">${t.score}</td></tr>`;
             });
         }
 
-        // --- MENU LOGIC ---
+        // LOGICA MENU
         document.getElementById('sel-tipo').addEventListener('change', (e) => {
             const type = e.target.value;
             const selCat = document.getElementById('sel-cat');
             selCat.innerHTML = '<option value="">-- Scegli --</option>';
             document.getElementById('sel-dom').innerHTML = '';
-            document.getElementById('sel-dom').disabled = true;
-
+            
             if (type === 'categorie') {
                 selCat.disabled = false;
                 dbStructure.categories.forEach(c => selCat.innerHTML += `<option value="${c}">${c.toUpperCase()}</option>`);
-            } else if (type === 'bonus' || type === 'raffica') {
+            } else {
                 selCat.disabled = true;
                 socket.emit('get_questions', { type: type });
             }
@@ -200,21 +161,16 @@
         });
 
         document.getElementById('sel-dom').addEventListener('change', (e) => {
-            const idx = e.target.value;
-            if (idx !== "") {
-                selectedQ = currentQuestions[idx];
-                let rispHTML = selectedQ.risposte ? selectedQ.risposte.map((r, i) => i === selectedQ.corretta ? `<b class='text-green-600'>${r}</b>` : r).join(', ') : '';
-                document.getElementById('preview').innerHTML = `<b>${selectedQ.domanda}</b><br><span class='text-[10px]'>${rispHTML}</span>`;
-            }
+            if (e.target.value !== "") selectedQ = currentQuestions[e.target.value];
         });
 
-        // --- COMANDI ---
+        // COMANDI
         function lancia(mode) {
             if(!selectedQ) return alert("Scegli domanda!");
             socket.emit('invia_domanda', { ...selectedQ, modalita: mode });
         }
         function rivela() { socket.emit('rivela_risposta'); }
-        function daiPunti(id, pts) { socket.emit('assegna_punti', { teamId: id, punti: pts }); }
+        function assegnaAuto() { socket.emit('assegna_punti_auto'); }
     </script>
 </body>
 </html>

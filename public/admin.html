@@ -6,20 +6,19 @@
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-800 p-2 h-screen flex flex-col text-sm">
+<body class="bg-gray-800 p-2 h-screen flex flex-col text-sm text-gray-800">
 
     <div class="flex justify-between items-center bg-white p-2 rounded mb-2 shadow">
-        <h1 class="font-bold text-gray-800 text-lg">🎛️ REGIA MASTER</h1>
-        <div class="flex gap-4 items-center">
-            <div class="bg-gray-200 rounded px-2 py-1 flex gap-2 items-center">
-                <span class="font-bold text-xs text-gray-600">DISPLAY:</span>
-                <button onclick="regia('logo')" class="bg-gray-600 text-white px-2 py-1 rounded text-xs hover:bg-gray-700">⬛ LOGO</button>
-                <button onclick="regia('classifica_gen')" class="bg-yellow-600 text-white px-2 py-1 rounded text-xs hover:bg-yellow-700">🏆 GENERALE</button>
-                <button onclick="regia('classifica_round')" class="bg-purple-600 text-white px-2 py-1 rounded text-xs hover:bg-purple-700">📊 PODIO ROUND</button>
-                <button onclick="regia('gioco')" class="bg-blue-600 text-white px-2 py-1 rounded text-xs hover:bg-blue-700">🎮 GIOCO</button>
-            </div>
-            <div id="status" class="font-bold text-red-500 uppercase text-xs">Offline</div>
+        <h1 class="font-bold text-lg">🎛️ REGIA MASTER</h1>
+        
+        <div class="flex gap-2 items-center bg-gray-200 p-1 rounded">
+            <span class="text-xs font-bold text-gray-600 mr-2">DISPLAY:</span>
+            <button onclick="regia('logo')" class="bg-gray-600 text-white px-2 py-1 rounded text-xs hover:bg-gray-700">⬛ LOGO</button>
+            <button onclick="regia('classifica')" class="bg-yellow-600 text-white px-2 py-1 rounded text-xs hover:bg-yellow-700">🏆 CLASSIFICA</button>
+            <button onclick="regia('gioco')" class="bg-blue-600 text-white px-2 py-1 rounded text-xs hover:bg-blue-700">🎮 GIOCO</button>
         </div>
+        
+        <div id="status" class="font-bold text-red-500 uppercase text-xs">Offline</div>
     </div>
 
     <div class="grid grid-cols-12 gap-2 flex-1 overflow-hidden">
@@ -43,29 +42,34 @@
                     <button onclick="lancia('buzzer')" class="flex-1 bg-red-600 text-white font-bold py-2 rounded shadow hover:bg-red-700 text-xs">BUZZER</button>
                 </div>
             </div>
-            
-            <div class="mt-auto pt-4">
-                <button onclick="resetGame()" class="w-full bg-red-900 text-red-200 py-2 rounded border border-red-700 hover:bg-red-800 text-xs">⚠️ RESETTA TUTTO IL GIOCO</button>
+
+            <div class="mt-auto">
+                <button onclick="resetGame()" class="w-full bg-red-900 text-red-100 py-2 rounded text-xs border border-red-700 hover:bg-red-800">
+                    ⚠️ RESETTA PARTITA
+                </button>
             </div>
         </div>
 
-        <div class="col-span-5 bg-gray-900 p-3 rounded shadow flex flex-col border border-gray-700">
-            <h2 class="font-bold text-white mb-2 flex justify-between">
-                MONITOR
+        <div class="col-span-5 bg-gray-900 p-3 rounded shadow flex flex-col border border-gray-700 text-white">
+            <h2 class="font-bold mb-2 flex justify-between">
+                MONITOR LIVE
                 <span id="timer-badge" class="bg-gray-700 px-2 rounded text-xs">Attesa</span>
             </h2>
             
-            <div id="buzzer-actions" class="hidden mb-2 bg-red-900/50 p-2 rounded border border-red-500 flex justify-between items-center">
-                <span id="buzzer-who" class="text-white font-bold text-lg animate-pulse">Chi?</span>
-                <button onclick="buzzerNext()" class="bg-red-600 hover:bg-red-500 text-white px-3 py-1 rounded text-xs font-bold shadow">
-                    ❌ SBAGLIATA / NEXT
+            <div id="buzzer-actions" class="hidden bg-red-900 p-2 mb-2 rounded border border-red-500 flex justify-between items-center">
+                <div>
+                    <span class="text-xs text-red-200">Ha prenotato:</span>
+                    <div id="buzzer-who" class="text-lg font-bold">...</div>
+                </div>
+                <button onclick="buzzerNext()" class="bg-white text-red-900 font-bold px-3 py-1 rounded text-xs shadow hover:bg-gray-200">
+                    ❌ ERRATA / NEXT
                 </button>
             </div>
 
             <div class="flex-1 overflow-y-auto bg-black/50 rounded p-1 mb-2">
                 <table class="w-full text-left text-xs text-gray-300">
                     <tbody id="round-table">
-                         <div class="text-center p-4 text-gray-500 italic">Pronto...</div>
+                        <div class="text-center p-4 text-gray-500 italic">Pronto per iniziare...</div>
                     </tbody>
                 </table>
             </div>
@@ -75,13 +79,13 @@
                     👁️ SVELA RISPOSTA
                 </button>
                 <button onclick="assegnaAuto()" class="bg-green-600 text-white py-3 rounded font-bold hover:bg-green-500 animate-pulse border-b-4 border-green-800 active:border-b-0">
-                    🏆 ASSEGNA PUNTI
+                    🏆 PUNTI AUTO
                 </button>
             </div>
         </div>
 
         <div class="col-span-3 bg-white p-3 rounded shadow flex flex-col">
-            <h2 class="font-bold text-gray-600 mb-2 border-b">Classifica Totale</h2>
+            <h2 class="font-bold text-gray-600 mb-2 border-b">Classifica</h2>
             <div class="flex-1 overflow-y-auto">
                 <table class="w-full text-xs">
                     <tbody id="team-list"></tbody>
@@ -101,13 +105,13 @@
             document.getElementById('status').className = "font-bold text-green-500 uppercase text-xs";
             socket.emit('admin_connect');
         });
+        
+        socket.on('force_reload', () => window.location.reload());
 
         socket.on('init_data', (data) => {
             dbStructure = data;
             updateTeams(data.teams);
         });
-        
-        socket.on('force_reload', () => window.location.reload());
 
         socket.on('receive_questions', (questions) => {
             currentQuestions = questions;
@@ -120,41 +124,37 @@
             });
         });
 
+        // UPDATE MONITOR
         socket.on('update_round_monitor', (answers) => {
             const tbody = document.getElementById('round-table');
             tbody.innerHTML = '';
             
-            // Nascondi il pannello buzzer action se qualcuno ha risposto
+            // Se arrivano risposte scritte, nascondi il pannello buzzer
             if(answers.length > 0) document.getElementById('buzzer-actions').classList.add('hidden');
 
             answers.forEach((entry, idx) => {
                 const color = entry.corretta ? 'text-green-400 font-bold' : 'text-red-400';
-                const pos = idx + 1;
-                let bonus = entry.corretta ? (pos === 1 ? '[150]' : (pos===2 ? '[125]' : '[100]')) : '';
-                
                 tbody.innerHTML += `
                     <tr class="border-b border-gray-800">
-                        <td class="p-2 text-white">${pos}. ${entry.teamName}</td>
+                        <td class="p-2 text-white">${idx+1}. ${entry.teamName}</td>
                         <td class="p-2 ${color}">${entry.risposta}</td>
                         <td class="p-2 text-gray-400">${entry.tempo}s</td>
-                        <td class="p-2 text-right text-xs text-yellow-500">${bonus}</td>
                     </tr>`;
             });
         });
 
         socket.on('reset_round_monitor', () => {
-            document.getElementById('round-table').innerHTML = '<div class="text-center p-4 text-gray-500">Gara in corso...</div>';
+            document.getElementById('round-table').innerHTML = '<div class="text-center p-4 text-gray-500">In Corso...</div>';
             document.getElementById('timer-badge').innerText = "LIVE";
             document.getElementById('timer-badge').className = "bg-green-600 px-2 rounded text-xs animate-pulse text-white";
             document.getElementById('buzzer-actions').classList.add('hidden');
         });
 
         socket.on('buzzer_admin_alert', (winner) => {
-            // Mostra il pannello per gestire il turno
-            const panel = document.getElementById('buzzer-actions');
-            panel.classList.remove('hidden');
-            document.getElementById('buzzer-who').innerText = "🔊 " + winner;
-            document.getElementById('timer-badge').innerText = "BUZZER";
+            // MOSTRA BOX BUZZER
+            document.getElementById('buzzer-actions').classList.remove('hidden');
+            document.getElementById('buzzer-who').innerText = winner;
+            document.getElementById('timer-badge').innerText = "BUZZER!";
             document.getElementById('timer-badge').className = "bg-red-600 px-2 rounded text-xs animate-pulse text-white";
         });
 
@@ -164,14 +164,7 @@
             const list = document.getElementById('team-list');
             list.innerHTML = '';
             teams.forEach(t => {
-                list.innerHTML += `
-                <tr class="border-b group hover:bg-gray-100">
-                    <td class="py-1 font-bold">${t.name}</td>
-                    <td class="text-right text-blue-600 font-bold">${t.score}</td>
-                    <td class="text-right w-8 opacity-0 group-hover:opacity-100">
-                        <button onclick="daiPunti('${t.id}', 50)" class="text-[10px] bg-green-200 text-green-800 px-1 rounded">+50</button>
-                    </td>
-                </tr>`;
+                list.innerHTML += `<tr class="border-b"><td class="py-1 font-bold">${t.name}</td><td class="text-right text-blue-600 font-bold">${t.score}</td></tr>`;
             });
         }
 
@@ -199,7 +192,6 @@
             if (e.target.value !== "") selectedQ = currentQuestions[e.target.value];
         });
 
-        // COMANDI
         function lancia(mode) {
             if(!selectedQ) return alert("Scegli domanda!");
             socket.emit('invia_domanda', { ...selectedQ, modalita: mode });
@@ -207,9 +199,8 @@
         function rivela() { socket.emit('rivela_risposta'); }
         function assegnaAuto() { socket.emit('assegna_punti_auto'); }
         function regia(cmd) { socket.emit('regia_cmd', cmd); }
-        function daiPunti(id, pts) { socket.emit('assegna_punti', { teamId: id, punti: pts }); }
-        function buzzerNext() { socket.emit('buzzer_wrong_next'); }
-        function resetGame() { if(confirm("Sicuro di voler cancellare tutto?")) socket.emit('reset_game'); }
+        function buzzerNext() { socket.emit('buzzer_errato'); }
+        function resetGame() { if(confirm("Cancellare tutto?")) socket.emit('reset_game'); }
     </script>
 </body>
 </html>

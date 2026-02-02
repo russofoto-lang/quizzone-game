@@ -174,6 +174,27 @@ socket.on('mostra_soluzione', (data) => {
     io.emit('stato_buzzer', { locked: s, attiva: true }); 
   });
 
+  // Aggiungi questo handler dopo 'buzzer_close' (circa riga 180)
+
+socket.on('update_answer_points', (data) => {
+    const answer = gameState.roundAnswers[data.answerIndex];
+    if (answer) {
+        const oldPoints = answer.punti;
+        const newPoints = data.newPoints;
+        answer.punti = newPoints;
+
+        // Aggiorna il punteggio della squadra
+        if (gameState.teams[answer.teamId]) {
+            // Calcola la differenza e aggiorna
+            const diff = newPoints - oldPoints;
+            gameState.teams[answer.teamId].score += diff;
+            io.emit('update_teams', Object.values(gameState.teams));
+        }
+
+        // Aggiorna il monitor admin
+        io.to('admin').emit('update_round_monitor', gameState.roundAnswers);
+    }
+});
   // ============ CALCOLO AUTOMATICO PUNTEGGI CON BONUS VELOCITÀ ============
   socket.on('invia_risposta', (risp) => {
       const team = gameState.teams[socket.id];

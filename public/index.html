@@ -3,162 +3,82 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Siponto Forever Young - Pulsantiera</title>
+    <title>Siponto - Gioca</title>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        /* Impedisce lo zoom involontario su iPhone quando si tocca l'input */
-        input { font-size: 16px !important; }
-    </style>
 </head>
 <body class="bg-gray-900 text-white h-screen flex flex-col overflow-hidden">
-
     <div id="login-screen" class="flex-1 flex flex-col items-center justify-center p-6">
-        <h1 class="text-3xl font-black mb-6 text-yellow-500 text-center">SIPONTO<br>FOREVER YOUNG</h1>
-        <input type="text" id="team-name" placeholder="Nome Squadra" class="w-full p-4 rounded-xl text-black text-xl mb-4 text-center font-bold uppercase">
-        <button onclick="login()" class="w-full bg-blue-600 py-4 rounded-xl font-bold text-xl shadow-lg active:scale-95">ENTRA NEL GIOCO</button>
+        <h1 class="text-3xl font-black mb-6 text-yellow-500">SIPONTO GIOCO</h1>
+        <input type="text" id="team-name" placeholder="Nome Squadra" class="w-full p-4 rounded-xl text-black text-center font-bold uppercase mb-4">
+        <button onclick="login()" class="w-full bg-blue-600 py-4 rounded-xl font-bold text-xl">ENTRA</button>
     </div>
 
     <div id="game-screen" class="hidden flex-col h-full">
-        <div class="bg-gray-800 p-4 flex justify-between items-center shadow border-b border-gray-700">
-            <span id="my-name" class="font-bold text-yellow-400 uppercase">SQUADRA</span>
-            <span class="text-xs text-green-500 font-bold animate-pulse">● LIVE</span>
-        </div>
-
+        <div class="bg-gray-800 p-4 flex justify-between items-center"><span id="my-name" class="font-bold text-yellow-400">---</span></div>
         <div class="flex-1 flex flex-col p-4 justify-center items-center relative">
-            <div id="msg-box" class="absolute top-4 text-center w-full text-gray-400 font-bold text-lg px-2">
-                In attesa della prossima sfida...
-            </div>
-
-            <button id="btn-buzzer" onclick="prenota()" class="hidden w-64 h-64 rounded-full bg-gray-600 border-8 border-gray-700 shadow-2xl flex items-center justify-center active:scale-95 transition-all">
-                <span class="text-4xl font-black pointer-events-none">PREMI!</span>
+            <div id="msg-box" class="absolute top-4 text-center w-full text-gray-400 font-bold">Attendi...</div>
+            
+            <button id="btn-buzzer" onclick="prenota()" class="hidden w-64 h-64 rounded-full flex items-center justify-center border-8 shadow-2xl transition-all">
+                <span class="text-4xl font-black">PREMI!</span>
             </button>
 
-            <div id="opts-grid" class="hidden grid grid-cols-2 gap-4 w-full h-full max-h-[450px] mt-10">
-                </div>
-
-            <div id="input-area" class="hidden w-full flex flex-col gap-4">
-                <div class="text-center text-xl font-bold mb-2 text-blue-300" id="input-label">Rispondi qui:</div>
-                <input type="text" id="txt-answer" class="w-full p-4 rounded-xl text-black text-center text-2xl font-bold uppercase shadow-inner" placeholder="...">
-                <button onclick="sendText()" class="w-full bg-green-600 py-4 rounded-xl font-bold text-xl shadow-lg active:bg-green-700">INVIA RISPOSTA</button>
-            </div>
+            <div id="opts-grid" class="hidden grid grid-cols-2 gap-4 w-full h-full max-h-96 mt-10"></div>
         </div>
     </div>
 
     <script>
         const socket = io();
-        let myId = null;
         let buzzerLocked = true;
 
-        function login() {
-            const name = document.getElementById('team-name').value;
-            if(name) socket.emit('login', name);
-        }
-
-        socket.on('login_success', (data) => {
-            myId = data.id;
-            document.getElementById('login-screen').classList.add('hidden');
-            document.getElementById('game-screen').classList.remove('hidden');
+        function login() { const n = document.getElementById('team-name').value; if(n) socket.emit('login', n); }
+        socket.on('login_success', (d) => { 
+            document.getElementById('login-screen').classList.add('hidden'); 
+            document.getElementById('game-screen').classList.remove('hidden'); 
             document.getElementById('game-screen').classList.add('flex');
-            document.getElementById('my-name').innerText = data.name;
+            document.getElementById('my-name').innerText = d.name;
         });
 
-        // --- LOGICA RICEZIONE DOMANDA ---
         socket.on('nuova_domanda', (d) => {
             resetUI();
             document.getElementById('msg-box').innerText = d.domanda;
-
-            // FORZATURA MODALITÀ SCRITTURA (Stima o Anagramma)
-            if(d.modalita === 'stima' || d.modalita === 'anagramma') {
-                document.getElementById('input-area').classList.remove('hidden');
-                const inputCampo = document.getElementById('txt-answer');
-                inputCampo.value = '';
-                
-                // Configura tipo tastiera
-                if(d.modalita === 'stima') {
-                    inputCampo.type = 'number';
-                    inputCampo.inputMode = 'numeric'; // Forza tastierino numerico su mobile
-                    document.getElementById('input-label').innerText = 'QUANTO SECONDO TE?';
-                } else {
-                    inputCampo.type = 'text';
-                    inputCampo.inputMode = 'text';
-                    document.getElementById('input-label').innerText = 'RISOLVI L\'ANAGRAMMA:';
-                }
-                
-                // Tenta di dare il focus per aprire la tastiera
-                setTimeout(() => inputCampo.focus(), 300);
-            } 
-            // MODALITÀ BUZZER
-            else if(d.modalita === 'buzzer') {
-                document.getElementById('btn-buzzer').classList.remove('hidden');
-            } 
-            // MODALITÀ CLASSICA (Solo se ci sono opzioni)
-            else if(d.risposte && d.risposte.length > 0) {
-                const grid = document.getElementById('opts-grid');
-                grid.classList.remove('hidden');
+            if(d.modalita === 'buzzer') document.getElementById('btn-buzzer').classList.remove('hidden');
+            else if(d.risposte) {
+                const g = document.getElementById('opts-grid'); g.classList.remove('hidden');
                 d.risposte.forEach(r => {
-                    const btn = document.createElement('button');
-                    btn.className = "bg-blue-600 rounded-xl p-4 font-bold text-lg shadow-lg active:bg-blue-800 break-words leading-tight";
-                    btn.innerText = r;
-                    btn.onclick = () => {
-                        socket.emit('invia_risposta', r);
-                        disableAll("Risposta inviata!");
-                    };
-                    grid.appendChild(btn);
+                    const b = document.createElement('button'); b.className = "bg-blue-600 rounded-xl p-4 font-bold text-lg"; b.innerText = r;
+                    b.onclick = () => { socket.emit('invia_risposta', r); g.classList.add('opacity-40','pointer-events-none'); };
+                    g.appendChild(b);
                 });
             }
         });
 
-        // --- GESTIONE BUZZER ---
         socket.on('stato_buzzer', (d) => {
             buzzerLocked = d.locked;
             const btn = document.getElementById('btn-buzzer');
-            if(!btn.classList.contains('hidden')) {
-                if(buzzerLocked) {
-                    btn.className = "w-64 h-64 rounded-full bg-gray-600 border-8 border-gray-700 shadow-xl flex items-center justify-center opacity-50 cursor-not-allowed";
-                } else {
-                    btn.className = "w-64 h-64 rounded-full bg-red-600 border-8 border-red-800 shadow-[0_0_30px_rgba(220,38,38,0.6)] flex items-center justify-center active:scale-95 cursor-pointer animate-pulse";
-                }
+            if(buzzerLocked) {
+                btn.className = "w-64 h-64 rounded-full bg-gray-700 border-gray-800 opacity-50 flex items-center justify-center";
+                btn.innerHTML = "<span class='text-2xl font-bold text-gray-400 uppercase tracking-tighter'>Bloccato</span>";
+            } else {
+                btn.className = "w-64 h-64 rounded-full bg-red-600 border-red-800 flex items-center justify-center animate-pulse shadow-[0_0_50px_rgba(255,0,0,0.5)]";
+                btn.innerHTML = "<span class='text-4xl font-black text-white uppercase'>VAI!</span>";
             }
         });
 
-        function prenota() { 
-            if(!buzzerLocked) socket.emit('prenoto'); 
-        }
-
         socket.on('prenotazione_vinta', () => {
-            const btn = document.getElementById('btn-buzzer');
-            btn.className = "w-64 h-64 rounded-full bg-green-500 border-8 border-green-700 shadow-2xl flex items-center justify-center animate-bounce";
-            btn.innerHTML = "<span class='text-2xl font-black text-black uppercase'>Tocca a te!</span>";
+            const b = document.getElementById('btn-buzzer');
+            b.className = "w-64 h-64 rounded-full bg-green-500 border-8 border-green-700 flex items-center justify-center animate-bounce shadow-[0_0_50px_rgba(0,255,0,0.6)]";
+            b.innerHTML = "<span class='text-3xl font-black text-black uppercase'>PARLA!</span>";
             if(navigator.vibrate) navigator.vibrate([200, 100, 200]);
         });
 
-        // --- INVIO TESTO ---
-        function sendText() {
-            const val = document.getElementById('txt-answer').value;
-            if(val) {
-                socket.emit('invia_risposta', val);
-                disableAll("Inviato! Controlla il display.");
-            }
-        }
-
-        function disableAll(testo) {
-            document.getElementById('opts-grid').classList.add('opacity-40', 'pointer-events-none');
-            document.getElementById('input-area').classList.add('opacity-40', 'pointer-events-none');
-            document.getElementById('msg-box').innerText = testo;
-            document.activeElement.blur(); // Chiude la tastiera
-        }
-
+        function prenota() { if(!buzzerLocked) socket.emit('prenoto'); }
         function resetUI() {
-            const sections = ['btn-buzzer', 'opts-grid', 'input-area'];
-            sections.forEach(s => document.getElementById(s).classList.add('hidden'));
-            
+            document.getElementById('btn-buzzer').classList.add('hidden');
+            document.getElementById('opts-grid').classList.add('hidden');
             document.getElementById('opts-grid').innerHTML = '';
-            document.getElementById('opts-grid').classList.remove('opacity-40', 'pointer-events-none');
-            document.getElementById('input-area').classList.remove('opacity-40', 'pointer-events-none');
-            document.getElementById('btn-buzzer').innerHTML = "<span class='text-4xl font-black pointer-events-none'>PREMI!</span>";
+            document.getElementById('opts-grid').classList.remove('opacity-40','pointer-events-none');
         }
-        
         socket.on('force_reload', () => window.location.reload());
     </script>
 </body>

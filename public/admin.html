@@ -1,133 +1,197 @@
-const express = require('express');
-const app = express();
-const http = require('http').createServer(app);
-const path = require('path');
-const fs = require('fs');
-const io = require('socket.io')(http, {
-  cors: { origin: "*", methods: ["GET", "POST"] }
-});
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>REGIA - Il Quizzone</title>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-200 p-4 h-screen flex flex-col">
 
-const PORT = process.env.PORT || 3001;
+    <div class="flex justify-between items-center mb-4 bg-white p-3 rounded shadow">
+        <h1 class="text-xl font-bold text-gray-800">🎛️ REGIA MASTER</h1>
+        <div id="status" class="text-xs font-bold text-red-500 uppercase">Connessione...</div>
+    </div>
 
-// --- CARICAMENTO DATABASE ---
-let fullDb = { categorie: {}, raffica: [], bonus: [] };
+    <div class="grid grid-cols-3 gap-4 flex-1 overflow-hidden">
+        
+        <div class="col-span-2 flex flex-col gap-4">
+            
+            <div class="bg-white p-4 rounded shadow">
+                <h2 class="font-bold mb-3 text-gray-700 border-b pb-2">1. Selezione Gioco</h2>
+                
+                <div class="flex gap-2 mb-3">
+                    <select id="sel-tipo" class="border-2 border-blue-500 p-2 rounded w-1/3 font-bold text-blue-900">
+                        <option value="">-- TIPO GIOCO --</option>
+                        <option value="categorie">📂 CATEGORIE</option>
+                        <option value="bonus">💰 BONUS</option>
+                        <option value="raffica">⚡ RAFFICA</option>
+                    </select>
 
-try {
-  const data = fs.readFileSync(path.join(__dirname, 'public', 'domande.json'), 'utf8');
-  fullDb = JSON.parse(data);
-  console.log("DB Caricato: ", Object.keys(fullDb.categorie).length, "categorie,", fullDb.bonus.length, "bonus.");
-} catch (err) {
-  console.error("Errore JSON:", err);
-}
+                    <select id="sel-cat" class="border p-2 rounded w-2/3 bg-gray-50 disabled:bg-gray-200" disabled>
+                        <option value="">-- Scegli Materia --</option>
+                    </select>
+                </div>
 
-// Stato Gioco
-let gameState = {
-  teams: {},           
-  currentQuestion: null,
-  buzzerLocked: false,
-  buzzerWinner: null
-};
+                <div class="mb-3">
+                    <select id="sel-dom" class="w-full border p-2 rounded bg-gray-50 disabled:bg-gray-200" disabled>
+                        <option value="">-- Prima scegli il tipo --</option>
+                    </select>
+                </div>
+                
+                <div id="preview" class="p-3 bg-blue-50 border border-blue-200 rounded text-sm text-gray-600 mb-4 h-24 overflow-y-auto">
+                    Seleziona una domanda per vedere l'anteprima.
+                </div>
 
-app.use(express.static('public'));
+                <div class="flex gap-2">
+                    <button onclick="lancia('classico')" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded shadow transition">
+                        LANCIA (Quiz Classico)
+                    </button>
+                    <button onclick="lancia('buzzer')" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded shadow transition">
+                        LANCIA (Buzzer)
+                    </button>
+                </div>
+            </div>
 
-// Rotte
-app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
-app.get('/display', (req, res) => res.sendFile(path.join(__dirname, 'public', 'display.html')));
-app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
+            <div class="bg-white p-4 rounded shadow flex-1 flex flex-col">
+                <div class="flex justify-between items-center mb-2">
+                    <h2 class="font-bold text-gray-700">2. Controllo Live</h2>
+                    <button onclick="rivela()" class="bg-green-500 hover:bg-green-600 text-white px-6 py-1 rounded font-bold shadow animate-pulse">
+                        SVELA RISPOSTA
+                    </button>
+                </div>
+                <div id="log-feed" class="flex-1 bg-gray-900 text-green-400 p-2 rounded font-mono text-xs overflow-y-auto border border-black shadow-inner">
+                    <div class="text-gray-500 italic">Attendo risposte...</div>
+                </div>
+            </div>
+        </div>
 
-io.on('connection', (socket) => {
-  
-  // --- ADMIN CONNECTION ---
-  socket.on('admin_connect', () => {
-    socket.join('admin');
-    // Invia la STRUTTURA del gioco all'admin
-    socket.emit('init_data', { 
-      categories: Object.keys(fullDb.categorie), // ["storia", "sport"...]
-      hasBonus: fullDb.bonus.length > 0,
-      hasRaffica: fullDb.raffica.length > 0,
-      teams: Object.values(gameState.teams)
-    });
-  });
+        <div class="bg-white p-4 rounded shadow flex flex-col">
+            <h2 class="font-bold mb-2 text-gray-700 border-b pb-1">Squadre (<span id="team-cnt">0</span>)</h2>
+            <div class="flex-1 overflow-y-auto">
+                <table class="w-full text-sm text-left">
+                    <tbody id="team-list"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 
-  // Admin chiede le domande di una sezione specifica
-  socket.on('get_questions', (payload) => {
-    // payload = { type: 'categoria' | 'bonus' | 'raffica', key: 'storia' (opzionale) }
-    
-    let questionsToSend = [];
+    <script>
+        const socket = io();
+        let currentQuestions = [];
+        let selectedQ = null;
+        let dbStructure = {};
 
-    if (payload.type === 'categoria') {
-      questionsToSend = fullDb.categorie[payload.key] || [];
-    } else if (payload.type === 'bonus') {
-      questionsToSend = fullDb.bonus || [];
-    } else if (payload.type === 'raffica') {
-      // Per semplicità, qui mandiamo tutte le domande di tutte le raffiche in un'unica lista piatta
-      // oppure potremmo far scegliere quale raffica. Qui le uniamo per test.
-      fullDb.raffica.forEach(r => {
-        questionsToSend = questionsToSend.concat(r.domande.map(d => ({...d, nomeRaffica: r.nome})));
-      });
-    }
+        socket.on('connect', () => {
+            document.getElementById('status').innerText = "ONLINE";
+            document.getElementById('status').className = "text-xs font-bold text-green-500 uppercase";
+            socket.emit('admin_connect');
+        });
 
-    socket.emit('receive_questions', questionsToSend);
-  });
+        socket.on('init_data', (data) => {
+            dbStructure = data;
+            updateTeams(data.teams);
+        });
 
-  // --- LOGICA DI GIOCO ---
-  socket.on('invia_domanda', (dati) => {
-    gameState.currentQuestion = dati;
-    gameState.buzzerLocked = false;
-    gameState.buzzerWinner = null;
-    io.emit('nuova_domanda', dati);
-    io.emit('reset_buzzer');
-  });
+        socket.on('receive_questions', (questions) => {
+            currentQuestions = questions;
+            const selDom = document.getElementById('sel-dom');
+            selDom.disabled = false;
+            selDom.innerHTML = '<option value="">-- Seleziona Domanda --</option>';
+            questions.forEach((q, idx) => {
+                let text = q.domanda.length > 60 ? q.domanda.substring(0,60) + "..." : q.domanda;
+                let pts = q.punti ? `[${q.punti}pt]` : ""; 
+                selDom.innerHTML += `<option value="${idx}">${q.id}. ${pts} ${text}</option>`;
+            });
+        });
 
-  // --- RIVELA RISPOSTA (FIX CORRETTO) ---
-  socket.on('rivela_risposta', () => {
-    if (!gameState.currentQuestion) return;
-    
-    const q = gameState.currentQuestion;
-    let text = q.corretta;
+        socket.on('update_teams', updateTeams);
+        
+        socket.on('risposta_ricevuta', (data) => {
+            log(`💬 <b>${data.teamName}</b>: ${data.risposta}`, data.teamId);
+        });
 
-    // Se la risposta è un indice numerico, convertilo in testo
-    if (typeof q.corretta === 'number' && q.risposte && q.risposte[q.corretta]) {
-        text = q.risposte[q.corretta];
-    }
-    
-    io.emit('mostra_soluzione', text);
-  });
+        socket.on('buzzer_bloccato', (data) => {
+            log(`🚨 <b>BUZZER:</b> ${data.winner}`, null, 'red');
+        });
 
-  // --- BUZZER & SQUADRE ---
-  socket.on('login', (name) => {
-    gameState.teams[socket.id] = { id: socket.id, name: name, score: 0 };
-    socket.emit('login_success', { id: socket.id, name: name });
-    io.emit('update_teams', Object.values(gameState.teams));
-  });
+        // MENU CHANGE HANDLERS
+        document.getElementById('sel-tipo').addEventListener('change', (e) => {
+            const type = e.target.value;
+            const selCat = document.getElementById('sel-cat');
+            const selDom = document.getElementById('sel-dom');
+            
+            selCat.innerHTML = '<option value="">-- Scegli --</option>';
+            selDom.innerHTML = '<option value="">-- --</option>';
+            selDom.disabled = true;
+            selCat.disabled = true;
 
-  socket.on('prenoto', () => {
-    if (!gameState.buzzerLocked && gameState.teams[socket.id]) {
-      gameState.buzzerLocked = true;
-      gameState.buzzerWinner = gameState.teams[socket.id].name;
-      io.emit('buzzer_bloccato', { winner: gameState.buzzerWinner });
-      io.to(socket.id).emit('prenotazione_vinta');
-    }
-  });
+            if (type === 'categorie') {
+                selCat.disabled = false;
+                dbStructure.categories.forEach(c => {
+                    selCat.innerHTML += `<option value="${c}">${c.toUpperCase()}</option>`;
+                });
+            } else if (type === 'bonus' || type === 'raffica') {
+                socket.emit('get_questions', { type: type });
+            }
+        });
 
-  socket.on('invia_risposta', (risp) => {
-    const t = gameState.teams[socket.id];
-    if(t) io.to('admin').emit('risposta_ricevuta', { teamName: t.name, teamId: socket.id, risposta: risp });
-  });
+        document.getElementById('sel-cat').addEventListener('change', (e) => {
+            const cat = e.target.value;
+            if(cat) socket.emit('get_questions', { type: 'categoria', key: cat });
+        });
 
-  socket.on('assegna_punti', (data) => {
-    if(gameState.teams[data.teamId]) {
-      gameState.teams[data.teamId].score += data.punti;
-      io.emit('update_teams', Object.values(gameState.teams));
-    }
-  });
+        document.getElementById('sel-dom').addEventListener('change', (e) => {
+            const idx = e.target.value;
+            if (idx !== "") {
+                selectedQ = currentQuestions[idx];
+                let rispHTML = "";
+                if(selectedQ.risposte) {
+                    rispHTML = selectedQ.risposte.map((r, i) => 
+                        (i === selectedQ.corretta ? `<b class="text-green-600">${r}</b>` : r)
+                    ).join(' | ');
+                }
+                document.getElementById('preview').innerHTML = `
+                    <div class="font-bold text-blue-800">${selectedQ.domanda}</div>
+                    <div class="mt-1 text-xs text-gray-500">Risposte: ${rispHTML}</div>
+                    <div class="mt-1 text-xs font-bold text-purple-600">Punti: ${selectedQ.punti || 0}</div>
+                `;
+            }
+        });
 
-  socket.on('disconnect', () => {
-    if(gameState.teams[socket.id]) {
-      delete gameState.teams[socket.id];
-      io.emit('update_teams', Object.values(gameState.teams));
-    }
-  });
-});
+        function lancia(mode) {
+            if(!selectedQ) return alert("Seleziona una domanda!");
+            const payload = { ...selectedQ, modalita: mode };
+            socket.emit('invia_domanda', payload);
+            document.getElementById('log-feed').innerHTML = 
+                `<div class="text-yellow-400 font-bold border-b border-yellow-600 mb-2">🚀 DOMANDA LANCIATA (${mode.toUpperCase()})</div>`;
+        }
 
-http.listen(PORT, '0.0.0.0', () => console.log(`Server su porta ${PORT}`));
+        function rivela() { socket.emit('rivela_risposta'); }
+        function daiPunti(id, pts) { socket.emit('assegna_punti', { teamId: id, punti: pts }); }
+
+        function updateTeams(teams) {
+            teams.sort((a,b) => b.score - a.score);
+            const list = document.getElementById('team-list');
+            list.innerHTML = '';
+            document.getElementById('team-cnt').innerText = teams.length;
+            teams.forEach(t => {
+                list.innerHTML += `
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="py-2 font-bold">${t.name}</td>
+                        <td class="text-right text-blue-600 font-mono">${t.score}</td>
+                        <td class="text-right">
+                            <button onclick="daiPunti('${t.id}', 50)" class="bg-green-100 text-green-700 px-2 rounded text-xs hover:bg-green-200">+50</button>
+                        </td>
+                    </tr>`;
+            });
+        }
+
+        function log(msg, id, color='green') {
+            const feed = document.getElementById('log-feed');
+            let btn = id ? `<button onclick="daiPunti('${id}', 50)" class="ml-2 bg-${color}-600 text-white px-2 rounded text-[10px]">OK (+50)</button>` : '';
+            feed.innerHTML = `<div class="mb-1 pb-1 border-b border-gray-700 flex justify-between items-center"><span>${msg}</span>${btn}</div>` + feed.innerHTML;
+        }
+    </script>
+</body>
+</html>

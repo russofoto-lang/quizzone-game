@@ -257,17 +257,15 @@
             document.getElementById('classic-monitor').classList.remove('hidden');
         }
         
-        // Mostra la soluzione sul display
-        function mostraSoluzioneSuDisplay() {
-            if(selectedQ && selectedQ.corretta !== undefined) {
-                let soluzione = selectedQ.corretta;
-                // Se corretta è un numero, mostra la risposta testuale
-                if(typeof selectedQ.corretta === 'number' && selectedQ.risposte) {
-                    soluzione = selectedQ.risposte[selectedQ.corretta];
-                }
-                socket.emit('regia_cmd', 'classifica_round');
-            }
+       function mostraSoluzioneSuDisplay() {
+    if(selectedQ && selectedQ.corretta !== undefined) {
+        let soluzione = selectedQ.corretta;
+        if(typeof selectedQ.corretta === 'number' && selectedQ.risposte) {
+            soluzione = selectedQ.risposte[selectedQ.corretta];
         }
+        socket.emit('mostra_soluzione', { soluzione: soluzione, risultati: [] });
+    }
+}
     </script>
 </body>
 </html>

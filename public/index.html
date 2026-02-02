@@ -709,213 +709,212 @@
       );
     }
 
-    // ============ COMPONENTE GIOCATORE ============
-    function PlayerPanel() {
-      const [socket, setSocket] = useState(null);
-      const [teamName, setTeamName] = useState('');
-      const [isRegistered, setIsRegistered] = useState(false);
-      const [teamId, setTeamId] = useState('');
-      const [currentMode, setCurrentMode] = useState(null);
-      const [currentQuestion, setCurrentQuestion] = useState(null);
-      const [selectedAnswer, setSelectedAnswer] = useState(null);
-      const [hasAnswered, setHasAnswered] = useState(false);
-      const [showResults, setShowResults] = useState(false);
-      const [results, setResults] = useState(null);
-      const [scores, setScores] = useState({});
-      const [timeLeft, setTimeLeft] = useState(null);
+ // ============ COMPONENTE GIOCATORE ============
+function PlayerPanel() {
+  const [socket, setSocket] = useState(null);
+  const [teamName, setTeamName] = useState('');
+  const [isRegistered, setIsRegistered] = useState(false);
+  const [teamId, setTeamId] = useState('');
+  
+  // Stato gioco
+  const [currentQuestion, setCurrentQuestion] = useState(null);
+  const [msg, setMsg] = useState("In attesa che il gioco inizi...");
+  
+  // Stati specifici Buzzer
+  const [buzzerLocked, setBuzzerLocked] = useState(false);     // Se il pulsante è grigio
+  const [canAnswerBuzzer, setCanAnswerBuzzer] = useState(false); // Se posso scrivere la risposta
+  const [winnerName, setWinnerName] = useState(null);          // Chi ha vinto il buzzer
+
+  // Input risposta
+  const [textAnswer, setTextAnswer] = useState("");
+
+  useEffect(() => {
+    const newSocket = io();
+    setSocket(newSocket);
+
+    // 1. REGISTRAZIONE AVVENUTA
+    newSocket.on('login_success', (data) => {
+      setTeamId(data.id);
+      setIsRegistered(true);
+      setMsg("Registrazione completata! Attendi la domanda.");
+    });
+
+    // 2. ARRIVA UNA NUOVA DOMANDA
+    newSocket.on('nuova_domanda', (domanda) => {
+      setCurrentQuestion(domanda);
+      // Reset stati buzzer
+      setBuzzerLocked(false);
+      setCanAnswerBuzzer(false);
+      setWinnerName(null);
+      setTextAnswer("");
+      setMsg(""); // Pulisce messaggi vecchi
+    });
+
+    // 3. QUALCUNO HA PREMUTO IL BUZZER (Blocco pulsante)
+    newSocket.on('buzzer_bloccato', (data) => {
+      setBuzzerLocked(true); // Diventa grigio per tutti
+      setWinnerName(data.winner);
+    });
+
+    // 4. HAI VINTO TU LA PRENOTAZIONE (Mostra input testo)
+    newSocket.on('prenotazione_vinta', () => {
+      setCanAnswerBuzzer(true); // Sblocca la casella di testo SOLO a te
+      setMsg("TOCCA A TE! SCRIVI VELOCE!");
+    });
+
+    // 5. FINE ROUND (Reset)
+    newSocket.on('fine_round', () => {
+      setCurrentQuestion(null);
+      setMsg("Round terminato. Guarda il display per la soluzione.");
+    });
+
+    // 6. PUNTEGGIO AGGIORNATO (Opzionale feedback)
+    newSocket.on('punti_aggiornati', (punti) => {
+       // Puoi aggiungere un effetto visivo qui se vuoi
+       console.log("Punti totali:", punti);
+    });
+
+    return () => newSocket.close();
+  }, []);
+
+  // --- AZIONI ---
+
+  const handleRegister = () => {
+    if (teamName.trim() && socket) {
+      socket.emit('login', teamName);
+    }
+  };
+
+  const handleBuzzerPress = () => {
+    if (socket && !buzzerLocked) {
+      socket.emit('prenoto');
+      // Nota: Non blocco nulla qui, aspetto 'prenotazione_vinta' o 'buzzer_bloccato' dal server
+    }
+  };
+
+  const sendAnswer = (valore) => {
+    if (socket) {
+      socket.emit('invia_risposta', valore);
+      setMsg("Risposta inviata! Attendi il giudice.");
+      setCanAnswerBuzzer(false); // Nascondi input dopo invio
+      setCurrentQuestion(null);  // Torna in attesa
+    }
+  };
+
+  // --- RENDER ---
+
+  // 1. Schermata Login
+  if (!isRegistered) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 p-4 text-white">
+        <h1 className="text-4xl font-bold mb-8 text-yellow-400">IL QUIZZONE</h1>
+        <input 
+          type="text" 
+          className="p-4 text-black rounded text-xl w-full max-w-md mb-4"
+          placeholder="Nome Squadra"
+          value={teamName}
+          onChange={e => setTeamName(e.target.value)}
+        />
+        <button 
+          onClick={handleRegister}
+          className="bg-green-500 hover:bg-green-600 text-white font-bold py-4 px-8 rounded-full text-xl w-full max-w-md transition transform active:scale-95"
+        >
+          ENTRA IN GIOCO 🚀
+        </button>
+      </div>
+    );
+  }
+
+  // 2. Schermata di Attesa (Nessuna domanda attiva)
+  if (!currentQuestion) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-800 text-white p-6 text-center">
+        <div className="text-6xl mb-4">⏳</div>
+        <h2 className="text-2xl font-bold">{msg || "Guarda il Display..."}</h2>
+        <p className="mt-4 text-gray-400">Squadra: {teamName}</p>
+      </div>
+    );
+  }
+
+  // 3. Schermata di Gioco
+  return (
+    <div className="flex flex-col items-center min-h-screen bg-indigo-900 text-white p-4">
       
-      // Raffica
-      const [rafficaProgress, setRafficaProgress] = useState(null);
-      const [rafficaAnswers, setRafficaAnswers] = useState([]);
-      
-      // Buzzer
-      const [buzzerLocked, setBuzzerLocked] = useState(false);
-      const [buzzerWinner, setBuzzerWinner] = useState(null);
-      const [canAnswerBuzzer, setCanAnswerBuzzer] = useState(false);
+      {/* Intestazione Domanda */}
+      <div className="w-full bg-indigo-800 p-4 rounded-lg mb-6 shadow-lg">
+        <span className="text-xs font-bold text-yellow-400 uppercase tracking-wider">{currentQuestion.categoria || "DOMANDA"}</span>
+        <h2 className="text-xl font-bold mt-1">{currentQuestion.domanda}</h2>
+      </div>
 
-      useEffect(() => {
-        const newSocket = io();
-        
-        newSocket.on('registration_success', (data) => {
-          setTeamId(data.teamId);
-          setIsRegistered(true);
-        });
+      {/* --- LOGICA BUZZER --- */}
+      {currentQuestion.modalita === 'buzzer' && (
+        <div className="w-full flex flex-col items-center flex-grow justify-center">
+          
+          {/* CASO A: Devo ancora prenotarmi */}
+          {!canAnswerBuzzer && !winnerName && (
+            <button 
+              onClick={handleBuzzerPress}
+              disabled={buzzerLocked}
+              className={`
+                w-64 h-64 rounded-full text-3xl font-bold shadow-2xl border-8 border-red-800
+                transition transform active:scale-95 flex items-center justify-center
+                ${buzzerLocked ? 'bg-gray-600 cursor-not-allowed' : 'bg-red-600 hover:bg-red-500 animate-pulse'}
+              `}
+            >
+              PRENOTA!
+            </button>
+          )}
 
-        // CLASSICO/BONUS
-        newSocket.on('new_question', (question) => {
-          setCurrentMode('classico');
-          setCurrentQuestion(question);
-          setSelectedAnswer(null);
-          setHasAnswered(false);
-          setShowResults(false);
-          setResults(null);
-          setTimeLeft(20);
-        });
-
-        newSocket.on('bonus_question', (question) => {
-          setCurrentMode('bonus');
-          setCurrentQuestion(question);
-          setSelectedAnswer(null);
-          setHasAnswered(false);
-          setShowResults(false);
-          setResults(null);
-          setTimeLeft(question.timerSecondi);
-        });
-
-        // RAFFICA
-        newSocket.on('raffica_question', (data) => {
-          setCurrentMode('raffica');
-          setCurrentQuestion(data);
-          setSelectedAnswer(null);
-          setHasAnswered(false);
-          setShowResults(false);
-          setTimeLeft(15);
-          setRafficaProgress({ current: data.index, total: data.total });
-        });
-
-        newSocket.on('raffica_results', (data) => {
-          const myResult = data.results.find(r => r.teamId === teamId);
-          setResults(myResult);
-          setScores(data.scores);
-          setShowResults(true);
-          setCurrentMode(null);
-          setRafficaProgress(null);
-          setRafficaAnswers([]);
-        });
-
-        // BUZZER
-        newSocket.on('buzzer_question', (question) => {
-          setCurrentMode('buzzer');
-          setCurrentQuestion(question);
-          setSelectedAnswer(null);
-          setHasAnswered(false);
-          setShowResults(false);
-          setBuzzerLocked(false);
-          setBuzzerWinner(null);
-          setCanAnswerBuzzer(false);
-        });
-
-        newSocket.on('buzzer_locked', (data) => {
-          setBuzzerLocked(true);
-          setBuzzerWinner(data);
-          if (data.teamId === teamId) {
-            setCanAnswerBuzzer(true);
-          }
-        });
-
-        newSocket.on('buzzer_results', (data) => {
-          setResults(data);
-          setScores(data.scores);
-          setShowResults(true);
-          setTimeout(() => {
-            setCurrentMode(null);
-            setBuzzerLocked(false);
-            setBuzzerWinner(null);
-            setCanAnswerBuzzer(false);
-          }, 3000);
-        });
-
-        // GENERALI
-        newSocket.on('answer_submitted', () => {
-          setHasAnswered(true);
-        });
-
-        newSocket.on('question_results', (data) => {
-          setShowResults(true);
-          setResults(data);
-        });
-
-        newSocket.on('scores_update', (scoresData) => {
-          setScores(scoresData);
-        });
-
-        newSocket.on('game_reset', () => {
-          setIsRegistered(false);
-          setTeamName('');
-          setTeamId('');
-          setCurrentMode(null);
-          setCurrentQuestion(null);
-          setSelectedAnswer(null);
-          setHasAnswered(false);
-          setShowResults(false);
-          setResults(null);
-          setScores({});
-          setRafficaProgress(null);
-          setBuzzerLocked(false);
-          setBuzzerWinner(null);
-        });
-
-        setSocket(newSocket);
-
-        return () => newSocket.close();
-      }, [teamId]);
-
-      // Timer
-      useEffect(() => {
-        if (timeLeft === null || timeLeft <= 0 || hasAnswered) return;
-        
-        const timer = setInterval(() => {
-          setTimeLeft(prev => prev - 1);
-        }, 1000);
-
-        return () => clearInterval(timer);
-      }, [timeLeft, hasAnswered]);
-
-      const registerTeam = (e) => {
-        e.preventDefault();
-        if (teamName.trim()) {
-          socket.emit('register_team', teamName.trim());
-        }
-      };
-
-      const submitAnswer = (answerIndex) => {
-        setSelectedAnswer(answerIndex);
-        if (currentMode === 'raffica') {
-          socket.emit('raffica_answer', { answer: answerIndex });
-          setRafficaAnswers(prev => [...prev, answerIndex]);
-        } else if (currentMode === 'buzzer') {
-          socket.emit('buzzer_answer', { answer: answerIndex });
-        } else {
-          socket.emit('submit_answer', { answer: answerIndex });
-        }
-      };
-
-      const pressBuzzer = () => {
-        if (!buzzerLocked) {
-          socket.emit('buzzer_press');
-        }
-      };
-
-      if (!isRegistered) {
-        return (
-          <div className="min-h-screen bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center p-4">
-            <div className="bg-white rounded-lg shadow-2xl p-8 max-w-md w-full">
-              <h1 className="text-4xl font-bold text-center mb-8 text-purple-900">
-                🎮 Il Quizzone
-              </h1>
-              <form onSubmit={registerTeam}>
-                <label className="block mb-2 text-gray-700 font-semibold">
-                  Nome Squadra:
-                </label>
-                <input
-                  type="text"
-                  value={teamName}
-                  onChange={(e) => setTeamName(e.target.value)}
-                  className="w-full px-4 py-3 border-2 border-purple-300 rounded-lg mb-4 text-lg"
-                  placeholder="Es: I Fenomeni"
-                  autoFocus
-                />
-                <button
-                  type="submit"
-                  className="w-full bg-purple-600 text-white py-3 rounded-lg font-bold text-lg hover:bg-purple-700 transition"
-                >
-                  Entra nel Gioco
-                </button>
-              </form>
+          {/* CASO B: Qualcuno (non io) ha prenotato */}
+          {winnerName && !canAnswerBuzzer && (
+            <div className="text-center animate-bounce">
+              <div className="text-5xl mb-2">🚫</div>
+              <h3 className="text-2xl font-bold text-red-300">Ha prenotato:</h3>
+              <p className="text-4xl font-black text-white">{winnerName}</p>
             </div>
-          </div>
-        );
-      }
+          )}
+
+          {/* CASO C: HO VINTO IO! Mostra Input */}
+          {canAnswerBuzzer && (
+            <div className="w-full max-w-md animate-fade-in-up">
+              <div className="text-green-400 text-center text-xl font-bold mb-4">TOCCA A TE! SCRIVI!</div>
+              <input 
+                type="text" 
+                autoFocus
+                className="w-full p-4 text-black text-xl rounded mb-4 border-4 border-green-500"
+                placeholder="La tua risposta..."
+                value={textAnswer}
+                onChange={e => setTextAnswer(e.target.value)}
+              />
+              <button 
+                onClick={() => sendAnswer(textAnswer)}
+                className="w-full bg-green-600 py-4 rounded font-bold text-xl shadow-lg"
+              >
+                INVIA RISPOSTA 📤
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* --- LOGICA QUIZ CLASSICO (Opzioni) --- */}
+      {currentQuestion.modalita === 'classico' && (
+        <div className="grid grid-cols-1 gap-4 w-full max-w-md">
+          {currentQuestion.risposte && currentQuestion.risposte.map((r, idx) => (
+            <button
+              key={idx}
+              onClick={() => sendAnswer(r)} // O invia l'indice se preferisci
+              className="bg-blue-600 hover:bg-blue-500 p-6 rounded-xl text-xl font-semibold shadow-lg transition"
+            >
+              {r}
+            </button>
+          ))}
+        </div>
+      )}
+
+    </div>
+  );
+}
 
       const myScore = scores[teamId] || 0;
       const scoresList = Object.entries(scores)

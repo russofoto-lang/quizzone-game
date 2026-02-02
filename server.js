@@ -66,25 +66,24 @@ io.on('connection', (socket) => {
   });
 
   // --- START DOMANDA (MODIFICATO PER FIX) ---
-  socket.on('invia_domanda', (dati) => {
-    gameState.currentQuestion = dati;
+ socket.on('invia_domanda', (dati) => {
+    gameState.currentQuestion = JSON.parse(JSON.stringify(dati)); // Copia profonda
     gameState.questionStartTime = Date.now();
     gameState.roundAnswers = [];
     gameState.buzzerQueue = [];
     gameState.buzzerLocked = (dati.modalita === 'buzzer'); 
 
-    // CREA VERSIONE PULITA PER I CLIENT (SENZA RISPOSTE SE NON SERVONO)
-    // Questo impedisce che l'anagramma mostri la soluzione come bottone
-    let datiPerClient = { ...dati };
+    // Prepariamo i dati per i telefoni
+    let datiPerClient = JSON.parse(JSON.stringify(dati));
     
+    // Se è Anagramma o Stima, CANCELLIAMO i dati sensibili prima dell'invio
     if (dati.modalita === 'anagramma' || dati.modalita === 'stima') {
-        // Rimuoviamo la soluzione dai dati inviati ai telefoni!
         delete datiPerClient.risposte; 
         delete datiPerClient.corretta;
     }
 
     io.emit('cambia_vista', { view: 'game' });
-    io.emit('nuova_domanda', datiPerClient); // Invia dati puliti
+    io.emit('nuova_domanda', datiPerClient);
     io.emit('stato_buzzer', { locked: gameState.buzzerLocked }); 
     io.to('admin').emit('reset_round_monitor');
   });

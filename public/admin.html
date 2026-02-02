@@ -25,6 +25,12 @@
     <div class="grid grid-cols-12 gap-2 flex-1 overflow-hidden">
         
         <div class="col-span-4 bg-white p-3 rounded shadow overflow-y-auto flex flex-col">
+            <!-- SELEZIONE PACCHETTO -->
+            <select id="sel-package" class="w-full border-2 border-green-500 p-2 rounded font-bold mb-2 text-gray-800">
+                <option value="">-- SELEZIONA PACCHETTO --</option>
+                <!-- Popolato via JS -->
+            </select>
+
             <select id="sel-tipo" class="w-full border-2 border-blue-500 p-2 rounded font-bold mb-2 text-gray-800">
                 <option value="">-- SELEZIONA MODALITÀ --</option>
                 <option value="categoria">📂 CATEGORIE</option>
@@ -106,13 +112,57 @@
     <script>
         const socket = io();
         let currentQuestions = [], selectedQ = null, dbStructure = {};
-        let currentRoundAnswers = []; // Aggiunto per memorizzare le risposte correnti
+        let currentRoundAnswers = [];
 
         socket.on('connect', () => { socket.emit('admin_connect'); });
         
         socket.on('init_data', (d) => { 
             dbStructure = d; 
             updateTeams(d.teams); 
+            
+            // Popola dropdown pacchetti
+            const packageSelect = document.getElementById('sel-package');
+            packageSelect.innerHTML = '<option value="">-- SELEZIONA PACCHETTO --</option>';
+            d.packages.forEach(pkg => {
+                packageSelect.innerHTML += `<option value="${pkg.id}" ${pkg.id === d.currentPackage ? 'selected' : ''}>${pkg.name}</option>`;
+            });
+            
+            // Popola dropdown categorie (se presente)
+            const catSelect = document.getElementById('sel-cat');
+            catSelect.innerHTML = '<option value="">-- SCEGLI CATEGORIA --</option>';
+            d.categories.forEach(c => {
+                catSelect.innerHTML += `<option value="${c}">${c.replace('_',' ')}</option>`;
+            });
+        });
+
+        // Evento quando il pacchetto viene cambiato
+        socket.on('package_selected', (data) => {
+            // Aggiorna dropdown pacchetti
+            const packageSelect = document.getElementById('sel-package');
+            if (packageSelect.value !== data.packageId) {
+                packageSelect.value = data.packageId;
+            }
+            
+            // Aggiorna dropdown categorie
+            const catSelect = document.getElementById('sel-cat');
+            catSelect.innerHTML = '<option value="">-- SCEGLI CATEGORIA --</option>';
+            data.categories.forEach(c => {
+                catSelect.innerHTML += `<option value="${c}">${c.replace('_',' ')}</option>`;
+            });
+            
+            // Resetta altre dropdown
+            document.getElementById('sel-dom').innerHTML = '';
+            document.getElementById('sel-dom').disabled = true;
+            currentQuestions = [];
+            selectedQ = null;
+        });
+
+        // Aggiungi evento change al dropdown pacchetti
+        document.getElementById('sel-package').addEventListener('change', (e) => {
+            const packageId = e.target.value;
+            if (packageId) {
+                socket.emit('select_package', packageId);
+            }
         });
 
         // Caricamento domande nelle tendine
@@ -122,14 +172,29 @@
             sc.innerHTML = '<option value="">-- SCEGLI CATEGORIA --</option>';
             if(t === 'categoria') {
                 sc.disabled = false;
-                dbStructure.categories.forEach(c => sc.innerHTML += `<option value="${c}">${c.replace('_',' ')}</option>`);
+                const currentPackageId = document.getElementById('sel-package').value;
+                if (!currentPackageId) {
+                    alert('Seleziona prima un pacchetto!');
+                    return;
+                }
+                // Le categorie sono già popolate quando si seleziona il pacchetto
             } else {
                 sc.disabled = true;
+                const currentPackageId = document.getElementById('sel-package').value;
+                if (!currentPackageId) {
+                    alert('Seleziona prima un pacchetto!');
+                    return;
+                }
                 socket.emit('get_questions', {type: t});
             }
         });
 
         document.getElementById('sel-cat').addEventListener('change', (e) => {
+            const currentPackageId = document.getElementById('sel-package').value;
+            if (!currentPackageId) {
+                alert('Seleziona prima un pacchetto!');
+                return;
+            }
             socket.emit('get_questions', {type: 'categoria', key: e.target.value});
         });
 
@@ -139,7 +204,9 @@
             s.disabled = false;
             s.innerHTML = '';
             q.forEach((item, i) => {
-                s.innerHTML += `<option value="${i}">${item.domanda.substring(0,40)}...</option>`;
+                const difficoltaEmoji = item.difficolta === 'facile' ? '🟢' : 
+                                       item.difficolta === 'medio' ? '🟡' : '🔴';
+                s.innerHTML += `<option value="${i}">${difficoltaEmoji} ${item.domanda.substring(0,40)}...</option>`;
             });
         });
 
@@ -183,7 +250,6 @@
                     </tr>`;
             });
             
-            // Mostra bottone "Mostra Soluzione" se ci sono risposte
             if(data.length > 0) {
                 document.getElementById('show-solution-btn').classList.remove('hidden');
             }
@@ -193,7 +259,7 @@
         function updatePoints(answerIndex, delta) {
             if (!currentRoundAnswers[answerIndex]) return;
             const currentPoints = currentRoundAnswers[answerIndex].punti;
-            const newPoints = Math.max(0, currentPoints + delta); // Non permettere punti negativi
+            const newPoints = Math.max(0, currentPoints + delta);
             socket.emit('update_answer_points', { 
                 answerIndex: answerIndex, 
                 newPoints: newPoints 
@@ -209,7 +275,7 @@
             document.getElementById('show-solution-btn').classList.add('hidden');
         });
 
-        // Gestione Buzzer - NUOVA VERSIONE CON LISTA COMPLETA
+        // Gestione Buzzer
         socket.on('buzzer_queue_full', (d) => {
             document.getElementById('classic-monitor').classList.add('hidden');
             document.getElementById('buzzer-alert').classList.remove('hidden');
@@ -267,7 +333,19 @@
             });
         }
 
-        function lancia(m) { if(selectedQ) socket.emit('invia_domanda', {...selectedQ, modalita: m}); }
+        function lancia(m) { 
+            if(!selectedQ) {
+                alert('Seleziona una domanda prima!');
+                return;
+            }
+            const currentPackageId = document.getElementById('sel-package').value;
+            if (!currentPackageId) {
+                alert('Seleziona prima un pacchetto!');
+                return;
+            }
+            socket.emit('invia_domanda', {...selectedQ, modalita: m}); 
+        }
+        
         function toggleLock(s) { socket.emit('toggle_buzzer_lock', s); }
         function buzzerCorrect() { socket.emit('buzzer_correct_assign', {points: 100}); }
         function buzzerWrong() { socket.emit('buzzer_wrong_next'); }
@@ -275,7 +353,6 @@
         function punti(id, p) { socket.emit('admin_punti_manuali', {id: id, punti: p}); }
         function resetGame() { if(confirm("Vuoi resettare tutti i punteggi e le squadre?")) socket.emit('reset_game'); }
         
-        // Nuovo sistema buzzer
         function assignPoints(teamId, points) {
             socket.emit('buzzer_assign_points', { teamId: teamId, points: points });
         }
@@ -286,15 +363,15 @@
             document.getElementById('classic-monitor').classList.remove('hidden');
         }
         
-       function mostraSoluzioneSuDisplay() {
-    if(selectedQ && selectedQ.corretta !== undefined) {
-        let soluzione = selectedQ.corretta;
-        if(typeof selectedQ.corretta === 'number' && selectedQ.risposte) {
-            soluzione = selectedQ.risposte[selectedQ.corretta];
+        function mostraSoluzioneSuDisplay() {
+            if(selectedQ && selectedQ.corretta !== undefined) {
+                let soluzione = selectedQ.corretta;
+                if(typeof selectedQ.corretta === 'number' && selectedQ.risposte) {
+                    soluzione = selectedQ.risposte[selectedQ.corretta];
+                }
+                socket.emit('mostra_soluzione', { soluzione: soluzione, risultati: [] });
+            }
         }
-        socket.emit('mostra_soluzione', { soluzione: soluzione, risultati: [] });
-    }
-}
     </script>
 </body>
 </html>

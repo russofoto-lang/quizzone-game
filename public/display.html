@@ -308,14 +308,14 @@
         });
 
         // MOSTRA SOLUZIONE
-        socket.on('mostra_soluzione', (d) => {
-            stopTimer();
-            showView('gioco');
-            document.getElementById('solution').classList.remove('hidden');
-            document.getElementById('sol-text').innerText = d.soluzione;
-            document.getElementById('buzzer-overlay').classList.add('hidden');
-            document.getElementById('timer-display-container').classList.add('hidden');
-        });
+       socket.on('mostra_soluzione', (d) => {
+    showView('game'); // <--- CAMBIATO: Ora resta sulla schermata del gioco
+    document.getElementById('solution').classList.remove('hidden');
+    document.getElementById('sol-text').innerText = d.soluzione;
+    document.getElementById('buzzer-overlay').classList.add('hidden');
+    // Se vuoi vedere chi ha risposto sotto la soluzione, lascia la riga sotto:
+    if(d.risultati) renderRoundList(d.risultati); 
+});
 
         // CLASSIFICA GENERALE
         socket.on('update_teams', (t) => {

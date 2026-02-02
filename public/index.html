@@ -137,6 +137,24 @@
             }
         }
 
+        socket.on('buzzer_position', (data) => {
+            const b = document.getElementById('btn-buzzer');
+            const medals = ['🥇', '🥈', '🥉'];
+            const medal = medals[data.position - 1] || `${data.position}°`;
+            
+            b.className = "w-64 h-64 rounded-full bg-green-500 border-8 border-green-700 flex flex-col items-center justify-center shadow-[0_0_50px_rgba(0,255,0,0.6)]";
+            b.innerHTML = `
+                <span class='text-6xl mb-2'>${medal}</span>
+                <span class='text-2xl font-black text-black uppercase'>Prenotato!</span>
+                <span class='text-lg text-black mt-2'>${data.time}s</span>
+            `;
+            if(navigator.vibrate) navigator.vibrate([200, 100, 200]);
+            
+            // Disabilita il bottone dopo che ha premuto
+            b.onclick = null;
+            b.classList.add('opacity-75');
+        });
+
         socket.on('stato_buzzer', (d) => {
             const btn = document.getElementById('btn-buzzer');
             if(!d.attiva) {
@@ -147,17 +165,17 @@
             if(buzzerLocked) {
                 btn.className = "w-64 h-64 rounded-full bg-gray-700 border-gray-800 opacity-50 flex items-center justify-center";
                 btn.innerHTML = "<span class='text-2xl font-bold text-gray-400 uppercase tracking-tighter'>Bloccato</span>";
+                btn.onclick = null;
             } else {
                 btn.className = "w-64 h-64 rounded-full bg-red-600 border-red-800 flex items-center justify-center animate-pulse shadow-[0_0_50px_rgba(255,0,0,0.5)]";
                 btn.innerHTML = "<span class='text-4xl font-black text-white uppercase tracking-widest'>VAI!</span>";
+                btn.onclick = prenota;
             }
         });
 
         socket.on('prenotazione_vinta', () => {
-            const b = document.getElementById('btn-buzzer');
-            b.className = "w-64 h-64 rounded-full bg-green-500 border-8 border-green-700 flex items-center justify-center animate-bounce shadow-[0_0_50px_rgba(0,255,0,0.6)]";
-            b.innerHTML = "<span class='text-3xl font-black text-black uppercase tracking-tighter'>PARLA!</span>";
-            if(navigator.vibrate) navigator.vibrate([200, 100, 200]);
+            // Questo evento non è più usato nel nuovo sistema
+            // Lo tengo per compatibilità ma il feedback viene da buzzer_position
         });
 
         function prenota() { if(!buzzerLocked) socket.emit('prenoto'); }

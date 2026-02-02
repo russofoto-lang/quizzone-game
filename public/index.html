@@ -1,210 +1,149 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Il Quizzone - Giocatore</title>
-  
-  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  <script src="/socket.io/socket.io.js"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
-  
-  <style>
-    body { background-color: #1a1a2e; color: white; touch-action: manipulation; }
-    .btn-push { transition: transform 0.1s; }
-    .btn-push:active { transform: scale(0.95); }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Pulsantiera</title>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-  <div id="root"></div>
+<body class="bg-gray-900 text-white h-screen flex flex-col overflow-hidden">
 
-  <script type="text/babel">
-    // *** FONDAMENTALE: Definizioni React ***
-    const { useState, useEffect } = React;
-    const socket = io(); // Connessione globale
+    <div id="login-screen" class="flex-1 flex flex-col items-center justify-center p-6">
+        <h1 class="text-3xl font-black mb-6 text-yellow-500">IL QUIZZONE</h1>
+        <input type="text" id="team-name" placeholder="Nome Squadra" class="w-full p-4 rounded-xl text-black text-xl mb-4 text-center font-bold uppercase">
+        <button onclick="login()" class="w-full bg-blue-600 py-4 rounded-xl font-bold text-xl shadow-lg active:scale-95">ENTRA</button>
+    </div>
 
-    function PlayerPanel() {
-      const [teamName, setTeamName] = useState('');
-      const [isRegistered, setIsRegistered] = useState(false);
-      const [msg, setMsg] = useState("Inserisci il nome della tua squadra");
-      
-      // Stato del gioco
-      const [currentQuestion, setCurrentQuestion] = useState(null);
-      const [buzzerLocked, setBuzzerLocked] = useState(false);
-      const [canAnswerBuzzer, setCanAnswerBuzzer] = useState(false);
-      const [winnerName, setWinnerName] = useState(null);
-      const [textAnswer, setTextAnswer] = useState("");
+    <div id="game-screen" class="hidden flex-col h-full">
+        <div class="bg-gray-800 p-4 flex justify-between items-center shadow">
+            <span id="my-name" class="font-bold text-yellow-400">SQUADRA</span>
+            <span class="text-xs text-gray-400">In attesa...</span>
+        </div>
 
-      useEffect(() => {
-        // Ascolto eventi dal server
-        
+        <div class="flex-1 flex flex-col p-4 justify-center items-center relative">
+            
+            <div id="msg-box" class="absolute top-4 text-center w-full text-gray-400 animate-pulse">Attendi la domanda...</div>
+
+            <button id="btn-buzzer" onclick="prenota()" class="hidden w-64 h-64 rounded-full bg-gray-600 border-8 border-gray-700 shadow-2xl flex items-center justify-center active:scale-95 transition-all">
+                <span class="text-4xl font-black pointer-events-none">PREMI</span>
+            </button>
+
+            <div id="opts-grid" class="hidden grid grid-cols-2 gap-4 w-full h-full max-h-[500px]">
+                </div>
+
+            <div id="input-area" class="hidden w-full flex flex-col gap-4">
+                <div class="text-center text-xl font-bold mb-2 text-blue-300" id="input-label">Inserisci la risposta:</div>
+                <input type="text" id="txt-answer" class="w-full p-4 rounded-xl text-black text-center text-2xl font-bold uppercase" placeholder="...">
+                <button onclick="sendText()" class="w-full bg-green-600 py-4 rounded-xl font-bold text-xl shadow-lg">INVIA</button>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        const socket = io();
+        let myId = null;
+        let buzzerLocked = true;
+
+        // LOGIN
+        function login() {
+            const name = document.getElementById('team-name').value;
+            if(name) socket.emit('login', name);
+        }
         socket.on('login_success', (data) => {
-          setIsRegistered(true);
-          setMsg("Registrato! Attendi la domanda...");
+            myId = data.id;
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('game-screen').classList.remove('hidden');
+            document.getElementById('game-screen').classList.add('flex');
+            document.getElementById('my-name').innerText = data.name;
         });
 
-        socket.on('nuova_domanda', (domanda) => {
-          setCurrentQuestion(domanda);
-          setBuzzerLocked(false);
-          setCanAnswerBuzzer(false);
-          setWinnerName(null);
-          setTextAnswer("");
-          setMsg("");
+        // GESTIONE STATO GIOCO
+        socket.on('nuova_domanda', (d) => {
+            resetUI();
+            document.getElementById('msg-box').innerText = d.domanda;
+
+            // CASO 1: BUZZER
+            if(d.modalita === 'buzzer') {
+                const btn = document.getElementById('btn-buzzer');
+                btn.classList.remove('hidden');
+                btn.className = "w-64 h-64 rounded-full bg-gray-600 border-8 border-gray-700 shadow-2xl flex items-center justify-center"; // Grigio inizialmente
+            } 
+            // CASO 2: STIMA o ANAGRAMMA (Testo)
+            else if(d.modalita === 'stima' || d.modalita === 'anagramma') {
+                document.getElementById('input-area').classList.remove('hidden');
+                document.getElementById('txt-answer').value = '';
+                document.getElementById('txt-answer').type = d.modalita==='stima' ? 'number' : 'text';
+                document.getElementById('input-label').innerText = d.modalita==='stima' ? 'SCRIVI IL NUMERO:' : 'SCRIVI LA PAROLA:';
+            }
+            // CASO 3: CLASSICO / BONUS (Pulsanti)
+            else if(d.risposte) {
+                const grid = document.getElementById('opts-grid');
+                grid.classList.remove('hidden');
+                d.risposte.forEach(r => {
+                    const btn = document.createElement('button');
+                    btn.className = "bg-blue-600 rounded-xl p-4 font-bold text-lg shadow active:bg-blue-800 break-words";
+                    btn.innerText = r;
+                    btn.onclick = () => {
+                        socket.emit('invia_risposta', r);
+                        grid.classList.add('opacity-50', 'pointer-events-none');
+                        document.getElementById('msg-box').innerText = "Risposta inviata!";
+                    };
+                    grid.appendChild(btn);
+                });
+            }
         });
 
-        socket.on('buzzer_bloccato', (data) => {
-          setBuzzerLocked(true);
-          setWinnerName(data.winner);
+        // BUZZER LOGIC
+        socket.on('stato_buzzer', (d) => {
+            buzzerLocked = d.locked;
+            const btn = document.getElementById('btn-buzzer');
+            if(!btn.classList.contains('hidden')) {
+                if(buzzerLocked) {
+                    btn.className = "w-64 h-64 rounded-full bg-gray-600 border-8 border-gray-700 shadow-xl flex items-center justify-center opacity-50 cursor-not-allowed";
+                } else {
+                    btn.className = "w-64 h-64 rounded-full bg-red-600 border-8 border-red-800 shadow-[0_0_30px_rgba(220,38,38,0.6)] flex items-center justify-center active:scale-95 cursor-pointer animate-pulse";
+                }
+            }
         });
+
+        function prenota() {
+            if(!buzzerLocked) socket.emit('prenoto');
+        }
 
         socket.on('prenotazione_vinta', () => {
-          setCanAnswerBuzzer(true);
-          setMsg("SCRIVI LA RISPOSTA!");
+            const btn = document.getElementById('btn-buzzer');
+            btn.className = "w-64 h-64 rounded-full bg-green-500 border-8 border-green-700 shadow-2xl flex items-center justify-center animate-bounce";
+            btn.innerHTML = "<span class='text-2xl font-black text-black'>PARLA!</span>";
+            // Vibrazione
+            if(navigator.vibrate) navigator.vibrate([200, 100, 200]);
         });
 
-        socket.on('fine_round', () => {
-          setCurrentQuestion(null);
-          setMsg("Guarda il risultato sullo schermo");
-        });
-
-        return () => {
-          socket.off(); // Cleanup
-        };
-      }, []);
-
-      const handleRegister = () => {
-        if (teamName.trim()) {
-          socket.emit('login', teamName);
+        // INPUT TEXT LOGIC
+        function sendText() {
+            const val = document.getElementById('txt-answer').value;
+            if(val) {
+                socket.emit('invia_risposta', val);
+                document.getElementById('input-area').classList.add('opacity-50', 'pointer-events-none');
+                document.getElementById('msg-box').innerText = "Inviato!";
+            }
         }
-      };
 
-      const handleBuzzer = () => {
-        if (!buzzerLocked) {
-          socket.emit('prenoto');
+        function resetUI() {
+            document.getElementById('btn-buzzer').classList.add('hidden');
+            document.getElementById('opts-grid').classList.add('hidden');
+            document.getElementById('input-area').classList.add('hidden');
+            
+            document.getElementById('opts-grid').innerHTML = '';
+            document.getElementById('opts-grid').classList.remove('opacity-50', 'pointer-events-none');
+            document.getElementById('input-area').classList.remove('opacity-50', 'pointer-events-none');
+            
+            // Reset buzzer style
+            document.getElementById('btn-buzzer').innerHTML = "<span class='text-4xl font-black pointer-events-none'>PREMI</span>";
         }
-      };
-
-      const sendAnswer = (val) => {
-        socket.emit('invia_risposta', val);
-        setMsg("Risposta inviata!");
-        setCurrentQuestion(null); // Nascondi interfaccia gioco
-        setCanAnswerBuzzer(false);
-      };
-
-      // --- RENDER: LOGIN ---
-      if (!isRegistered) {
-        return (
-          <div className="flex flex-col items-center justify-center h-screen p-4 text-center">
-            <h1 className="text-4xl font-bold text-yellow-400 mb-8">IL QUIZZONE</h1>
-            <input 
-              type="text" 
-              className="p-4 rounded text-black text-xl w-full max-w-xs mb-4"
-              placeholder="Nome Squadra"
-              value={teamName}
-              onChange={e => setTeamName(e.target.value)}
-            />
-            <button 
-              onClick={handleRegister}
-              className="bg-green-500 text-white font-bold py-3 px-8 rounded-full text-xl w-full max-w-xs btn-push"
-            >
-              ENTRA
-            </button>
-            <p className="mt-4 text-gray-400">{msg}</p>
-          </div>
-        );
-      }
-
-      // --- RENDER: ATTESA ---
-      if (!currentQuestion) {
-        return (
-          <div className="flex flex-col items-center justify-center h-screen p-4 text-center">
-            <div className="text-6xl animate-pulse mb-4">⏳</div>
-            <h2 className="text-2xl font-bold mb-2">In Attesa...</h2>
-            <p className="text-gray-400">{msg}</p>
-            <div className="fixed bottom-4 text-sm text-gray-600">Squadra: {teamName}</div>
-          </div>
-        );
-      }
-
-      // --- RENDER: GIOCO ---
-      return (
-        <div className="flex flex-col h-screen p-4 bg-gray-900">
-          <div className="bg-gray-800 p-3 rounded mb-4 text-center">
-             <span className="text-yellow-500 text-xs font-bold uppercase tracking-widest">{currentQuestion.categoria || "DOMANDA"}</span>
-             <p className="text-lg font-bold mt-1">{currentQuestion.domanda}</p>
-          </div>
-
-          {/* MODALITA' BUZZER */}
-          {currentQuestion.modalita === 'buzzer' && (
-            <div className="flex-grow flex flex-col items-center justify-center">
-              
-              {/* Pulsantone */}
-              {!canAnswerBuzzer && !winnerName && (
-                <button 
-                  onClick={handleBuzzer}
-                  disabled={buzzerLocked}
-                  className={`
-                    w-64 h-64 rounded-full text-2xl font-bold border-8 shadow-2xl btn-push
-                    ${buzzerLocked ? 'bg-gray-600 border-gray-700 text-gray-400' : 'bg-red-600 border-red-800 hover:bg-red-500 text-white animate-pulse'}
-                  `}
-                >
-                  {buzzerLocked ? "BLOCCATO" : "PRENOTA!"}
-                </button>
-              )}
-
-              {/* Qualcun altro ha vinto */}
-              {winnerName && !canAnswerBuzzer && (
-                <div className="text-center animate-bounce">
-                    <p className="text-red-400 font-bold text-xl">HA PRENOTATO:</p>
-                    <p className="text-4xl font-black mt-2">{winnerName}</p>
-                </div>
-              )}
-
-              {/* Ho vinto io -> Input */}
-              {canAnswerBuzzer && (
-                <div className="w-full max-w-md">
-                   <p className="text-green-400 font-bold text-center mb-2 animate-pulse">TOCCA A TE! SCRIVI!</p>
-                   <input 
-                      type="text" 
-                      autoFocus
-                      className="w-full p-4 text-black text-xl rounded mb-4 border-4 border-green-500"
-                      placeholder="La tua risposta..."
-                      value={textAnswer}
-                      onChange={e => setTextAnswer(e.target.value)}
-                   />
-                   <button 
-                      onClick={() => sendAnswer(textAnswer)}
-                      className="w-full bg-green-600 py-4 rounded font-bold text-xl shadow-lg btn-push"
-                   >
-                      INVIA
-                   </button>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* MODALITA' CLASSICA (SCELTA MULTIPLA) */}
-          {currentQuestion.modalita === 'classico' && (
-             <div className="grid grid-cols-1 gap-3 mt-4">
-                {currentQuestion.risposte.map((r, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => sendAnswer(r)}
-                    className="bg-blue-600 hover:bg-blue-500 p-5 rounded-xl text-lg font-semibold shadow-md btn-push text-left"
-                  >
-                    {r}
-                  </button>
-                ))}
-             </div>
-          )}
-        </div>
-      );
-    }
-
-    const root = ReactDOM.createRoot(document.getElementById('root'));
-    root.render(<PlayerPanel />);
-  </script>
+        
+        socket.on('force_reload', () => window.location.reload());
+    </script>
 </body>
 </html>

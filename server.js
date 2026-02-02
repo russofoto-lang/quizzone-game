@@ -1,6 +1,7 @@
 const express = require('express');
 const app = express();
 const http = require('http').createServer(app);
+const path = require('path'); // Aggiunto per gestire meglio i percorsi
 const io = require('socket.io')(http, {
   cors: {
     origin: "*",
@@ -20,19 +21,39 @@ let gameState = {
   scores: {}
 };
 
+// 1. SERVI I FILE STATICI (CSS, JS, Immagini)
 app.use(express.static('public'));
+
+// 2. ROTTE ESPLICITE (LA TUA CORREZIONE FONDAMENTALE)
+// Quando uno va su sito.com/admin -> gli diamo admin.html
+app.get('/admin', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+});
+
+// Quando uno va su sito.com/display -> gli diamo display.html
+app.get('/display', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'display.html'));
+});
+
+// Quando uno va sulla home -> gli diamo index.html (Giocatore)
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+
+// --- LOGICA SOCKET.IO (Il cuore del gioco) ---
 
 io.on('connection', (socket) => {
   console.log('Client connesso:', socket.id);
 
-  // --- 1. ADMIN ---
+  // --- ADMIN ---
   socket.on('admin_connect', () => {
     socket.join('admin');
     socket.emit('update_teams', Object.values(gameState.teams));
     console.log('Admin connesso');
   });
 
-  // --- 2. DISPLAY ---
+  // --- DISPLAY ---
   socket.on('display_connect', () => {
     socket.join('display');
     if(gameState.currentQuestion) {
@@ -40,7 +61,7 @@ io.on('connection', (socket) => {
     }
   });
 
-  // --- 3. GIOCATORE (LOGIN) ---
+  // --- GIOCATORE (LOGIN) ---
   socket.on('login', (nickname) => {
     gameState.teams[socket.id] = {
       id: socket.id,
@@ -51,7 +72,7 @@ io.on('connection', (socket) => {
 
     socket.emit('login_success', { id: socket.id, name: nickname });
     
-    // Aggiorna admin
+    // Aggiorna admin e display
     io.to('admin').emit('update_teams', Object.values(gameState.teams));
     io.to('display').emit('update_teams', Object.values(gameState.teams));
   });
@@ -114,7 +135,7 @@ io.on('connection', (socket) => {
   });
 });
 
-// IMPORTANTE PER RENDER: Ascolta su 0.0.0.0
+// Avvio Server
 http.listen(PORT, '0.0.0.0', () => {
   console.log(`Server avviato su porta ${PORT}`);
 });

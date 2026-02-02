@@ -8,16 +8,19 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-900 text-white h-screen flex flex-col overflow-hidden">
-    <div id="login-screen" class="flex-1 flex flex-col items-center justify-center p-6">
-        <h1 class="text-3xl font-black mb-6 text-yellow-500">SIPONTO GIOCO</h1>
-        <input type="text" id="team-name" placeholder="Nome Squadra" class="w-full p-4 rounded-xl text-black text-center font-bold uppercase mb-4">
-        <button onclick="login()" class="w-full bg-blue-600 py-4 rounded-xl font-bold text-xl">ENTRA</button>
+    <div id="login-screen" class="flex-1 flex flex-col items-center justify-center p-6 text-center">
+        <h1 class="text-4xl font-black mb-6 text-yellow-500 uppercase tracking-tighter">SIPONTO<br>FOREVER YOUNG</h1>
+        <input type="text" id="team-name" placeholder="Nome Squadra" class="w-full p-4 rounded-xl text-black text-center font-bold uppercase mb-4 text-xl">
+        <button onclick="login()" class="w-full bg-blue-600 py-4 rounded-xl font-bold text-xl shadow-lg active:scale-95">ENTRA NEL GIOCO</button>
     </div>
 
     <div id="game-screen" class="hidden flex-col h-full">
-        <div class="bg-gray-800 p-4 flex justify-between items-center"><span id="my-name" class="font-bold text-yellow-400">---</span></div>
+        <div class="bg-gray-800 p-4 flex justify-between items-center border-b border-gray-700">
+            <span id="my-name" class="font-bold text-yellow-400 uppercase tracking-widest">---</span>
+            <span class="text-xs text-green-500 font-bold animate-pulse">● LIVE</span>
+        </div>
         <div class="flex-1 flex flex-col p-4 justify-center items-center relative">
-            <div id="msg-box" class="absolute top-4 text-center w-full text-gray-400 font-bold">Attendi...</div>
+            <div id="msg-box" class="absolute top-4 text-center w-full text-gray-400 font-bold text-lg">In attesa...</div>
             
             <button id="btn-buzzer" onclick="prenota()" class="hidden w-64 h-64 rounded-full flex items-center justify-center border-8 shadow-2xl transition-all">
                 <span class="text-4xl font-black">PREMI!</span>
@@ -42,33 +45,49 @@
         socket.on('nuova_domanda', (d) => {
             resetUI();
             document.getElementById('msg-box').innerText = d.domanda;
-            if(d.modalita === 'buzzer') document.getElementById('btn-buzzer').classList.remove('hidden');
-            else if(d.risposte) {
-                const g = document.getElementById('opts-grid'); g.classList.remove('hidden');
+
+            if(d.modalita === 'buzzer') {
+                document.getElementById('btn-buzzer').classList.remove('hidden');
+                document.getElementById('opts-grid').classList.add('hidden');
+            } else if(d.risposte && d.risposte.length > 0) {
+                document.getElementById('btn-buzzer').classList.add('hidden');
+                const g = document.getElementById('opts-grid');
+                g.classList.remove('hidden');
+                g.innerHTML = '';
                 d.risposte.forEach(r => {
-                    const b = document.createElement('button'); b.className = "bg-blue-600 rounded-xl p-4 font-bold text-lg"; b.innerText = r;
-                    b.onclick = () => { socket.emit('invia_risposta', r); g.classList.add('opacity-40','pointer-events-none'); };
+                    const b = document.createElement('button');
+                    b.className = "bg-blue-600 rounded-xl p-4 font-bold text-lg shadow-xl active:bg-blue-800";
+                    b.innerText = r;
+                    b.onclick = () => {
+                        socket.emit('invia_risposta', r);
+                        g.classList.add('opacity-40','pointer-events-none');
+                        document.getElementById('msg-box').innerText = "Risposta inviata!";
+                    };
                     g.appendChild(b);
                 });
             }
         });
 
         socket.on('stato_buzzer', (d) => {
-            buzzerLocked = d.locked;
             const btn = document.getElementById('btn-buzzer');
+            if(!d.attiva) {
+                btn.classList.add('hidden');
+                return;
+            }
+            buzzerLocked = d.locked;
             if(buzzerLocked) {
                 btn.className = "w-64 h-64 rounded-full bg-gray-700 border-gray-800 opacity-50 flex items-center justify-center";
                 btn.innerHTML = "<span class='text-2xl font-bold text-gray-400 uppercase tracking-tighter'>Bloccato</span>";
             } else {
                 btn.className = "w-64 h-64 rounded-full bg-red-600 border-red-800 flex items-center justify-center animate-pulse shadow-[0_0_50px_rgba(255,0,0,0.5)]";
-                btn.innerHTML = "<span class='text-4xl font-black text-white uppercase'>VAI!</span>";
+                btn.innerHTML = "<span class='text-4xl font-black text-white uppercase tracking-widest'>VAI!</span>";
             }
         });
 
         socket.on('prenotazione_vinta', () => {
             const b = document.getElementById('btn-buzzer');
             b.className = "w-64 h-64 rounded-full bg-green-500 border-8 border-green-700 flex items-center justify-center animate-bounce shadow-[0_0_50px_rgba(0,255,0,0.6)]";
-            b.innerHTML = "<span class='text-3xl font-black text-black uppercase'>PARLA!</span>";
+            b.innerHTML = "<span class='text-3xl font-black text-black uppercase tracking-tighter'>PARLA!</span>";
             if(navigator.vibrate) navigator.vibrate([200, 100, 200]);
         });
 

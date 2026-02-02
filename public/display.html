@@ -38,6 +38,19 @@
         .responsive-heading {
             font-size: clamp(1.8rem, 5vw, 3.5rem);
         }
+        
+        /* Animazioni confetti */
+        @keyframes confetti-fall {
+            0% { transform: translateY(-100px) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+        }
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            animation: confetti-fall linear forwards;
+        }
     </style>
 </head>
 <body class="flex flex-col h-screen p-2 sm:p-4">
@@ -129,6 +142,22 @@
                     </table>
                 </div>
             </div>
+        </div>
+
+        <!-- VISTA VINCITORE -->
+        <div id="view-vincitore" class="view-section hidden absolute inset-0 bg-gradient-to-br from-purple-900 to-pink-700 z-50 flex flex-col items-center justify-center p-4">
+            <div class="text-center animate__animated animate__bounceIn">
+                <h1 class="text-5xl sm:text-7xl font-black text-yellow-400 mb-6 animate__animated animate__tada animate__infinite">🏆 VINCITORE! 🏆</h1>
+                <div id="winner-name" class="text-6xl sm:text-8xl font-black text-white mb-8 animate__animated animate__pulse animate__infinite"></div>
+                <p class="text-2xl sm:text-3xl text-gray-300 mb-8">Complimenti per la vittoria!</p>
+                <div id="winner-score" class="text-4xl sm:text-5xl font-black text-green-400 mb-8"></div>
+                <button onclick="tornaHome()" class="bg-white text-purple-900 px-8 py-4 rounded-full text-2xl font-black shadow-2xl hover:bg-gray-200 transition duration-300 animate__animated animate__bounce animate__infinite">
+                    🎉 Torna alla Home 🎉
+                </button>
+            </div>
+            
+            <!-- Effetti confetti -->
+            <div id="confetti-container" class="absolute inset-0 pointer-events-none overflow-hidden"></div>
         </div>
 
     </div>
@@ -324,12 +353,6 @@
             }
         });
 
-        socket.on('buzzer_bloccato', (d) => {
-            // Vecchio sistema - deprecato ma tengo per compatibilità
-            stopTimer();
-            document.getElementById('timer-display-container').classList.add('hidden');
-        });
-
         socket.on('reset_buzzer_display', () => { 
             document.getElementById('buzzer-overlay').classList.add('hidden'); 
         });
@@ -367,6 +390,93 @@
                 mini.innerText = t.slice(0,3).map(x => `${x.name}: ${x.score}`).join(' | ');
             }
         });
+
+        // MOSTRA VINCITORE
+        socket.on('mostra_vincitore', (vincitore) => {
+            console.log('Ricevuto vincitore:', vincitore);
+            mostraVincitore(vincitore);
+        });
+
+        // Funzione per mostrare il vincitore
+        function mostraVincitore(vincitore) {
+            showView('vincitore');
+            
+            // Imposta nome e punteggio del vincitore
+            document.getElementById('winner-name').textContent = vincitore.name;
+            document.getElementById('winner-score').textContent = `${vincitore.score} punti`;
+            
+            // Effetto confetti
+            creaConfetti();
+            
+            console.log('Vincitore mostrato:', vincitore);
+        }
+
+        // Funzione per tornare alla home
+        function tornaHome() {
+            showView('logo');
+        }
+
+        // Funzione per creare effetti confetti
+        function creaConfetti() {
+            const container = document.getElementById('confetti-container');
+            container.innerHTML = '';
+            
+            // Colori per i confetti
+            const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff', '#ff8800', '#8800ff'];
+            
+            // Crea 150 confetti
+            for (let i = 0; i < 150; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.left = `${Math.random() * 100}%`;
+                confetti.style.width = `${Math.random() * 10 + 5}px`;
+                confetti.style.height = confetti.style.width;
+                confetti.style.animationDuration = `${Math.random() * 3 + 2}s`;
+                confetti.style.animationDelay = `${Math.random() * 2}s`;
+                
+                container.appendChild(confetti);
+                
+                // Rimuovi dopo l'animazione
+                setTimeout(() => {
+                    if (confetti.parentNode === container) {
+                        container.removeChild(confetti);
+                    }
+                }, 5000);
+            }
+            
+            // Ripeti ogni 2 secondi per 10 secondi
+            let repeatCount = 0;
+            const repeatInterval = setInterval(() => {
+                if (repeatCount < 5) {
+                    creaConfettiBatch();
+                    repeatCount++;
+                } else {
+                    clearInterval(repeatInterval);
+                }
+            }, 2000);
+            
+            function creaConfettiBatch() {
+                for (let i = 0; i < 30; i++) {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.left = `${Math.random() * 100}%`;
+                    confetti.style.width = `${Math.random() * 10 + 5}px`;
+                    confetti.style.height = confetti.style.width;
+                    confetti.style.animationDuration = `${Math.random() * 3 + 2}s`;
+                    
+                    container.appendChild(confetti);
+                    
+                    // Rimuovi dopo l'animazione
+                    setTimeout(() => {
+                        if (confetti.parentNode === container) {
+                            container.removeChild(confetti);
+                        }
+                    }, 5000);
+                }
+            }
+        }
 
         socket.on('force_reload', () => window.location.reload());
     </script>

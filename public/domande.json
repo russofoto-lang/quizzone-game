@@ -71,27 +71,27 @@
           },
           {
             "id": 6,
-            "domanda": "STORIA: Domanda avanzata 1",
+            "domanda": "Quale trattato pose fine alla Prima guerra mondiale?",
             "risposte": [
-              "A",
-              "B",
-              "C",
-              "D"
+              "Trattato di Versailles",
+              "Trattato di Utrecht",
+              "Trattato di Vienna",
+              "Trattato di Parigi"
             ],
-            "corretta": 2,
+            "corretta": 0,
             "punti": 160,
             "difficolta": "difficile"
           },
           {
             "id": 7,
-            "domanda": "STORIA: Domanda avanzata 2",
+            "domanda": "In che anno iniziò la Rivoluzione russa di febbraio?",
             "risposte": [
-              "A",
-              "B",
-              "C",
-              "D"
+              "1905",
+              "1914",
+              "1917",
+              "1921"
             ],
-            "corretta": 1,
+            "corretta": 2,
             "punti": 200,
             "difficolta": "molto difficile"
           }
@@ -164,27 +164,27 @@
           },
           {
             "id": 11,
-            "domanda": "GEOGRAFIA: Domanda avanzata 1",
+            "domanda": "Quale stato africano non ha sbocchi sul mare?",
             "risposte": [
-              "A",
-              "B",
-              "C",
-              "D"
+              "Etiopia",
+              "Nigeria",
+              "Somalia",
+              "Kenya"
             ],
-            "corretta": 2,
+            "corretta": 0,
             "punti": 160,
             "difficolta": "difficile"
           },
           {
             "id": 12,
-            "domanda": "GEOGRAFIA: Domanda avanzata 2",
+            "domanda": "Qual è il punto più profondo degli oceani terrestri?",
             "risposte": [
-              "A",
-              "B",
-              "C",
-              "D"
+              "Fossa delle Marianne",
+              "Fossa di Tonga",
+              "Fossa di Porto Rico",
+              "Fossa di Java"
             ],
-            "corretta": 1,
+            "corretta": 0,
             "punti": 200,
             "difficolta": "molto difficile"
           }
@@ -257,27 +257,27 @@
           },
           {
             "id": 16,
-            "domanda": "SCIENZE: Domanda avanzata 1",
+            "domanda": "Quale molecola è responsabile del trasporto dell’ossigeno nel sangue?",
             "risposte": [
-              "A",
-              "B",
-              "C",
-              "D"
+              "Emoglobina",
+              "Insulina",
+              "Emocianina",
+              "Mioglobina"
             ],
-            "corretta": 2,
+            "corretta": 0,
             "punti": 160,
             "difficolta": "difficile"
           },
           {
             "id": 17,
-            "domanda": "SCIENZE: Domanda avanzata 2",
+            "domanda": "Quale forza fondamentale governa i decadimenti radioattivi beta?",
             "risposte": [
-              "A",
-              "B",
-              "C",
-              "D"
+              "Gravitazionale",
+              "Elettromagnetica",
+              "Forte",
+              "Debole"
             ],
-            "corretta": 1,
+            "corretta": 3,
             "punti": 200,
             "difficolta": "molto difficile"
           }
@@ -350,27 +350,27 @@
           },
           {
             "id": 21,
-            "domanda": "CINEMA: Domanda avanzata 1",
+            "domanda": "Quale film vinse la Palma d’Oro a Cannes nel 1994?",
             "risposte": [
-              "A",
-              "B",
-              "C",
-              "D"
+              "Pulp Fiction",
+              "Forrest Gump",
+              "Il postino",
+              "Quattro matrimoni e un funerale"
             ],
-            "corretta": 2,
+            "corretta": 0,
             "punti": 160,
             "difficolta": "difficile"
           },
           {
             "id": 22,
-            "domanda": "CINEMA: Domanda avanzata 2",
+            "domanda": "Chi ha diretto il film 'Stalker'?",
             "risposte": [
-              "A",
-              "B",
-              "C",
-              "D"
+              "Tarkovskij",
+              "Bergman",
+              "Kubrick",
+              "Kieslowski"
             ],
-            "corretta": 1,
+            "corretta": 0,
             "punti": 200,
             "difficolta": "molto difficile"
           }
@@ -443,27 +443,27 @@
           },
           {
             "id": 26,
-            "domanda": "MUSICA: Domanda avanzata 1",
+            "domanda": "Quale compositore ha introdotto l’uso sistematico del leitmotiv nell’opera?",
             "risposte": [
-              "A",
-              "B",
-              "C",
-              "D"
+              "Verdi",
+              "Wagner",
+              "Puccini",
+              "Strauss"
             ],
-            "corretta": 2,
+            "corretta": 1,
             "punti": 160,
             "difficolta": "difficile"
           },
           {
             "id": 27,
-            "domanda": "MUSICA: Domanda avanzata 2",
+            "domanda": "In quale tonalità è scritta la Sinfonia n.5 di Beethoven?",
             "risposte": [
-              "A",
-              "B",
-              "C",
-              "D"
+              "Do maggiore",
+              "Re minore",
+              "Do minore",
+              "Mi♭ maggiore"
             ],
-            "corretta": 1,
+            "corretta": 2,
             "punti": 200,
             "difficolta": "molto difficile"
           }
@@ -536,25 +536,25 @@
           },
           {
             "id": 31,
-            "domanda": "ARTE: Domanda avanzata 1",
+            "domanda": "A quale corrente artistica appartiene 'Guernica' di Picasso?",
             "risposte": [
-              "A",
-              "B",
-              "C",
-              "D"
+              "Cubismo",
+              "Surrealismo",
+              "Futurismo",
+              "Espressionismo"
             ],
-            "corretta": 2,
+            "corretta": 0,
             "punti": 160,
             "difficolta": "difficile"
           },
           {
             "id": 32,
-            "domanda": "ARTE: Domanda avanzata 2",
+            "domanda": "Chi affrescò la Scuola di Atene?",
             "risposte": [
-              "A",
-              "B",
-              "C",
-              "D"
+              "Michelangelo",
+              "Raffaello",
+              "Perugino",
+              "Bramante"
             ],
             "corretta": 1,
             "punti": 200,
@@ -629,27 +629,27 @@
           },
           {
             "id": 36,
-            "domanda": "SPORT: Domanda avanzata 1",
+            "domanda": "In quale anno si disputarono le prime Olimpiadi moderne?",
             "risposte": [
-              "A",
-              "B",
-              "C",
-              "D"
+              "1886",
+              "1896",
+              "1900",
+              "1912"
             ],
-            "corretta": 2,
+            "corretta": 1,
             "punti": 160,
             "difficolta": "difficile"
           },
           {
             "id": 37,
-            "domanda": "SPORT: Domanda avanzata 2",
+            "domanda": "Quale nazione ha vinto più Coppe del Mondo di calcio?",
             "risposte": [
-              "A",
-              "B",
-              "C",
-              "D"
+              "Germania",
+              "Italia",
+              "Argentina",
+              "Brasile"
             ],
-            "corretta": 1,
+            "corretta": 3,
             "punti": 200,
             "difficolta": "molto difficile"
           }

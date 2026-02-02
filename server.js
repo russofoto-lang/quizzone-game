@@ -8,8 +8,6 @@ const io = require('socket.io')(http, {
 });
 
 const PORT = process.env.PORT || 3001;
-
-// --- PERCORSI ---
 const publicPath = path.join(__dirname, 'public');
 const jsonPath = path.join(publicPath, 'domande.json');
 
@@ -22,12 +20,12 @@ try {
   }
 } catch (e) { console.error("❌ Errore JSON:", e.message); }
 
-// --- STATO GIOCO AVANZATO ---
+// --- STATO GIOCO ---
 let gameState = {
   teams: {},           
-  currentQuestion: null, // Contiene la domanda attiva
-  questionStartTime: 0,  // Timestamp inizio domanda
-  roundAnswers: [],      // Elenco risposte del round corrente
+  currentQuestion: null, 
+  questionStartTime: 0,
+  roundAnswers: [], 
   buzzerLocked: false,
   buzzerWinner: null
 };
@@ -39,7 +37,7 @@ app.get('/', (req, res) => res.sendFile(path.join(publicPath, 'index.html')));
 
 io.on('connection', (socket) => {
   
-  // --- ADMIN ---
+  // ADMIN SETUP
   socket.on('admin_connect', () => {
     socket.join('admin');
     socket.emit('init_data', { 
@@ -58,33 +56,38 @@ io.on('connection', (socket) => {
     socket.emit('receive_questions', list);
   });
 
-  // --- LOGICA DI GIOCO ---
+  // GIOCO
   socket.on('invia_domanda', (dati) => {
     gameState.currentQuestion = dati;
-    gameState.questionStartTime = Date.now(); // AVVIA IL CRONOMETRO
-    gameState.roundAnswers = []; // Resetta risposte vecchie
+    gameState.questionStartTime = Date.now();
+    gameState.roundAnswers = [];
     gameState.buzzerLocked = false;
     gameState.buzzerWinner = null;
 
     io.emit('nuova_domanda', dati);
     io.emit('reset_buzzer');
-    
-    // Pulisce la tabella risposte dell'admin
     io.to('admin').emit('reset_round_monitor');
   });
 
+  // --- RIVELA RISPOSTA (MODIFICATO) ---
   socket.on('rivela_risposta', () => {
     if (!gameState.currentQuestion) return;
     const q = gameState.currentQuestion;
     
-    // Calcola testo soluzione
+    // Trova testo risposta
     let text = q.corretta;
     if (typeof q.corretta === 'number' && q.risposte && q.risposte[q.corretta]) {
         text = q.risposte[q.corretta];
     }
     
-    io.emit('mostra_soluzione', text);
-    // NON resettiamo ancora il round, così l'admin può dare i punti
+    // Ordina i risultati per tempo
+    gameState.roundAnswers.sort((a,b) => parseFloat(a.tempo) - parseFloat(b.tempo));
+
+    // Manda al Display SIA la soluzione SIA la lista di chi ha indovinato
+    io.emit('mostra_soluzione', {
+        soluzione: text,
+        risultati: gameState.roundAnswers
+    });
   });
 
   // --- RISPOSTA GIOCATORI ---
@@ -92,66 +95,76 @@ io.on('connection', (socket) => {
     const team = gameState.teams[socket.id];
     if (!team || !gameState.currentQuestion) return;
 
-    // 1. Calcola Tempo
+    // Evita risposte doppie
+    if(gameState.roundAnswers.find(a => a.teamId === socket.id)) return;
+
     const tempoImpiegato = ((Date.now() - gameState.questionStartTime) / 1000).toFixed(2);
-    
-    // 2. Verifica Correttezza (Server-Side)
-    let isCorrect = false;
     const q = gameState.currentQuestion;
     
-    // Se la risposta corretta è un numero (indice), troviamo la stringa
+    // Verifica Correttezza
+    let isCorrect = false;
     let rispostaCorrettaStringa = q.corretta;
     if (typeof q.corretta === 'number' && q.risposte) {
         rispostaCorrettaStringa = q.risposte[q.corretta];
     }
-
-    // Confronto (case insensitive)
     if (String(rispGiocatore).trim().toLowerCase() === String(rispostaCorrettaStringa).trim().toLowerCase()) {
         isCorrect = true;
     }
 
-    // 3. Salva nel round
     const answerEntry = {
         teamId: socket.id,
         teamName: team.name,
         risposta: rispGiocatore,
         tempo: tempoImpiegato,
-        corretta: isCorrect,
-        giaPuntata: false // Per evitare doppi punti
+        corretta: isCorrect
     };
     gameState.roundAnswers.push(answerEntry);
-
-    // 4. Invia AGGIORNAMENTO COMPLETO all'Admin (Ordinato per tempo)
-    // Ordiniamo: Prima i corretti, poi per tempo
-    gameState.roundAnswers.sort((a,b) => parseFloat(a.tempo) - parseFloat(b.tempo));
     
+    // Aggiorna Admin in tempo reale
+    gameState.roundAnswers.sort((a,b) => parseFloat(a.tempo) - parseFloat(b.tempo));
     io.to('admin').emit('update_round_monitor', gameState.roundAnswers);
   });
 
-  // --- BUZZER ---
-  socket.on('prenoto', () => {
-    if (!gameState.buzzerLocked && gameState.teams[socket.id]) {
-      gameState.buzzerLocked = true;
-      gameState.buzzerWinner = gameState.teams[socket.id].name;
-      io.emit('buzzer_bloccato', { winner: gameState.buzzerWinner });
-      io.to(socket.id).emit('prenotazione_vinta');
+  // --- ASSEGNAZIONE PUNTI AUTOMATICA (NUOVO) ---
+  socket.on('assegna_punti_auto', () => {
+      // Ordina per tempo (i più veloci primi)
+      gameState.roundAnswers.sort((a,b) => parseFloat(a.tempo) - parseFloat(b.tempo));
       
-      // Notifica Admin che qualcuno ha prenotato (ma non ancora risposto)
-      io.to('admin').emit('buzzer_admin_alert', gameState.buzzerWinner);
-    }
+      let correctCount = 0;
+
+      gameState.roundAnswers.forEach((entry) => {
+          if(entry.corretta) {
+              correctCount++;
+              let points = 100; // Base
+              
+              // Bonus Velocità
+              if(correctCount === 1) points = 150; // 1° Posto
+              else if(correctCount === 2) points = 125; // 2° Posto
+              
+              if(gameState.teams[entry.teamId]) {
+                  gameState.teams[entry.teamId].score += points;
+              }
+          }
+      });
+
+      // Aggiorna classifica ovunque
+      io.emit('update_teams', Object.values(gameState.teams));
   });
 
-  // --- SETUP ---
+  // SETUP E BUZZER
   socket.on('login', (name) => {
     gameState.teams[socket.id] = { id: socket.id, name: name, score: 0 };
     socket.emit('login_success', { id: socket.id, name: name });
     io.emit('update_teams', Object.values(gameState.teams));
   });
 
-  socket.on('assegna_punti', (data) => {
-    if(gameState.teams[data.teamId]) {
-      gameState.teams[data.teamId].score += parseInt(data.punti);
-      io.emit('update_teams', Object.values(gameState.teams));
+  socket.on('prenoto', () => {
+    if (!gameState.buzzerLocked && gameState.teams[socket.id]) {
+      gameState.buzzerLocked = true;
+      gameState.buzzerWinner = gameState.teams[socket.id].name;
+      io.emit('buzzer_bloccato', { winner: gameState.buzzerWinner });
+      io.to(socket.id).emit('prenotazione_vinta');
+      io.to('admin').emit('buzzer_admin_alert', gameState.buzzerWinner);
     }
   });
 
@@ -163,4 +176,4 @@ io.on('connection', (socket) => {
   });
 });
 
-http.listen(PORT, '0.0.0.0', () => console.log(`Server avviato su porta ${PORT}`));
+http.listen(PORT, '0.0.0.0', () => console.log(`Server su porta ${PORT}`));

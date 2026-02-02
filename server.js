@@ -56,7 +56,13 @@ io.on('connection', (socket) => {
     socket.emit('receive_questions', list);
   });
 
-  // GIOCO
+  // --- REGIA DISPLAY (NUOVO) ---
+  socket.on('regia_cmd', (comando) => {
+      // comando può essere: 'logo', 'classifica', 'gioco'
+      io.emit('cambia_vista', comando);
+  });
+
+  // --- LOGICA GIOCO ---
   socket.on('invia_domanda', (dati) => {
     gameState.currentQuestion = dati;
     gameState.questionStartTime = Date.now();
@@ -64,26 +70,31 @@ io.on('connection', (socket) => {
     gameState.buzzerLocked = false;
     gameState.buzzerWinner = null;
 
+    // Forza il display a tornare sulla vista gioco
+    io.emit('cambia_vista', 'gioco');
+    
     io.emit('nuova_domanda', dati);
     io.emit('reset_buzzer');
     io.to('admin').emit('reset_round_monitor');
   });
 
-  // --- RIVELA RISPOSTA (MODIFICATO) ---
+  // --- RIVELA RISPOSTA (FIXATO) ---
   socket.on('rivela_risposta', () => {
     if (!gameState.currentQuestion) return;
     const q = gameState.currentQuestion;
     
-    // Trova testo risposta
+    // Trova testo risposta (gestisce sia indice numerico che testo diretto)
     let text = q.corretta;
     if (typeof q.corretta === 'number' && q.risposte && q.risposte[q.corretta]) {
         text = q.risposte[q.corretta];
+    } else {
+        // Fallback per domande senza opzioni (es. buzzer solo testo)
+        text = q.corretta.toString(); 
     }
     
-    // Ordina i risultati per tempo
+    // Ordina risultati
     gameState.roundAnswers.sort((a,b) => parseFloat(a.tempo) - parseFloat(b.tempo));
 
-    // Manda al Display SIA la soluzione SIA la lista di chi ha indovinato
     io.emit('mostra_soluzione', {
         soluzione: text,
         risultati: gameState.roundAnswers
@@ -95,7 +106,6 @@ io.on('connection', (socket) => {
     const team = gameState.teams[socket.id];
     if (!team || !gameState.currentQuestion) return;
 
-    // Evita risposte doppie
     if(gameState.roundAnswers.find(a => a.teamId === socket.id)) return;
 
     const tempoImpiegato = ((Date.now() - gameState.questionStartTime) / 1000).toFixed(2);
@@ -103,10 +113,12 @@ io.on('connection', (socket) => {
     
     // Verifica Correttezza
     let isCorrect = false;
-    let rispostaCorrettaStringa = q.corretta;
-    if (typeof q.corretta === 'number' && q.risposte) {
+    let rispostaCorrettaStringa = String(q.corretta);
+    
+    if (typeof q.corretta === 'number' && q.risposte && q.risposte[q.corretta]) {
         rispostaCorrettaStringa = q.risposte[q.corretta];
     }
+
     if (String(rispGiocatore).trim().toLowerCase() === String(rispostaCorrettaStringa).trim().toLowerCase()) {
         isCorrect = true;
     }
@@ -120,38 +132,37 @@ io.on('connection', (socket) => {
     };
     gameState.roundAnswers.push(answerEntry);
     
-    // Aggiorna Admin in tempo reale
     gameState.roundAnswers.sort((a,b) => parseFloat(a.tempo) - parseFloat(b.tempo));
     io.to('admin').emit('update_round_monitor', gameState.roundAnswers);
   });
 
-  // --- ASSEGNAZIONE PUNTI AUTOMATICA (NUOVO) ---
+  // --- ASSEGNAZIONE PUNTI ---
   socket.on('assegna_punti_auto', () => {
-      // Ordina per tempo (i più veloci primi)
       gameState.roundAnswers.sort((a,b) => parseFloat(a.tempo) - parseFloat(b.tempo));
-      
       let correctCount = 0;
-
       gameState.roundAnswers.forEach((entry) => {
           if(entry.corretta) {
               correctCount++;
-              let points = 100; // Base
-              
-              // Bonus Velocità
-              if(correctCount === 1) points = 150; // 1° Posto
-              else if(correctCount === 2) points = 125; // 2° Posto
+              let points = 100; 
+              if(correctCount === 1) points = 150;
+              else if(correctCount === 2) points = 125;
               
               if(gameState.teams[entry.teamId]) {
                   gameState.teams[entry.teamId].score += points;
               }
           }
       });
-
-      // Aggiorna classifica ovunque
       io.emit('update_teams', Object.values(gameState.teams));
   });
 
-  // SETUP E BUZZER
+  socket.on('assegna_punti', (data) => {
+    if(gameState.teams[data.teamId]) {
+      gameState.teams[data.teamId].score += parseInt(data.punti);
+      io.emit('update_teams', Object.values(gameState.teams));
+    }
+  });
+
+  // SETUP
   socket.on('login', (name) => {
     gameState.teams[socket.id] = { id: socket.id, name: name, score: 0 };
     socket.emit('login_success', { id: socket.id, name: name });

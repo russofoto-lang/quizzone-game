@@ -1,271 +1,29 @@
-<!DOCTYPE html>
-<html lang="it">
-<head>
-    <meta charset="UTF-8">
-    <title>REGIA MASTER - Siponto Forever Young</title>
-    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body { background-color: #1a202c; color: white; }
-        .glass-panel { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); }
-    </style>
-</head>
-<body class="p-2 h-screen flex flex-col text-sm">
+// Aggiungi questo handler per aggiornare manualmente i punti delle risposte
+socket.on('update_answer_points', (data) => {
+    const answer = gameState.roundAnswers[data.answerIndex];
+    if (answer) {
+        const oldPoints = answer.punti || 0;
+        const newPoints = data.newPoints;
+        answer.punti = newPoints;
 
-    <div class="flex justify-between items-center bg-white p-2 rounded shadow mb-2">
-        <h1 class="font-black text-xl text-gray-800 uppercase tracking-tighter">Regia Siponto</h1>
-        <div class="flex gap-2">
-            <button onclick="regia('logo')" class="px-3 py-1 bg-gray-700 text-white rounded font-bold uppercase text-xs">Logo/QR</button>
-            <button onclick="regia('gioco')" class="px-3 py-1 bg-blue-600 text-white rounded font-bold uppercase text-xs">Gioco</button>
-            <button onclick="regia('classifica_round')" class="px-3 py-1 bg-purple-600 text-white rounded font-bold uppercase text-xs">Podio</button>
-            <button onclick="regia('classifica_gen')" class="px-3 py-1 bg-yellow-600 text-white rounded font-bold uppercase text-xs">Generale</button>
-        </div>
-    </div>
-
-    <div class="grid grid-cols-12 gap-2 flex-1 overflow-hidden">
-        
-        <div class="col-span-4 bg-white p-3 rounded shadow overflow-y-auto flex flex-col">
-            <select id="sel-tipo" class="w-full border-2 border-blue-500 p-2 rounded font-bold mb-2 text-gray-800">
-                <option value="">-- SELEZIONA MODALITÀ --</option>
-                <option value="categoria">📂 CATEGORIE</option>
-                <option value="stima">🔮 STIMA</option>
-                <option value="anagramma">🧩 ANAGRAMMA</option>
-                <option value="bonus">💰 BONUS</option>
-            </select>
-            <select id="sel-cat" class="w-full border p-1 rounded mb-2 text-gray-800" disabled></select>
-            <select id="sel-dom" class="w-full border p-1 rounded mb-2 h-48 text-gray-800" size="10" disabled></select>
-            
-            <div class="grid grid-cols-2 gap-2 mt-auto">
-                <button onclick="lancia('classico')" class="bg-blue-600 text-white py-3 rounded font-black uppercase shadow-lg">Quiz ABCD</button>
-                <button onclick="lancia('buzzer')" class="bg-red-600 text-white py-3 rounded font-black uppercase shadow-lg">Buzzer/Voce</button>
-            </div>
-            <button onclick="resetGame()" class="w-full bg-red-900 text-white mt-2 py-1 rounded text-[10px] opacity-50 uppercase">Reset Totale Sessione</button>
-        </div>
-
-        <div class="col-span-5 bg-gray-900 p-3 rounded shadow flex flex-col border-2 border-gray-700">
-            
-            <div id="buzzer-alert" class="hidden bg-red-600 p-4 rounded text-center mb-2">
-                <div class="text-xs font-bold uppercase mb-2">⚡ ORDINE ARRIVI BUZZER ⚡</div>
-                <div class="text-yellow-300 font-bold border-b border-red-500 pb-2 mb-3">
-                    RISPOSTA: <span id="buzzer-solution" class="text-white uppercase">---</span>
-                </div>
-                
-                <!-- Lista completa buzzer -->
-                <div id="buzzer-queue-list" class="bg-red-900/50 rounded p-3 max-h-64 overflow-y-auto">
-                    <!-- Popolato via JS -->
-                </div>
-                
-                <button onclick="chiudiBuzzer()" class="w-full bg-gray-800 hover:bg-gray-700 text-white mt-3 py-2 rounded font-bold uppercase text-sm">
-                    🔒 Chiudi Buzzer
-                </button>
-            </div>
-
-            <div id="classic-monitor" class="flex-1 overflow-y-auto">
-                <div class="flex justify-between items-center border-b border-gray-700 pb-1 mb-2">
-                    <span class="text-blue-400 font-black uppercase text-xs tracking-widest">Monitor Risposte Live</span>
-                    <span id="answers-count" class="text-[10px] bg-gray-800 px-2 py-0.5 rounded text-gray-400">0 risposte</span>
-                </div>
-                <table class="w-full">
-                    <thead class="text-[10px] text-gray-500 border-b border-gray-800">
-                        <tr>
-                            <th class="text-left py-1">SQUADRA</th>
-                            <th class="text-left px-2">RISPOSTA</th>
-                            <th class="text-right">TEMPO</th>
-                            <th class="text-right pr-2">PUNTI</th>
-                        </tr>
-                    </thead>
-                    <tbody id="round-table" class="text-sm">
-                    </tbody>
-                </table>
-                
-                <!-- BOTTONE MOSTRA SOLUZIONE -->
-                <div id="show-solution-btn" class="hidden mt-3">
-                    <button onclick="mostraSoluzioneSuDisplay()" class="w-full bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-500 hover:to-orange-500 text-white py-3 rounded font-black uppercase shadow-lg text-sm">
-                        📺 Mostra Soluzione su Display
-                    </button>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-2 gap-2 mt-2 pt-2 border-t border-gray-800">
-                <button onclick="toggleLock(false)" class="bg-green-700 hover:bg-green-600 py-2 rounded font-bold uppercase text-xs shadow-inner">🔓 Apri Buzzer</button>
-                <button onclick="toggleLock(true)" class="bg-gray-700 hover:bg-gray-600 py-2 rounded font-bold uppercase text-xs shadow-inner">🔒 Blocca</button>
-            </div>
-        </div>
-
-        <div class="col-span-3 bg-white p-3 rounded shadow flex flex-col text-gray-800">
-            <h2 class="font-black border-b border-gray-200 mb-2 uppercase text-xs text-gray-500 tracking-widest">Punteggi Live</h2>
-            <div class="flex-1 overflow-y-auto">
-                <table class="w-full">
-                    <tbody id="team-list"></tbody>
-                </table>
-            </div>
-        </div>
-
-    </div>
-
-    <script>
-        const socket = io();
-        let currentQuestions = [], selectedQ = null, dbStructure = {};
-
-        socket.on('connect', () => { socket.emit('admin_connect'); });
-        
-        socket.on('init_data', (d) => { 
-            dbStructure = d; 
-            updateTeams(d.teams); 
-        });
-
-        // Caricamento domande nelle tendine
-        document.getElementById('sel-tipo').addEventListener('change', (e) => {
-            const t = e.target.value;
-            const sc = document.getElementById('sel-cat');
-            sc.innerHTML = '<option value="">-- SCEGLI CATEGORIA --</option>';
-            if(t === 'categoria') {
-                sc.disabled = false;
-                dbStructure.categories.forEach(c => sc.innerHTML += `<option value="${c}">${c.replace('_',' ')}</option>`);
-            } else {
-                sc.disabled = true;
-                socket.emit('get_questions', {type: t});
-            }
-        });
-
-        document.getElementById('sel-cat').addEventListener('change', (e) => {
-            socket.emit('get_questions', {type: 'categoria', key: e.target.value});
-        });
-
-        socket.on('receive_questions', (q) => {
-            currentQuestions = q;
-            const s = document.getElementById('sel-dom');
-            s.disabled = false;
-            s.innerHTML = '';
-            q.forEach((item, i) => {
-                s.innerHTML += `<option value="${i}">${item.domanda.substring(0,40)}...</option>`;
-            });
-        });
-
-        document.getElementById('sel-dom').addEventListener('change', (e) => {
-            selectedQ = currentQuestions[e.target.value];
-        });
-
-        // Gestione Risposte Live (Monitor Centrale)
-        socket.on('update_round_monitor', (data) => {
-            const table = document.getElementById('round-table');
-            document.getElementById('answers-count').innerText = `${data.length} risposte`;
-            table.innerHTML = '';
-            
-            data.forEach((res) => {
-                const bg = res.corretta ? 'text-green-400' : 'text-red-400';
-                const punti = res.punti || 0;
-                const puntiColor = res.corretta ? 'text-green-400' : 'text-gray-600';
-                
-                table.innerHTML += `
-                    <tr class="border-b border-gray-800 animate-in fade-in duration-300">
-                        <td class="py-2 font-bold">${res.teamName}</td>
-                        <td class="px-2 font-mono ${bg}">${res.corretta ? '✅' : '❌'} ${res.risposta}</td>
-                        <td class="text-right text-gray-500 text-[10px]">${res.tempo}s</td>
-                        <td class="text-right font-black text-sm ${puntiColor} pr-2">${res.corretta ? '+' : ''}${punti}</td>
-                    </tr>`;
-            });
-            
-            // Mostra bottone "Mostra Soluzione" se ci sono risposte
-            if(data.length > 0) {
-                document.getElementById('show-solution-btn').classList.remove('hidden');
-            }
-        });
-
-        socket.on('reset_round_monitor', () => {
-            document.getElementById('round-table').innerHTML = '';
-            document.getElementById('answers-count').innerText = "0 risposte";
-            document.getElementById('buzzer-alert').classList.add('hidden');
-            document.getElementById('classic-monitor').classList.remove('hidden');
-            document.getElementById('show-solution-btn').classList.add('hidden');
-        });
-
-        // Gestione Buzzer - NUOVA VERSIONE CON LISTA COMPLETA
-        socket.on('buzzer_queue_full', (d) => {
-            document.getElementById('classic-monitor').classList.add('hidden');
-            document.getElementById('buzzer-alert').classList.remove('hidden');
-            document.getElementById('buzzer-solution').innerText = d.correctAnswer;
-            
-            const queueDiv = document.getElementById('buzzer-queue-list');
-            queueDiv.innerHTML = '';
-            
-            if(d.queue && d.queue.length > 0) {
-                d.queue.forEach((player, idx) => {
-                    const medals = ['🥇', '🥈', '🥉'];
-                    const medal = medals[idx] || `${idx + 1}.`;
-                    
-                    queueDiv.innerHTML += `
-                        <div class="bg-white/10 rounded p-2 mb-2 flex justify-between items-center">
-                            <div class="text-left">
-                                <span class="text-2xl mr-2">${medal}</span>
-                                <span class="font-black text-white text-lg">${player.name}</span>
-                                <span class="text-yellow-300 text-sm ml-2">(${player.time}s)</span>
-                            </div>
-                            <div class="flex gap-1">
-                                <button onclick="assignPoints('${player.id}', 100)" class="bg-green-500 hover:bg-green-400 px-3 py-1 rounded font-bold text-sm">+100</button>
-                                <button onclick="assignPoints('${player.id}', 50)" class="bg-blue-500 hover:bg-blue-400 px-3 py-1 rounded font-bold text-sm">+50</button>
-                                <button onclick="assignPoints('${player.id}', -50)" class="bg-gray-600 hover:bg-gray-500 px-3 py-1 rounded font-bold text-sm">-50</button>
-                            </div>
-                        </div>
-                    `;
-                });
-            } else {
-                queueDiv.innerHTML = '<p class="text-white/60 text-sm">In attesa di prenotazioni...</p>';
-            }
-        });
-
-        socket.on('reset_buzzer_admin', () => {
-            document.getElementById('buzzer-alert').classList.add('hidden');
-            document.getElementById('classic-monitor').classList.remove('hidden');
-        });
-
-        // Classifica e Punti Manuali
-        socket.on('update_teams', updateTeams);
-        function updateTeams(t) {
-            t.sort((a,b) => b.score - a.score);
-            const l = document.getElementById('team-list');
-            l.innerHTML = '';
-            t.forEach(x => {
-                l.innerHTML += `
-                    <tr class="border-b border-gray-100">
-                        <td class="py-2 font-bold text-sm">${x.name}</td>
-                        <td class="text-right px-2 font-black text-blue-600">${x.score}</td>
-                        <td class="flex gap-1 py-1 justify-end">
-                            <button onclick="punti('${x.id}',50)" class="bg-green-100 text-green-700 px-2 rounded font-bold hover:bg-green-200">+50</button>
-                            <button onclick="punti('${x.id}',-50)" class="bg-red-100 text-red-700 px-2 rounded font-bold hover:bg-red-200">-50</button>
-                        </td>
-                    </tr>`;
-            });
+        // Aggiorna il punteggio della squadra
+        if (gameState.teams[answer.teamId]) {
+            // Calcola la differenza e aggiorna
+            const diff = newPoints - oldPoints;
+            gameState.teams[answer.teamId].score += diff;
+            io.emit('update_teams', Object.values(gameState.teams));
         }
 
-        function lancia(m) { if(selectedQ) socket.emit('invia_domanda', {...selectedQ, modalita: m}); }
-        function toggleLock(s) { socket.emit('toggle_buzzer_lock', s); }
-        function buzzerCorrect() { socket.emit('buzzer_correct_assign', {points: 100}); }
-        function buzzerWrong() { socket.emit('buzzer_wrong_next'); }
-        function regia(v) { socket.emit('regia_cmd', v); }
-        function punti(id, p) { socket.emit('admin_punti_manuali', {id: id, punti: p}); }
-        function resetGame() { if(confirm("Vuoi resettare tutti i punteggi e le squadre?")) socket.emit('reset_game'); }
-        
-        // Nuovo sistema buzzer
-        function assignPoints(teamId, points) {
-            socket.emit('buzzer_assign_points', { teamId: teamId, points: points });
-        }
-        
-        function chiudiBuzzer() {
-            socket.emit('buzzer_close');
-            document.getElementById('buzzer-alert').classList.add('hidden');
-            document.getElementById('classic-monitor').classList.remove('hidden');
-        }
-        
-       function mostraSoluzioneSuDisplay() {
-    if(selectedQ && selectedQ.corretta !== undefined) {
-        let soluzione = selectedQ.corretta;
-        if(typeof selectedQ.corretta === 'number' && selectedQ.risposte) {
-            soluzione = selectedQ.risposte[selectedQ.corretta];
-        }
-        socket.emit('mostra_soluzione', { soluzione: soluzione, risultati: [] });
+        // Aggiorna il monitor admin
+        io.to('admin').emit('update_round_monitor', gameState.roundAnswers);
     }
-}
-    </script>
-</body>
-</html>
+});
+
+// Aggiungi questo handler per mostrare la soluzione sul display
+socket.on('mostra_soluzione', (data) => {
+    // Inoltra a tutti i display/client per mostrare la soluzione
+    io.emit('mostra_soluzione', { 
+        soluzione: data.soluzione, 
+        risultati: gameState.roundAnswers 
+    });
+});

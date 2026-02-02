@@ -538,6 +538,140 @@
             "punti": 200,
             "difficolta": "molto difficile"
           }
+        ],
+        "Raddoppi": [
+          {
+            "id": 2001,
+            "domanda": "RADDOPPIO: 5 raddoppiato quanto fa?",
+            "risposte": [
+              "5",
+              "10",
+              "15",
+              "20"
+            ],
+            "corretta": 1,
+            "punti": 50,
+            "difficolta": "facile"
+          },
+          {
+            "id": 2002,
+            "domanda": "RADDOPPIO: 12 raddoppiato?",
+            "risposte": [
+              "20",
+              "22",
+              "24",
+              "26"
+            ],
+            "corretta": 2,
+            "punti": 80,
+            "difficolta": "medio"
+          },
+          {
+            "id": 2003,
+            "domanda": "RADDOPPIO: Se raddoppio 2 volte il numero 4 ottengo?",
+            "risposte": [
+              "8",
+              "12",
+              "16",
+              "32"
+            ],
+            "corretta": 2,
+            "punti": 120,
+            "difficolta": "medio"
+          },
+          {
+            "id": 2004,
+            "domanda": "RADDOPPIO: 7 raddoppiato 3 volte?",
+            "risposte": [
+              "28",
+              "42",
+              "49",
+              "56"
+            ],
+            "corretta": 1,
+            "punti": 160,
+            "difficolta": "difficile"
+          },
+          {
+            "id": 2005,
+            "domanda": "RADDOPPIO: Qual è il risultato di 3 raddoppi consecutivi partendo da 5?",
+            "risposte": [
+              "20",
+              "30",
+              "40",
+              "80"
+            ],
+            "corretta": 3,
+            "punti": 200,
+            "difficolta": "molto difficile"
+          }
+        ],
+        "Logica verbale": [
+          {
+            "id": 3001,
+            "domanda": "LOGICA VERBALE: Quale parola è il contrario di 'espandere'?",
+            "risposte": [
+              "Allargare",
+              "Dilatare",
+              "Contrarre",
+              "Crescere"
+            ],
+            "corretta": 2,
+            "punti": 50,
+            "difficolta": "facile"
+          },
+          {
+            "id": 3002,
+            "domanda": "LOGICA VERBALE: Cane sta a cucciolo come gatto sta a…",
+            "risposte": [
+              "Felino",
+              "Gattino",
+              "Micio",
+              "Leone"
+            ],
+            "corretta": 1,
+            "punti": 80,
+            "difficolta": "medio"
+          },
+          {
+            "id": 3003,
+            "domanda": "LOGICA VERBALE: Individua l’intruso",
+            "risposte": [
+              "Sedia",
+              "Tavolo",
+              "Divano",
+              "Letto"
+            ],
+            "corretta": 2,
+            "punti": 120,
+            "difficolta": "medio"
+          },
+          {
+            "id": 3004,
+            "domanda": "LOGICA VERBALE: Se oggi è lunedì, che giorno sarà tra 10 giorni?",
+            "risposte": [
+              "Giovedì",
+              "Venerdì",
+              "Sabato",
+              "Domenica"
+            ],
+            "corretta": 1,
+            "punti": 160,
+            "difficolta": "difficile"
+          },
+          {
+            "id": 3005,
+            "domanda": "LOGICA VERBALE: Completa il proverbio: 'Chi dorme non…'",
+            "risposte": [
+              "mangia",
+              "pensa",
+              "prende pesci",
+              "lavora"
+            ],
+            "corretta": 2,
+            "punti": 200,
+            "difficolta": "molto difficile"
+          }
         ]
       },
       "bonus": [
@@ -606,25 +740,39 @@
       ],
       "anagramma": [
         {
-          "id": 42,
-          "domanda": "ANAGRAMMA: A T T O R E",
-          "corretta": "TEATRO",
-          "punti": 150,
+          "id": 4001,
+          "domanda": "ANAGRAMMA: R O M A",
+          "corretta": "AMOR",
+          "punti": 50,
           "difficolta": "facile"
         },
         {
-          "id": 43,
-          "domanda": "ANAGRAMMA: M A R E",
-          "corretta": "RAME",
-          "punti": 150,
-          "difficolta": "facile"
-        },
-        {
-          "id": 44,
-          "domanda": "ANAGRAMMA: C A R T O N E",
-          "corretta": "CONTRARE",
-          "punti": 150,
+          "id": 4002,
+          "domanda": "ANAGRAMMA: C A S A",
+          "corretta": "SACA",
+          "punti": 80,
           "difficolta": "medio"
+        },
+        {
+          "id": 4003,
+          "domanda": "ANAGRAMMA: P A R O L A",
+          "corretta": "LAPARO",
+          "punti": 120,
+          "difficolta": "medio"
+        },
+        {
+          "id": 4004,
+          "domanda": "ANAGRAMMA: S P E T T A C O L O",
+          "corretta": "POTESCOLTA",
+          "punti": 160,
+          "difficolta": "difficile"
+        },
+        {
+          "id": 4005,
+          "domanda": "ANAGRAMMA: I N T R A T T E N I M E N T O",
+          "corretta": "INTRATTENIMENTO",
+          "punti": 200,
+          "difficolta": "molto difficile"
         }
       ]
     }

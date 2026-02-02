@@ -44,15 +44,20 @@
 
         <div class="col-span-5 bg-gray-900 p-3 rounded shadow flex flex-col border-2 border-gray-700">
             
-            <div id="buzzer-alert" class="hidden bg-red-600 p-4 rounded text-center mb-2 animate-pulse">
-                <div class="text-xs font-bold uppercase">Squadra Prenotata:</div>
-                <div id="buzzer-winner" class="text-3xl font-black bg-white text-red-600 rounded my-2 uppercase py-2">---</div>
-                <div id="queue-info" class="text-sm bg-red-900/50 p-1 rounded mb-2 font-mono">Nessun altro in coda</div>
-                <div class="text-yellow-300 font-bold border-t border-red-500 pt-2">RISPOSTA: <span id="buzzer-solution" class="text-white uppercase">---</span></div>
-                <div id="buzzer-actions" class="grid grid-cols-2 gap-2 mt-4">
-                    <button onclick="buzzerCorrect()" class="bg-green-500 hover:bg-green-400 py-3 rounded font-black shadow-xl">✅ GIUSTA</button>
-                    <button onclick="buzzerWrong()" class="bg-white text-red-600 hover:bg-gray-200 py-3 rounded font-black shadow-xl">❌ ERRATA</button>
+            <div id="buzzer-alert" class="hidden bg-red-600 p-4 rounded text-center mb-2">
+                <div class="text-xs font-bold uppercase mb-2">⚡ ORDINE ARRIVI BUZZER ⚡</div>
+                <div class="text-yellow-300 font-bold border-b border-red-500 pb-2 mb-3">
+                    RISPOSTA: <span id="buzzer-solution" class="text-white uppercase">---</span>
                 </div>
+                
+                <!-- Lista completa buzzer -->
+                <div id="buzzer-queue-list" class="bg-red-900/50 rounded p-3 max-h-64 overflow-y-auto">
+                    <!-- Popolato via JS -->
+                </div>
+                
+                <button onclick="chiudiBuzzer()" class="w-full bg-gray-800 hover:bg-gray-700 text-white mt-3 py-2 rounded font-bold uppercase text-sm">
+                    🔒 Chiudi Buzzer
+                </button>
             </div>
 
             <div id="classic-monitor" class="flex-1 overflow-y-auto">
@@ -175,14 +180,38 @@
             document.getElementById('show-solution-btn').classList.add('hidden');
         });
 
-        // Gestione Buzzer
-        socket.on('buzzer_admin_alert', (d) => {
+        // Gestione Buzzer - NUOVA VERSIONE CON LISTA COMPLETA
+        socket.on('buzzer_queue_full', (d) => {
             document.getElementById('classic-monitor').classList.add('hidden');
             document.getElementById('buzzer-alert').classList.remove('hidden');
-            document.getElementById('buzzer-winner').innerText = d.winner;
             document.getElementById('buzzer-solution').innerText = d.correctAnswer;
-            document.getElementById('queue-info').innerHTML = d.others && d.others.length > 0 ? 
-                `<strong>IN CODA:</strong> ${d.others.join(', ')}` : "Nessun altro in coda";
+            
+            const queueDiv = document.getElementById('buzzer-queue-list');
+            queueDiv.innerHTML = '';
+            
+            if(d.queue && d.queue.length > 0) {
+                d.queue.forEach((player, idx) => {
+                    const medals = ['🥇', '🥈', '🥉'];
+                    const medal = medals[idx] || `${idx + 1}.`;
+                    
+                    queueDiv.innerHTML += `
+                        <div class="bg-white/10 rounded p-2 mb-2 flex justify-between items-center">
+                            <div class="text-left">
+                                <span class="text-2xl mr-2">${medal}</span>
+                                <span class="font-black text-white text-lg">${player.name}</span>
+                                <span class="text-yellow-300 text-sm ml-2">(${player.time}s)</span>
+                            </div>
+                            <div class="flex gap-1">
+                                <button onclick="assignPoints('${player.id}', 100)" class="bg-green-500 hover:bg-green-400 px-3 py-1 rounded font-bold text-sm">+100</button>
+                                <button onclick="assignPoints('${player.id}', 50)" class="bg-blue-500 hover:bg-blue-400 px-3 py-1 rounded font-bold text-sm">+50</button>
+                                <button onclick="assignPoints('${player.id}', -50)" class="bg-gray-600 hover:bg-gray-500 px-3 py-1 rounded font-bold text-sm">-50</button>
+                            </div>
+                        </div>
+                    `;
+                });
+            } else {
+                queueDiv.innerHTML = '<p class="text-white/60 text-sm">In attesa di prenotazioni...</p>';
+            }
         });
 
         socket.on('reset_buzzer_admin', () => {
@@ -216,6 +245,17 @@
         function regia(v) { socket.emit('regia_cmd', v); }
         function punti(id, p) { socket.emit('admin_punti_manuali', {id: id, punti: p}); }
         function resetGame() { if(confirm("Vuoi resettare tutti i punteggi e le squadre?")) socket.emit('reset_game'); }
+        
+        // Nuovo sistema buzzer
+        function assignPoints(teamId, points) {
+            socket.emit('buzzer_assign_points', { teamId: teamId, points: points });
+        }
+        
+        function chiudiBuzzer() {
+            socket.emit('buzzer_close');
+            document.getElementById('buzzer-alert').classList.add('hidden');
+            document.getElementById('classic-monitor').classList.remove('hidden');
+        }
         
         // Mostra la soluzione sul display
         function mostraSoluzioneSuDisplay() {

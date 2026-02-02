@@ -6,139 +6,194 @@
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
-    <style>body { background: #0f172a; color: white; overflow: hidden; }</style>
+    <style>
+        body { background: #0f172a; color: white; overflow: hidden; }
+        .glass { background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); }
+    </style>
 </head>
 <body class="flex flex-col h-screen p-8">
 
-    <div class="flex justify-between items-start h-1/4">
+    <div class="flex justify-between items-start h-[15%]">
         <div>
             <h1 class="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-red-600 drop-shadow-lg">IL QUIZZONE</h1>
-            <p id="status-text" class="text-xl text-gray-400 mt-2">In attesa...</p>
+            <p id="status-text" class="text-xl text-gray-400 mt-2">Live Show</p>
         </div>
-        
-        <div class="bg-white/10 rounded-xl p-4 w-1/4 backdrop-blur">
-            <h3 class="text-sm font-bold text-gray-400 uppercase mb-2 border-b border-gray-600">Classifica Totale</h3>
-            <ul id="leaderboard" class="text-sm space-y-2"></ul>
+        <div id="mini-leaderboard" class="glass rounded-xl p-4 w-1/4">
+            <h3 class="text-xs font-bold text-gray-400 uppercase mb-2 border-b border-gray-600">Top 5</h3>
+            <ul id="leaderboard-list" class="text-sm space-y-1"></ul>
         </div>
     </div>
 
-    <div class="flex-1 flex flex-col items-center justify-center relative">
+    <div class="flex-1 relative flex items-center justify-center h-[85%]">
         
-        <div id="screen-wait" class="text-center w-full">
-            <div id="buzzer-winner" class="hidden animate__animated animate__zoomIn">
-                <p class="text-2xl text-red-400 font-bold mb-4">HA PRENOTATO:</p>
-                <div id="winner-name" class="text-8xl font-black text-white bg-red-600 px-12 py-6 rounded-2xl shadow-2xl">SQUADRA</div>
-            </div>
+        <div id="view-logo" class="absolute inset-0 flex flex-col items-center justify-center animate__animated animate__fadeIn">
+            <div class="text-9xl animate-pulse">🎬</div>
+            <h2 class="text-4xl font-bold mt-4 text-gray-500">IN ATTESA DELLA REGIA...</h2>
         </div>
 
-        <div id="screen-game" class="hidden w-full max-w-5xl text-center">
-            <div class="bg-white/10 p-8 rounded-3xl border-t-8 border-blue-500 shadow-2xl backdrop-blur-md">
-                <h2 id="cat" class="text-xl font-bold text-blue-400 tracking-widest mb-4">CATEGORIA</h2>
-                <div id="q-text" class="text-4xl font-bold leading-tight mb-8">...</div>
-                <div id="opts" class="grid grid-cols-2 gap-4 text-2xl hidden mb-4"></div>
-                
-                <div id="solution" class="hidden mt-6 animate__animated animate__fadeInUp">
-                    <div class="bg-green-600 text-white px-8 py-3 rounded-full text-3xl font-bold shadow-lg inline-block mb-6">
-                        ✅ <span id="sol-text">RISPOSTA</span>
-                    </div>
+        <div id="view-game" class="hidden absolute inset-0 w-full flex flex-col items-center justify-center">
+            
+            <div id="buzzer-overlay" class="hidden absolute inset-0 bg-black/80 z-50 flex flex-col items-center justify-center animate__animated animate__zoomIn">
+                <p class="text-4xl text-red-500 font-bold mb-4 animate-bounce">🚨 HA PRENOTATO</p>
+                <div id="winner-name" class="text-9xl font-black text-white bg-red-600 px-16 py-8 rounded-3xl shadow-[0_0_50px_rgba(220,38,38,0.8)]">SQUADRA</div>
+            </div>
 
-                    <div class="bg-black/40 rounded-xl p-4 max-w-2xl mx-auto">
-                        <h3 class="text-sm font-bold text-gray-400 mb-2">ESITO ROUND</h3>
-                        <table class="w-full text-left text-lg">
-                            <tbody id="round-results-body"></tbody>
-                        </table>
+            <div class="glass w-full max-w-6xl p-10 rounded-3xl border-t-8 border-blue-600 shadow-2xl">
+                <h2 id="cat" class="text-2xl font-bold text-blue-400 tracking-[0.5em] mb-6 uppercase text-center">CATEGORIA</h2>
+                <div id="q-text" class="text-5xl font-bold leading-tight mb-10 text-center">...</div>
+                
+                <div id="opts" class="grid grid-cols-2 gap-6 text-3xl hidden mb-8"></div>
+
+                <div id="solution" class="hidden mt-8 border-t border-gray-600 pt-8 animate__animated animate__fadeInUp">
+                    <div class="flex flex-col items-center">
+                        <div class="text-sm text-green-400 font-bold uppercase mb-2">Risposta Esatta</div>
+                        <div class="bg-green-600 text-white px-10 py-4 rounded-full text-4xl font-bold shadow-lg mb-8">
+                            ✅ <span id="sol-text">RISPOSTA</span>
+                        </div>
+                        
+                        <div class="w-full max-w-3xl bg-black/30 rounded-xl p-6">
+                            <h3 class="text-left text-gray-400 font-bold mb-4">ESITO SQUADRE:</h3>
+                            <div class="grid grid-cols-2 gap-4" id="round-results-grid"></div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
+
+        <div id="view-leaderboard" class="hidden absolute inset-0 bg-gray-900 z-40 flex flex-col items-center justify-start pt-10 animate__animated animate__slideInUp">
+            <h2 class="text-6xl font-black text-yellow-400 mb-10">🏆 CLASSIFICA GENERALE 🏆</h2>
+            <div class="w-full max-w-4xl h-[70vh] overflow-y-auto pr-4">
+                <table class="w-full text-left text-2xl">
+                    <thead class="text-gray-500 border-b border-gray-700">
+                        <tr><th class="p-4">#</th><th class="p-4">SQUADRA</th><th class="p-4 text-right">PUNTI</th></tr>
+                    </thead>
+                    <tbody id="full-leaderboard-body"></tbody>
+                </table>
+            </div>
+        </div>
+
     </div>
 
     <script>
         const socket = io();
-        const elWait = document.getElementById('screen-wait');
-        const elGame = document.getElementById('screen-game');
-        const elBuzzer = document.getElementById('buzzer-winner');
-        const elSolution = document.getElementById('solution');
+
+        // Elementi
+        const views = {
+            logo: document.getElementById('view-logo'),
+            game: document.getElementById('view-game'),
+            leaderboard: document.getElementById('view-leaderboard')
+        };
+        const miniLb = document.getElementById('mini-leaderboard');
 
         socket.on('connect', () => {
-            console.log("Display connesso!");
+            console.log("Display On");
             socket.emit('display_connect');
         });
 
-        socket.on('nuova_domanda', (data) => {
-            elWait.classList.add('hidden');
-            elBuzzer.classList.add('hidden');
-            elSolution.classList.add('hidden'); 
-            elGame.classList.remove('hidden');
+        // --- CAMBIO VISTA (REGIA) ---
+        socket.on('cambia_vista', (vista) => {
+            // Nascondi tutto
+            Object.values(views).forEach(el => el.classList.add('hidden'));
+            
+            // Logica specifica
+            if(vista === 'logo') {
+                views.logo.classList.remove('hidden');
+                miniLb.style.opacity = '1';
+            }
+            else if(vista === 'gioco') {
+                views.game.classList.remove('hidden');
+                miniLb.style.opacity = '1';
+            }
+            else if(vista === 'classifica') {
+                views.leaderboard.classList.remove('hidden');
+                miniLb.style.opacity = '0'; // Nascondi mini classifica se c'è quella grande
+            }
+        });
 
+        // --- EVENTI GIOCO ---
+        socket.on('nuova_domanda', (data) => {
+            // Se siamo in view classifica, forziamo il ritorno al gioco? 
+            // Meglio di no, lasciamo il controllo alla regia. Ma aggiorniamo il contenuto.
+            // Se la regia è su "gioco", aggiorniamo la UI
+            
+            document.getElementById('buzzer-overlay').classList.add('hidden');
+            document.getElementById('solution').classList.add('hidden');
             document.getElementById('cat').innerText = (data.categoria || "QUIZ").toUpperCase();
             document.getElementById('q-text').innerText = data.domanda;
-            document.getElementById('status-text').innerText = "Domanda in corso...";
-
-            const optContainer = document.getElementById('opts');
-            optContainer.innerHTML = '';
             
+            const opt = document.getElementById('opts');
+            opt.innerHTML = '';
             if(data.modalita === 'classico' && data.risposte) {
-                optContainer.classList.remove('hidden');
+                opt.classList.remove('hidden');
                 data.risposte.forEach(r => {
-                    const div = document.createElement('div');
-                    div.className = "bg-white/10 p-3 rounded-xl border border-white/20";
-                    div.innerText = r;
-                    optContainer.appendChild(div);
+                    opt.innerHTML += `<div class="bg-white/10 p-4 rounded-xl border border-white/20">${r}</div>`;
                 });
             } else {
-                optContainer.classList.add('hidden');
+                opt.classList.add('hidden');
             }
         });
 
         socket.on('buzzer_bloccato', (data) => {
-            elGame.classList.add('hidden');
-            elWait.classList.remove('hidden');
-            elBuzzer.classList.remove('hidden');
+            document.getElementById('buzzer-overlay').classList.remove('hidden');
             document.getElementById('winner-name').innerText = data.winner;
-            document.getElementById('status-text').innerText = "Buzzer!";
         });
 
-        // --- RICEZIONE SOLUZIONE E LISTA VINCITORI ---
         socket.on('mostra_soluzione', (data) => {
-            elWait.classList.add('hidden');
-            elBuzzer.classList.add('hidden');
-            elGame.classList.remove('hidden');
-            elSolution.classList.remove('hidden');
+            // Mostra il box soluzione
+            const solBox = document.getElementById('solution');
+            solBox.classList.remove('hidden');
+            document.getElementById('buzzer-overlay').classList.add('hidden');
             
-            // Testo Soluzione
             document.getElementById('sol-text').innerText = data.soluzione;
             
-            // Genera lista chi ha indovinato
-            const tbody = document.getElementById('round-results-body');
-            tbody.innerHTML = '';
+            // Popola griglia risultati
+            const grid = document.getElementById('round-results-grid');
+            grid.innerHTML = '';
             
-            data.risultati.forEach(entry => {
-                const tr = document.createElement('tr');
-                const icon = entry.corretta ? '✅' : '❌';
-                const color = entry.corretta ? 'text-green-400' : 'text-red-400';
-                
-                tr.innerHTML = `
-                    <td class="py-1 font-bold ${color}">${entry.teamName}</td>
-                    <td class="py-1 text-right text-sm text-gray-400">${entry.tempo}s</td>
-                    <td class="py-1 text-right">${icon}</td>
+            // Mostra solo i primi 6 per non intasare, o tutti se pochi
+            data.risultati.slice(0, 6).forEach(res => {
+                const color = res.corretta ? 'bg-green-500/20 border-green-500' : 'bg-red-500/20 border-red-500';
+                const icon = res.corretta ? '✅' : '❌';
+                grid.innerHTML += `
+                    <div class="flex justify-between items-center p-2 rounded border ${color}">
+                        <span class="font-bold truncate">${res.teamName}</span>
+                        <div class="flex gap-2 text-sm">
+                            <span>${res.tempo}s</span>
+                            <span>${icon}</span>
+                        </div>
+                    </div>
                 `;
-                tbody.appendChild(tr);
             });
-
-            document.getElementById('status-text').innerText = "Soluzione svelata";
         });
 
         socket.on('update_teams', (teams) => {
             teams.sort((a,b) => b.score - a.score);
-            const list = document.getElementById('leaderboard');
-            list.innerHTML = '';
-            teams.slice(0, 5).forEach((t, i) => {
-                list.innerHTML += `<li class="flex justify-between"><span class="truncate w-32">${i+1}. ${t.name}</span><span class="font-bold text-yellow-400">${t.score}</span></li>`;
+            
+            // Update Mini
+            const miniList = document.getElementById('leaderboard-list');
+            miniList.innerHTML = '';
+            teams.slice(0,5).forEach((t, i) => {
+                miniList.innerHTML += `<li class="flex justify-between"><span class="truncate w-24">${i+1}. ${t.name}</span><span class="text-yellow-400 font-bold">${t.score}</span></li>`;
+            });
+
+            // Update Full Screen
+            const fullBody = document.getElementById('full-leaderboard-body');
+            fullBody.innerHTML = '';
+            teams.forEach((t, i) => {
+                let medal = i===0?'🥇':(i===1?'🥈':(i===2?'🥉':`${i+1}.`));
+                let style = i<3 ? 'text-white font-bold' : 'text-gray-400';
+                fullBody.innerHTML += `
+                    <tr class="border-b border-gray-800 hover:bg-white/5">
+                        <td class="p-4 ${style} text-3xl">${medal}</td>
+                        <td class="p-4 ${style} text-3xl">${t.name}</td>
+                        <td class="p-4 text-right font-mono text-yellow-500 text-3xl">${t.score}</td>
+                    </tr>
+                `;
             });
         });
+        
+        socket.on('reset_buzzer', () => { document.getElementById('buzzer-overlay').classList.add('hidden'); });
 
-        socket.on('reset_buzzer', () => { elBuzzer.classList.add('hidden'); });
     </script>
 </body>
 </html>

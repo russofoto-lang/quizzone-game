@@ -1,89 +1,316 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-    <!-- ... HEADER EXISTING CODE ... -->
-</head>
-<body class="flex flex-col h-screen p-2 sm:p-4">
-    <!-- ... EXISTING HTML CODE ... -->
-
-    <!-- VISTA LOGO/QR (esistente) -->
-    <div id="view-logo" class="view-section absolute inset-0 flex flex-col items-center justify-center">
-        <!-- ... -->
-    </div>
-
-    <!-- VISTA GIOCO (esistente) -->
-    <div id="view-gioco" class="view-section hidden absolute inset-0 flex flex-col items-center justify-center p-2">
-        <!-- ... -->
-    </div>
-
-    <!-- VISTA CLASSIFICA ROUND (esistente) -->
-    <div id="view-classifica_round" class="view-section hidden absolute inset-0 bg-indigo-950 z-40 flex flex-col items-center p-2 sm:p-4 overflow-hidden">
-        <!-- ... -->
-    </div>
-
-    <!-- VISTA CLASSIFICA GENERALE (esistente) -->
-    <div id="view-classifica_gen" class="view-section hidden absolute inset-0 bg-slate-900 z-40 flex flex-col items-center p-2 sm:p-4 overflow-hidden">
-        <!-- ... -->
-    </div>
-
-    <!-- VISTA VINCITORE FESTOSA (NUOVA - AGGIUNGI QUESTA) -->
-    <div id="view-vincitore" class="view-section hidden absolute inset-0 z-50 flex flex-col items-center justify-center p-4">
-        <div class="absolute inset-0 bg-gradient-to-br from-yellow-400 via-red-500 to-purple-600 animate-pulse"></div>
+    <meta charset="UTF-8">
+    <title>DISPLAY SHOW - Siponto Forever Young</title>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
+    <style>
+        body { 
+            background: #0f172a; 
+            color: white; 
+            overflow: hidden; 
+            font-family: 'Inter', sans-serif; 
+            margin: 0;
+            padding: 0;
+        }
+        .glass { 
+            background: rgba(255, 255, 255, 0.05); 
+            backdrop-filter: blur(10px); 
+            border: 1px solid rgba(255, 255, 255, 0.1); 
+        }
+        #qrcode img { 
+            margin: 0 auto; 
+            border: 15px solid white; 
+            border-radius: 10px; 
+        }
         
-        <div class="relative z-10 text-center max-w-4xl w-full">
-            <!-- Fuochi d'artificio animati -->
-            <div class="absolute top-0 left-0 w-20 h-20 animate-bounce">
-                <div class="text-5xl">🎆</div>
+        @keyframes countdown-pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        .countdown-critical { animation: countdown-pulse 0.5s ease-in-out infinite; }
+        
+        @keyframes confetti-fall {
+            0% { transform: translateY(-100vh) rotate(0deg); }
+            100% { transform: translateY(100vh) rotate(720deg); }
+        }
+        .confetti { 
+            position: absolute; 
+            width: 10px; 
+            height: 10px; 
+            animation: confetti-fall 3s linear infinite; 
+        }
+        
+        /* Stile per scorrimento testo lungo */
+        .scrollable-text {
+            max-height: 40vh;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+        
+        /* Personalizza la scrollbar */
+        .scrollable-text::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .scrollable-text::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        
+        .scrollable-text::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="flex flex-col h-screen p-4">
+
+    <div class="h-[10%] flex justify-between items-center border-b border-gray-700 pb-2">
+        <h1 class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-red-600">
+            SIPONTO FOREVER YOUNG
+        </h1>
+        <div id="mini-leaderboard" class="text-lg font-mono text-blue-400"></div>
+    </div>
+
+    <div class="h-[90%] relative flex items-center justify-center">
+
+        <!-- VISTA LOGO QR -->
+        <div id="view-logo" class="view-section absolute inset-0 flex flex-col items-center justify-center">
+            <div class="glass p-8 rounded-[2rem] shadow-2xl text-center animate__animated animate__fadeInDown">
+                <h2 class="text-2xl font-bold mb-4 text-white uppercase tracking-tighter">Inquadra per partecipare</h2>
+                <div id="qrcode" class="shadow-2xl"></div>
+                <p class="mt-4 text-xl font-black text-yellow-500">quizzone-game.onrender.com</p>
             </div>
-            <div class="absolute top-0 right-0 w-20 h-20 animate-bounce" style="animation-delay: 0.2s">
-                <div class="text-5xl">🎇</div>
-            </div>
-            <div class="absolute bottom-0 left-0 w-20 h-20 animate-bounce" style="animation-delay: 0.4s">
-                <div class="text-5xl">✨</div>
-            </div>
-            <div class="absolute bottom-0 right-0 w-20 h-20 animate-bounce" style="animation-delay: 0.6s">
-                <div class="text-5xl">🎉</div>
-            </div>
-            
-            <!-- Contenitore principale -->
-            <div class="glass bg-white/20 backdrop-blur-xl rounded-3xl p-8 sm:p-12 border-8 border-yellow-300 shadow-2xl">
-                <!-- Corona sopra il titolo -->
-                <div class="flex justify-center mb-6">
-                    <div class="text-6xl animate-bounce">👑</div>
+            <div class="mt-6 text-gray-500 animate-pulse text-lg uppercase tracking-widest">Attesa inizio sessione...</div>
+        </div>
+
+        <!-- VISTA GIOCO -->
+        <div id="view-gioco" class="view-section hidden absolute inset-0 flex flex-col items-center justify-center">
+            <div id="buzzer-overlay" class="hidden absolute inset-0 bg-black/90 z-50 flex flex-col items-center justify-center">
+                <p class="text-4xl text-red-500 font-black mb-6 animate__animated animate__bounceIn">⚡ PRENOTAZIONI BUZZER ⚡</p>
+                
+                <div class="bg-red-900/50 rounded-2xl p-6 max-w-3xl w-full">
+                    <div id="buzzer-queue-display" class="space-y-3"></div>
                 </div>
+            </div>
+
+            <div class="bg-gray-800/80 w-full max-w-5xl p-8 rounded-[2rem] border-t-8 border-blue-500 shadow-2xl text-center glass">
                 
-                <!-- Titolo principale -->
-                <h1 class="text-4xl sm:text-6xl font-black mb-8 text-white uppercase tracking-wider animate__animated animate__rubberBand">
-                    🏆 VINCITORE ASSOLUTO 🏆
-                </h1>
-                
-                <!-- Nome squadra vincitrice -->
-                <div id="winner-team-name" class="text-5xl sm:text-7xl font-black mb-8 text-yellow-300 bg-black/30 p-6 rounded-2xl border-4 border-yellow-500 shadow-lg animate__animated animate__pulse animate__infinite">
-                    CARICAMENTO...
+                <!-- TIMER DISPLAY -->
+                <div id="timer-display-container" class="hidden mb-6">
+                    <div class="flex justify-center items-center gap-4 mb-3">
+                        <span class="text-xl text-white font-semibold">Tempo:</span>
+                        <span id="timer-display-text" class="text-5xl font-black" style="color: #10b981;">20</span>
+                        <span class="text-2xl text-white">sec</span>
+                    </div>
+                    <div class="w-full bg-gray-700 rounded-full h-3 overflow-hidden">
+                        <div id="timer-display-bar" class="h-3 rounded-full transition-all duration-1000" style="background-color: #10b981; width: 100%;"></div>
+                    </div>
                 </div>
+
+                <h2 id="cat" class="text-xl font-bold text-blue-400 mb-4 uppercase tracking-[0.2em]">CATEGORIA</h2>
                 
-                <!-- Punteggio -->
-                <div class="text-3xl sm:text-4xl font-bold text-white mb-10">
-                    Punteggio: <span id="winner-score" class="text-yellow-300 text-4xl sm:text-5xl">0</span> punti
+                <div id="q-text" class="text-3xl font-black leading-tight mb-6 text-white scrollable-text">Caricamento domanda...</div>
+                
+                <div id="opts" class="grid grid-cols-2 gap-4 text-xl hidden"></div>
+
+                <div id="solution" class="hidden mt-6 border-t border-gray-600 pt-6 animate__animated animate__fadeInUp">
+                    <div class="text-2xl font-bold text-yellow-400 mb-3">✅ RISPOSTA CORRETTA:</div>
+                    <div class="inline-block bg-green-600 text-white px-8 py-4 rounded-full text-3xl font-black shadow-2xl uppercase italic break-words max-w-full">
+                        <span id="sol-text" class="break-words">RISPOSTA</span>
+                    </div>
+                    
+                    <!-- Risultati del round -->
+                    <div id="round-results" class="mt-6 hidden">
+                        <div class="text-xl font-bold text-blue-400 mb-2">📊 RISULTATI:</div>
+                        <div id="results-list" class="space-y-2 max-h-40 overflow-y-auto"></div>
+                    </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- VISTA CLASSIFICA ROUND -->
+        <div id="view-classifica_round" class="view-section hidden absolute inset-0 bg-indigo-950 z-40 flex flex-col items-center pt-8">
+            <h2 class="text-4xl font-black text-white mb-6 bg-indigo-600 px-10 py-3 rounded-full shadow-2xl italic">⚡ RISULTATI ROUND ⚡</h2>
+            <div class="w-full max-w-4xl h-[70vh] overflow-y-auto glass rounded-2xl p-5">
+                <table class="w-full text-left text-xl border-collapse">
+                    <thead class="text-indigo-300 border-b-2 border-indigo-800">
+                        <tr>
+                            <th class="p-3">POS</th>
+                            <th class="p-3">SQUADRA</th>
+                            <th class="p-3">RISPOSTA</th>
+                            <th class="p-3 text-right">TEMPO</th>
+                            <th class="p-3 text-right">PUNTI</th>
+                        </tr>
+                    </thead>
+                    <tbody id="round-list-body"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- VISTA CLASSIFICA GENERALE -->
+        <div id="view-classifica_gen" class="view-section hidden absolute inset-0 bg-slate-900 z-40 flex flex-col items-center pt-8">
+            <h2 class="text-4xl font-black text-yellow-500 mb-8 uppercase tracking-tighter">🏆 Classifica Generale 🏆</h2>
+            <div class="w-full max-w-3xl h-[70vh] overflow-y-auto glass rounded-[2rem] p-6">
+                <table class="w-full text-left text-2xl"><tbody id="full-leaderboard-body"></tbody></table>
+            </div>
+        </div>
+
+        <!-- VISTA BENVENUTO -->
+        <div id="view-benvenuto" class="view-section hidden absolute inset-0 bg-gradient-to-br from-purple-900 via-pink-800 to-red-900 z-40 flex flex-col items-center justify-center">
+            <div class="text-center animate__animated animate__fadeInDown">
+                <div class="text-7xl mb-6">🎉</div>
+                <h1 class="text-6xl font-black text-white mb-4 tracking-tight">BENVENUTI!</h1>
+                <p class="text-4xl text-white/90 mb-3">Siponto Forever Young</p>
+                <p class="text-3xl text-yellow-300">Preparati a giocare!</p>
+            </div>
+        </div>
+
+        <!-- VISTA REGOLE -->
+        <div id="view-regole" class="view-section hidden absolute inset-0 bg-gradient-to-br from-blue-900 to-indigo-900 z-40 flex flex-col items-center justify-center">
+            <div class="glass rounded-[2rem] p-10 max-w-4xl animate__animated animate__zoomIn">
+                <h1 class="text-5xl font-black text-white mb-6 text-center">📋 REGOLAMENTO</h1>
+                <div class="text-2xl text-white space-y-4">
+                    <div class="flex items-start gap-3">
+                        <span class="text-4xl">✅</span>
+                        <div>
+                            <p class="font-bold text-yellow-300">Quiz ABCD</p>
+                            <p class="text-xl">Rispondi veloce per bonus punti!</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <span class="text-4xl">⚡</span>
+                        <div>
+                            <p class="font-bold text-yellow-300">Buzzer</p>
+                            <p class="text-xl">Primo che preme risponde!</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <span class="text-4xl">🎯</span>
+                        <div>
+                            <p class="font-bold text-yellow-300">Bonus Velocità</p>
+                            <p class="text-xl">Più veloce = Più punti!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VISTA PUNTEGGI -->
+        <div id="view-punteggi" class="view-section hidden absolute inset-0 bg-gradient-to-br from-green-900 to-emerald-900 z-40 flex flex-col items-center justify-center">
+            <div class="glass rounded-[2rem] p-10 max-w-4xl animate__animated animate__flipInX">
+                <h1 class="text-5xl font-black text-white mb-6 text-center">💰 SISTEMA PUNTEGGI</h1>
+                <div class="text-2xl text-white space-y-3">
+                    <div class="bg-white/10 rounded-xl p-4 flex justify-between items-center">
+                        <span>Risposta in 2s:</span>
+                        <span class="text-4xl font-black text-green-400">145 pt 🔥</span>
+                    </div>
+                    <div class="bg-white/10 rounded-xl p-4 flex justify-between items-center">
+                        <span>Risposta in 10s:</span>
+                        <span class="text-4xl font-black text-yellow-400">125 pt ⚡</span>
+                    </div>
+                    <div class="bg-white/10 rounded-xl p-4 flex justify-between items-center">
+                        <span>Risposta in 20s:</span>
+                        <span class="text-4xl font-black text-white">100 pt ✓</span>
+                    </div>
+                    <div class="bg-white/10 rounded-xl p-4 flex justify-between items-center">
+                        <span>Buzzer corretto:</span>
+                        <span class="text-4xl font-black text-blue-400">100 pt</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VISTA PAUSA -->
+        <div id="view-pausa" class="view-section hidden absolute inset-0 bg-gradient-to-br from-orange-900 to-amber-900 z-40 flex flex-col items-center justify-center">
+            <div class="text-center animate__animated animate__bounceIn">
+                <div class="text-7xl mb-6">☕</div>
+                <h1 class="text-6xl font-black text-white mb-8">PAUSA</h1>
                 
-                <!-- Classifica finale -->
-                <div class="mt-10 p-6 bg-black/40 rounded-2xl">
-                    <h2 class="text-2xl sm:text-3xl font-bold text-white mb-4">🏅 CLASSIFICA FINALE</h2>
-                    <div id="final-ranking" class="space-y-3 text-left">
+                <div class="glass rounded-[2rem] p-6 max-w-3xl">
+                    <h2 class="text-3xl font-bold text-yellow-300 mb-4">📊 CLASSIFICA ATTUALE:</h2>
+                    <div id="pause-leaderboard" class="space-y-2 text-2xl text-left">
                         <!-- Popolato via JS -->
                     </div>
                 </div>
                 
-                <!-- Messaggio finale -->
-                <div class="mt-10 text-xl text-white/90 italic">
-                    Grazie per aver giocato con SIPONTO FOREVER YOUNG!
+                <p class="text-4xl text-yellow-300 mt-8 animate-pulse">⏰ Riprenderemo tra pochissimo</p>
+            </div>
+        </div>
+
+        <!-- VISTA PROSSIMA DOMANDA -->
+        <div id="view-prossima" class="view-section hidden absolute inset-0 bg-gradient-to-br from-yellow-900 to-orange-900 z-40 flex flex-col items-center justify-center">
+            <div class="text-center animate__animated animate__pulse">
+                <div class="text-7xl mb-6">⏰</div>
+                <h1 class="text-6xl font-black text-white">PROSSIMA DOMANDA</h1>
+            </div>
+        </div>
+
+        <!-- VISTA LOGO FOREVER YOUNG -->
+        <div id="view-logo_forever" class="view-section hidden absolute inset-0 bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 z-40 flex flex-col items-center justify-center">
+            <div class="text-center animate__animated animate__zoomIn">
+                <div class="text-7xl mb-6">🎮</div>
+                <h1 class="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-pink-500 to-purple-600 mb-3">
+                    FOREVER YOUNG
+                </h1>
+                <h2 class="text-5xl font-bold text-white">SIPONTO</h2>
+            </div>
+        </div>
+
+        <!-- VISTA CUSTOM -->
+        <div id="view-custom" class="view-section hidden absolute inset-0 bg-gradient-to-br from-gray-900 to-slate-900 z-40 flex flex-col items-center justify-center">
+            <div class="glass rounded-[2rem] p-12 max-w-4xl text-center animate__animated animate__fadeIn">
+                <div class="text-7xl mb-6">💬</div>
+                <p id="custom-text-display" class="text-4xl font-bold text-white leading-tight whitespace-pre-wrap break-words">
+                    Messaggio personalizzato
+                </p>
+            </div>
+        </div>
+
+        <!-- VISTA VINCITORE -->
+        <div id="view-winner" class="view-section hidden absolute inset-0 bg-gradient-to-br from-yellow-400 via-pink-500 to-purple-600 z-50 flex flex-col items-center justify-center overflow-hidden">
+            
+            <!-- Confetti animati -->
+            <div id="confetti-container" class="absolute inset-0 overflow-hidden"></div>
+            
+            <div class="relative z-10 text-center animate__animated animate__bounceIn">
+                <!-- Corona animata -->
+                <div class="text-7xl mb-6 animate__animated animate__tada animate__infinite animate__slower">
+                    👑
+                </div>
+                
+                <h1 class="text-5xl font-black text-white mb-4 drop-shadow-2xl">
+                    🏆 VINCITORE! 🏆
+                </h1>
+                
+                <div class="bg-white/20 backdrop-blur-sm rounded-[2rem] p-8 mb-8 border-8 border-yellow-300 shadow-2xl">
+                    <div class="text-5xl font-black text-white mb-4 break-words" id="winner-name">
+                        NOME SQUADRA
+                    </div>
+                    <div class="text-4xl font-bold text-yellow-300">
+                        <span id="winner-score">0</span> PUNTI
+                    </div>
+                </div>
+                
+                <div class="text-3xl text-white/90 font-bold animate__animated animate__pulse animate__infinite mb-6">
+                    🎊 COMPLIMENTI! 🎊
+                </div>
+
+                <!-- Classifica podio -->
+                <div class="glass rounded-xl p-6 max-w-3xl">
+                    <h3 class="text-3xl font-black text-white mb-4">PODIO</h3>
+                    <div id="winner-podium" class="space-y-3">
+                        <!-- Popolato via JS -->
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-</div> <!-- Questo chiude il div con class="h-[92%] relative flex..." -->
+    </div>
 
     <script>
         const socket = io();
@@ -92,10 +319,7 @@
         let maxTime = 20;
         
         function showView(id) {
-            // Nascondi tutte le viste
             document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
-            
-            // Mostra la vista richiesta
             const viewId = 'view-' + id;
             const el = document.getElementById(viewId);
             if(el) {
@@ -106,58 +330,321 @@
             }
         }
 
-        // ... TUTTO IL CODICE JAVASCRIPT ESISTENTE ...
+        socket.on('connect', () => { 
+            console.log("Display Connesso!"); 
+            showView('logo');
+        });
 
-        // Aggiungi queste nuove funzioni dopo le funzioni esistenti:
-
-        // Funzione per mostrare la schermata del vincitore
-        function mostraVincitore(vincitore, classificaCompleta) {
-            showView('vincitore');
+        // GESTIONE COMANDI REGIA
+        socket.on('cambia_vista', (data) => {
+            console.log('Ricevuto comando regia:', data.view);
+            stopTimer();
             
-            // Mostra nome squadra vincitrice
-            document.getElementById('winner-team-name').innerText = vincitore.name;
-            document.getElementById('winner-score').innerText = vincitore.score;
+            showView(data.view);
             
-            // Mostra classifica completa
-            const rankingDiv = document.getElementById('final-ranking');
-            rankingDiv.innerHTML = '';
+            // Genera QR code
+            if(data.view === 'logo') {
+                const qrDiv = document.getElementById("qrcode");
+                qrDiv.innerHTML = "";
+                try {
+                    new QRCode(qrDiv, {
+                        text: window.location.origin || "https://quizzone-game.onrender.com",
+                        width: 280,
+                        height: 280,
+                        colorDark : "#000000",
+                        colorLight : "#ffffff"
+                    });
+                } catch(e) {
+                    console.error('Errore QR:', e);
+                }
+            }
             
-            classificaCompleta.forEach((team, index) => {
-                const medals = ['🥇', '🥈', '🥉'];
-                const medal = medals[index] || `#${index + 1}`;
-                const isWinner = index === 0;
+            // Classifica round
+            if(data.view === 'classifica_round' && data.data) {
+                renderRoundList(data.data);
+            }
+            
+            // Schermata custom
+            if(data.view === 'custom' && data.data) {
+                console.log('📺 Ricevuto testo custom:', data.data.text);
+                document.getElementById('custom-text-display').textContent = data.data.text || 'Nessun messaggio';
+            }
+            
+            // Vista vincitore
+            if(data.view === 'winner' && data.data) {
+                console.log('Mostro vincitore:', data.data.winnerName);
+                document.getElementById('winner-name').textContent = data.data.winnerName.toUpperCase();
+                document.getElementById('winner-score').textContent = data.data.winnerScore;
                 
-                rankingDiv.innerHTML += `
-                    <div class="flex justify-between items-center p-3 ${isWinner ? 'bg-yellow-500/30 rounded-xl' : ''}">
-                        <div class="flex items-center gap-3">
-                            <span class="text-2xl font-bold">${medal}</span>
-                            <span class="text-xl font-bold ${isWinner ? 'text-yellow-300' : 'text-white'}">${team.name}</span>
-                        </div>
-                        <span class="text-2xl font-black ${isWinner ? 'text-yellow-300' : 'text-gray-300'}">${team.score}</span>
-                    </div>
-                `;
-            });
+                // Popola il podio
+                const podiumDiv = document.getElementById('winner-podium');
+                if (podiumDiv) {
+                    podiumDiv.innerHTML = '';
+                    if(data.data.teams && data.data.teams.length > 0) {
+                        data.data.teams.slice(0, 5).forEach((team, idx) => {
+                            const medals = ['🥇', '🥈', '🥉'];
+                            const medal = medals[idx] || `${idx + 1}°`;
+                            podiumDiv.innerHTML += `
+                                <div class="flex justify-between items-center bg-white/10 rounded-xl p-4">
+                                    <span class="text-2xl">${medal} <span class="text-xl font-bold ml-3">${team.name}</span></span>
+                                    <span class="text-2xl font-black text-yellow-400">${team.score} pt</span>
+                                </div>
+                            `;
+                        });
+                    }
+                }
+
+                // Genera confetti
+                generateConfetti();
+            }
+        });
+
+        // PAUSA GIOCO
+        socket.on('game_paused', (data) => {
+            console.log('Ricevuto comando pausa');
+            showView('pausa');
+            const leaderboard = document.getElementById('pause-leaderboard');
+            leaderboard.innerHTML = '';
             
-            // Animazioni extra
-            setTimeout(() => {
-                document.getElementById('winner-team-name').classList.add('animate__tada');
-            }, 1000);
+            if(data.teams && data.teams.length > 0) {
+                data.teams.slice(0, 5).forEach((team, idx) => {
+                    const medals = ['🥇', '🥈', '🥉'];
+                    const medal = medals[idx] || `${idx + 1}°`;
+                    leaderboard.innerHTML += `
+                        <div class="flex justify-between items-center bg-white/10 rounded-lg p-3">
+                            <span><span class="text-3xl mr-2">${medal}</span> <span class="font-bold">${team.name}</span></span>
+                            <span class="font-black text-yellow-400">${team.score} pt</span>
+                        </div>
+                    `;
+                });
+            } else {
+                leaderboard.innerHTML = '<p class="text-white/60">Nessuna squadra registrata</p>';
+            }
+        });
+
+        socket.on('game_resumed', () => {
+            console.log('Gioco ripreso');
+            showView('logo');
+        });
+
+        function renderRoundList(data) {
+            const tbody = document.getElementById('round-list-body'); 
+            tbody.innerHTML = '';
+            
+            if(data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-gray-500 text-3xl">Nessuna risposta</td></tr>';
+                return;
+            }
+
+            const sorted = [...data].sort((a, b) => (b.punti || 0) - (a.punti || 0));
+
+            sorted.forEach((entry, i) => {
+                const isCorrect = entry.corretta;
+                const rowClass = isCorrect ? 'bg-green-500/20 text-green-400' : 'text-white opacity-80';
+                const punti = entry.punti || 0;
+                tbody.innerHTML += `
+                    <tr class="border-b border-white/5 ${rowClass} animate__animated animate__fadeInLeft" style="animation-delay: ${i*0.1}s">
+                        <td class="p-4 font-mono text-xl text-indigo-400">${i+1}</td>
+                        <td class="p-4 font-black">${entry.teamName}</td>
+                        <td class="p-4 italic">${entry.risposta}</td>
+                        <td class="p-4 text-right font-mono">${entry.tempo}s</td>
+                        <td class="p-4 text-right font-black text-xl ${isCorrect ? 'text-green-400' : 'text-red-400'}">
+                            ${isCorrect ? '+' + punti : punti}
+                        </td>
+                    </tr>`;
+            });
         }
 
-        // Aggiungi questo handler per il socket DOPO gli altri handler:
-        socket.on('mostra_vincitore', (data) => {
-            console.log('Ricevuto comando per mostrare vincitore:', data);
-            mostraVincitore(data.vincitore, data.classifica);
+        // NUOVA DOMANDA
+        socket.on('nuova_domanda', (d) => {
+            console.log('Nuova domanda:', d.modalita);
+            showView('gioco');
+            stopTimer();
+            
+            document.getElementById('buzzer-overlay').classList.add('hidden');
+            document.getElementById('solution').classList.add('hidden');
+            document.getElementById('round-results').classList.add('hidden');
+            document.getElementById('cat').innerText = (d.categoria || "PROVA").toUpperCase();
+            document.getElementById('q-text').innerText = d.domanda;
+            
+            const o = document.getElementById('opts'); 
+            o.innerHTML = '';
+            
+            if(d.risposte && d.modalita !== 'buzzer' && d.modalita !== 'stima' && d.modalita !== 'anagramma') { 
+                o.classList.remove('hidden'); 
+                d.risposte.forEach((r, idx) => {
+                    o.innerHTML += `<div class="bg-white/10 p-4 rounded-xl border-2 border-white/10 shadow-lg text-xl font-bold break-words">${String.fromCharCode(65+idx)}: ${r}</div>`;
+                });
+                
+                questionStartTime = d.startTime || Date.now();
+                maxTime = 20;
+                startTimer();
+            } else {
+                o.classList.add('hidden');
+                document.getElementById('timer-display-container').classList.add('hidden');
+            }
         });
 
-        // ... RESTO DEL CODICE JAVASCRIPT ESISTENTE ...
+        // TIMER
+        function startTimer() {
+            stopTimer();
+            document.getElementById('timer-display-container').classList.remove('hidden');
+            
+            const timerText = document.getElementById('timer-display-text');
+            const timerBar = document.getElementById('timer-display-bar');
+            
+            timerBar.style.width = '100%';
+            timerBar.style.backgroundColor = '#10b981';
+            timerText.style.color = '#10b981';
+            timerText.classList.remove('countdown-critical');
+            
+            timerInterval = setInterval(() => {
+                const elapsed = (Date.now() - questionStartTime) / 1000;
+                const remaining = Math.max(0, maxTime - elapsed);
+                
+                timerText.textContent = Math.ceil(remaining);
+                timerBar.style.width = `${(remaining / maxTime) * 100}%`;
+                
+                if(remaining <= 5) {
+                    timerBar.style.backgroundColor = '#ef4444';
+                    timerText.style.color = '#ef4444';
+                    timerText.classList.add('countdown-critical');
+                } else if(remaining <= 10) {
+                    timerBar.style.backgroundColor = '#f59e0b';
+                    timerText.style.color = '#f59e0b';
+                    timerText.classList.remove('countdown-critical');
+                } else {
+                    timerBar.style.backgroundColor = '#10b981';
+                    timerText.style.color = '#10b981';
+                    timerText.classList.remove('countdown-critical');
+                }
+                
+                if(remaining <= 0) {
+                    stopTimer();
+                    timerText.textContent = '0';
+                }
+            }, 100);
+        }
 
-        socket.on('update_teams', (teams) => {
-            teams.sort((a,b) => b.score - a.score);
-            // ... codice esistente per update_teams ...
+        function stopTimer() {
+            if(timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+
+        // BUZZER
+        socket.on('buzzer_queue_update', (d) => {
+            const queueDiv = document.getElementById('buzzer-queue-display');
+            if(!queueDiv) return;
+            
+            document.getElementById('buzzer-overlay').classList.remove('hidden');
+            queueDiv.innerHTML = '';
+            
+            if(d.queue && d.queue.length > 0) {
+                d.queue.forEach((player, idx) => {
+                    const medals = ['🥇', '🥈', '🥉'];
+                    const medal = medals[idx] || `${idx + 1}°`;
+                    
+                    queueDiv.innerHTML += `
+                        <div class="bg-white/10 rounded-xl p-4 flex justify-between items-center animate__animated animate__fadeInLeft" style="animation-delay: ${idx * 0.1}s">
+                            <div class="flex items-center gap-4">
+                                <span class="text-4xl">${medal}</span>
+                                <span class="text-3xl font-black text-white uppercase break-words">${player.name}</span>
+                            </div>
+                            <span class="text-2xl text-yellow-400 font-mono">${player.time}s</span>
+                        </div>
+                    `;
+                });
+            }
         });
 
-        socket.on('reset_buzzer', () => { /* codice esistente */ });
+        socket.on('reset_buzzer_display', () => { 
+            document.getElementById('buzzer-overlay').classList.add('hidden'); 
+        });
+
+        // SOLUZIONE
+        socket.on('mostra_soluzione', (d) => {
+            stopTimer();
+            showView('gioco');
+            document.getElementById('solution').classList.remove('hidden');
+            document.getElementById('sol-text').innerText = d.soluzione || "Nessuna risposta";
+            document.getElementById('buzzer-overlay').classList.add('hidden');
+            document.getElementById('timer-display-container').classList.add('hidden');
+            
+            // Mostra risultati se disponibili
+            if(d.risultati && d.risultati.length > 0) {
+                document.getElementById('round-results').classList.remove('hidden');
+                const resultsList = document.getElementById('results-list');
+                resultsList.innerHTML = '';
+                
+                // Ordina per punti (decrescente)
+                const sortedResults = [...d.risultati].sort((a, b) => (b.punti || 0) - (a.punti || 0));
+                
+                sortedResults.forEach((result, idx) => {
+                    const isCorrect = result.corretta;
+                    const punti = result.punti || 0;
+                    const time = result.tempo || "0.00";
+                    
+                    resultsList.innerHTML += `
+                        <div class="flex justify-between items-center ${isCorrect ? 'bg-green-500/20' : 'bg-red-500/20'} p-2 rounded-lg">
+                            <span class="font-bold">${result.teamName}</span>
+                            <span class="text-sm font-mono">${time}s</span>
+                            <span class="font-black ${isCorrect ? 'text-green-400' : 'text-red-400'}">
+                                ${isCorrect ? '+' + punti : punti} pt
+                            </span>
+                        </div>
+                    `;
+                });
+            }
+        });
+
+        // CLASSIFICA
+        socket.on('update_teams', (t) => {
+            t.sort((a,b) => b.score - a.score);
+            
+            const fb = document.getElementById('full-leaderboard-body'); 
+            fb.innerHTML = '';
+            t.forEach((x,i) => {
+                const medal = i === 0 ? '🥇' : (i === 1 ? '🥈' : (i === 2 ? '🥉' : i+1));
+                fb.innerHTML += `
+                <tr class="border-b border-white/10 animate__animated animate__fadeInUp">
+                    <td class="p-4 font-black text-2xl text-gray-400 w-20">${medal}</td>
+                    <td class="p-4 text-2xl font-bold uppercase break-words">${x.name}</td>
+                    <td class="p-4 text-right text-3xl font-black text-yellow-500">${x.score}</td>
+                </tr>`;
+            });
+            
+            const mini = document.getElementById('mini-leaderboard');
+            if(t.length > 0) {
+                mini.innerText = t.slice(0,3).map(x => `${x.name}: ${x.score}`).join(' | ');
+            } else {
+                mini.innerText = 'Nessuna squadra';
+            }
+        });
+
+        // Funzione per generare confetti
+        function generateConfetti() {
+            const container = document.getElementById('confetti-container');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff'];
+            
+            for(let i = 0; i < 100; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.width = Math.random() * 15 + 5 + 'px';
+                confetti.style.height = Math.random() * 15 + 5 + 'px';
+                confetti.style.animationDelay = Math.random() * 3 + 's';
+                confetti.style.opacity = Math.random() * 0.7 + 0.3;
+                container.appendChild(confetti);
+            }
+        }
+
+        socket.on('force_reload', () => window.location.reload());
     </script>
 </body>
 </html>

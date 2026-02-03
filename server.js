@@ -49,6 +49,7 @@ let gameState = {
 app.use(express.static('public'));
 app.get('/admin', (req, res) => res.sendFile(path.join(publicPath, 'admin.html')));
 app.get('/display', (req, res) => res.sendFile(path.join(publicPath, 'display.html')));
+app.get('/preview', (req, res) => res.sendFile(path.join(publicPath, 'preview.html')));
 app.get('/', (req, res) => res.sendFile(path.join(publicPath, 'index.html')));
 
 function inviaAggiornamentoCodaAdmin() {
@@ -132,6 +133,11 @@ io.on('connection', (socket) => {
   });
 
   socket.on('prenoto', () => {
+    // Blocca preview dall'interagire
+    if (gameState.teams[socket.id] && gameState.teams[socket.id].isPreview) {
+        return; // Preview non può prenotare
+    }
+    
     if (!gameState.buzzerLocked && gameState.teams[socket.id]) {
       if (!gameState.buzzerQueue.find(p => p.id === socket.id)) {
           const reactionTime = ((Date.now() - gameState.questionStartTime) / 1000).toFixed(2);
@@ -268,6 +274,10 @@ io.on('connection', (socket) => {
   socket.on('invia_risposta', (risp) => {
       const team = gameState.teams[socket.id];
       if(!team || !gameState.currentQuestion) return;
+      
+      // Blocca preview dall'inviare risposte
+      if(team.isPreview) return;
+      
       if(gameState.roundAnswers.find(x => x.teamId === socket.id)) return;
 
       const q = gameState.currentQuestion;
@@ -287,7 +297,10 @@ io.on('connection', (socket) => {
           punti = puntiBase + Math.round(bonusVelocita);
           
           team.score += punti;
-          io.emit('update_teams', Object.values(gameState.teams));
+          
+          // Invia solo squadre reali (non preview)
+          const realTeams = Object.values(gameState.teams).filter(t => !t.isPreview);
+          io.emit('update_teams', realTeams);
       }
 
       gameState.roundAnswers.push({
@@ -323,6 +336,9 @@ io.on('connection', (socket) => {
   socket.on('login', (n) => {
     let existingTeam = Object.values(gameState.teams).find(t => t.name === n);
     
+    // Controlla se è la preview dell'admin
+    const isPreview = n === '🔍PREVIEW';
+    
     if(existingTeam) {
         if(existingTeam.removeTimer) {
             clearTimeout(existingTeam.removeTimer);
@@ -332,16 +348,26 @@ io.on('connection', (socket) => {
             id: socket.id, 
             name: n, 
             score: existingTeam.score,
-            disconnected: false
+            disconnected: false,
+            isPreview: isPreview
         };
         console.log(`✅ Riconnessione: ${n} (punteggio: ${existingTeam.score})`);
     } else {
-        gameState.teams[socket.id] = {id:socket.id, name:n, score:0, disconnected: false};
-        console.log(`🆕 Nuova squadra: ${n}`);
+        gameState.teams[socket.id] = {
+            id: socket.id, 
+            name: n, 
+            score: 0, 
+            disconnected: false,
+            isPreview: isPreview
+        };
+        console.log(`🆕 Nuova squadra: ${n}${isPreview ? ' (PREVIEW ADMIN)' : ''}`);
     }
     
-    socket.emit('login_success', {id:socket.id, name:n}); 
-    io.emit('update_teams', Object.values(gameState.teams)); 
+    socket.emit('login_success', {id: socket.id, name: n}); 
+    
+    // Invia solo le squadre NON preview
+    const realTeams = Object.values(gameState.teams).filter(t => !t.isPreview);
+    io.emit('update_teams', realTeams); 
   });
   
   socket.on('disconnect', () => { 

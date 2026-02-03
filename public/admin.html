@@ -19,18 +19,43 @@
             <button onclick="regia('gioco')" class="px-3 py-1 bg-blue-600 text-white rounded font-bold uppercase text-xs">Gioco</button>
             <button onclick="regia('classifica_round')" class="px-3 py-1 bg-purple-600 text-white rounded font-bold uppercase text-xs">Podio</button>
             <button onclick="regia('classifica_gen')" class="px-3 py-1 bg-yellow-600 text-white rounded font-bold uppercase text-xs">Generale</button>
-            <button onclick="mostraVincitore()" class="px-3 py-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded font-bold uppercase text-xs">Vincitore</button>
+        </div>
+    </div>
+
+    <!-- SCHERMATE SPECIALI -->
+    <div class="bg-gradient-to-r from-indigo-900 to-purple-900 p-2 rounded shadow mb-2">
+        <div class="flex justify-between items-center mb-2">
+            <span class="font-black text-xs text-white uppercase tracking-widest">📺 Schermate Speciali</span>
+            <div class="flex gap-1">
+                <button onclick="togglePause()" id="pause-btn" class="px-3 py-1 bg-orange-600 hover:bg-orange-500 text-white rounded font-bold text-xs">
+                    ⏸️ PAUSA
+                </button>
+            </div>
+        </div>
+        <div class="grid grid-cols-4 gap-1 mb-2">
+            <button onclick="regia('benvenuto')" class="px-2 py-1 bg-pink-600 hover:bg-pink-500 text-white rounded font-bold text-[10px]">🎉 Benvenuto</button>
+            <button onclick="regia('regole')" class="px-2 py-1 bg-blue-600 hover:bg-blue-500 text-white rounded font-bold text-[10px]">📋 Regole</button>
+            <button onclick="regia('punteggi')" class="px-2 py-1 bg-green-600 hover:bg-green-500 text-white rounded font-bold text-[10px]">🎯 Punteggi</button>
+            <button onclick="regia('prossima')" class="px-2 py-1 bg-yellow-600 hover:bg-yellow-500 text-white rounded font-bold text-[10px]">⏰ Prossima</button>
+        </div>
+        <div class="grid grid-cols-2 gap-1">
+            <button onclick="regia('logo_forever')" class="px-2 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded font-bold text-[10px]">🎮 Logo FY</button>
+            <button onclick="toggleCustomEditor()" class="px-2 py-1 bg-purple-600 hover:bg-purple-500 text-white rounded font-bold text-[10px]">✏️ Custom</button>
+        </div>
+        
+        <!-- EDITOR SCHERMATA CUSTOM -->
+        <div id="custom-editor" class="hidden mt-2 bg-black/30 rounded p-2">
+            <textarea id="custom-text" class="w-full h-20 p-2 rounded text-sm text-black" placeholder="Scrivi il tuo messaggio..."></textarea>
+            <div class="grid grid-cols-2 gap-1 mt-1">
+                <button onclick="saveCustomScreen()" class="px-2 py-1 bg-green-600 hover:bg-green-500 text-white rounded font-bold text-[10px]">💾 Salva</button>
+                <button onclick="showCustomScreen()" class="px-2 py-1 bg-blue-600 hover:bg-blue-500 text-white rounded font-bold text-[10px]">📺 Mostra</button>
+            </div>
         </div>
     </div>
 
     <div class="grid grid-cols-12 gap-2 flex-1 overflow-hidden">
         
         <div class="col-span-4 bg-white p-3 rounded shadow overflow-y-auto flex flex-col">
-            <!-- SELEZIONE PACCHETTO -->
-            <select id="sel-package" class="w-full border-2 border-green-500 p-2 rounded font-bold mb-2 text-gray-800">
-    <option value="1">Pacchetto Principale</option>
-</select>
-
             <select id="sel-tipo" class="w-full border-2 border-blue-500 p-2 rounded font-bold mb-2 text-gray-800">
                 <option value="">-- SELEZIONA MODALITÀ --</option>
                 <option value="categoria">📂 CATEGORIE</option>
@@ -38,9 +63,7 @@
                 <option value="anagramma">🧩 ANAGRAMMA</option>
                 <option value="bonus">💰 BONUS</option>
             </select>
-            <select id="sel-cat" class="w-full border p-1 rounded mb-2 text-gray-800" disabled>
-                <option value="">-- SCEGLI CATEGORIA --</option>
-            </select>
+            <select id="sel-cat" class="w-full border p-1 rounded mb-2 text-gray-800" disabled></select>
             <select id="sel-dom" class="w-full border p-1 rounded mb-2 h-48 text-gray-800" size="10" disabled></select>
             
             <div class="grid grid-cols-2 gap-2 mt-auto">
@@ -61,15 +84,6 @@
                 <!-- Lista completa buzzer -->
                 <div id="buzzer-queue-list" class="bg-red-900/50 rounded p-3 max-h-64 overflow-y-auto">
                     <!-- Popolato via JS -->
-                </div>
-                
-                <div class="grid grid-cols-2 gap-2 mt-3">
-                    <button onclick="buzzerCorrect()" class="bg-green-700 hover:bg-green-600 py-2 rounded font-bold uppercase text-sm">
-                        ✅ Assegna Punti
-                    </button>
-                    <button onclick="buzzerWrong()" class="bg-gray-800 hover:bg-gray-700 py-2 rounded font-bold uppercase text-sm">
-                        ❌ Risposta Sbagliata
-                    </button>
                 </div>
                 
                 <button onclick="chiudiBuzzer()" class="w-full bg-gray-800 hover:bg-gray-700 text-white mt-3 py-2 rounded font-bold uppercase text-sm">
@@ -107,6 +121,7 @@
                 <button onclick="toggleLock(false)" class="bg-green-700 hover:bg-green-600 py-2 rounded font-bold uppercase text-xs shadow-inner">🔓 Apri Buzzer</button>
                 <button onclick="toggleLock(true)" class="bg-gray-700 hover:bg-gray-600 py-2 rounded font-bold uppercase text-xs shadow-inner">🔒 Blocca</button>
             </div>
+            <button onclick="resetBuzzer()" class="w-full bg-blue-600 hover:bg-blue-500 mt-1 py-2 rounded font-bold uppercase text-xs">🔄 Reset Buzzer</button>
         </div>
 
         <div class="col-span-3 bg-white p-3 rounded shadow flex flex-col text-gray-800">
@@ -123,119 +138,29 @@
     <script>
         const socket = io();
         let currentQuestions = [], selectedQ = null, dbStructure = {};
-        let currentRoundAnswers = [];
 
         socket.on('connect', () => { socket.emit('admin_connect'); });
         
         socket.on('init_data', (d) => { 
             dbStructure = d; 
             updateTeams(d.teams); 
-            
-            // Popola dropdown pacchetti
-            const packageSelect = document.getElementById('sel-package');
-            packageSelect.innerHTML = '<option value="">-- SELEZIONA PACCHETTO --</option>';
-            d.packages.forEach(pkg => {
-                packageSelect.innerHTML += `<option value="${pkg.id}" ${pkg.id === d.currentPackage ? 'selected' : ''}>${pkg.name}</option>`;
-            });
-            
-            // Popola dropdown categorie (se presente)
-            const catSelect = document.getElementById('sel-cat');
-            catSelect.innerHTML = '<option value="">-- SCEGLI CATEGORIA --</option>';
-            if (d.categories && d.categories.length > 0) {
-                d.categories.forEach(c => {
-                    catSelect.innerHTML += `<option value="${c}">${c}</option>`;
-                });
-            }
-        });
-
-        // Evento quando il pacchetto viene cambiato
-        socket.on('package_selected', (data) => {
-            console.log('Pacchetto selezionato:', data);
-            
-            // Aggiorna il testo del pacchetto selezionato
-            const packageSelect = document.getElementById('sel-package');
-            if (packageSelect.value !== data.packageId) {
-                packageSelect.value = data.packageId;
-            }
-            
-            // Popola il dropdown delle categorie
-            const catSelect = document.getElementById('sel-cat');
-            catSelect.innerHTML = '<option value="">-- SCEGLI CATEGORIA --</option>';
-            
-            if (data.categories && data.categories.length > 0) {
-                data.categories.forEach(c => {
-                    catSelect.innerHTML += `<option value="${c}">${c}</option>`;
-                });
-                catSelect.disabled = false;
-            } else {
-                catSelect.innerHTML = '<option value="">Nessuna categoria disponibile</option>';
-                catSelect.disabled = true;
-            }
-            
-            // Resetta le domande
-            document.getElementById('sel-dom').innerHTML = '';
-            document.getElementById('sel-dom').disabled = true;
-            currentQuestions = [];
-            selectedQ = null;
-        });
-
-        // Aggiungi evento change al dropdown pacchetti
-        document.getElementById('sel-package').addEventListener('change', (e) => {
-            const packageId = e.target.value;
-            if (packageId) {
-                socket.emit('select_package', packageId);
-            }
         });
 
         // Caricamento domande nelle tendine
         document.getElementById('sel-tipo').addEventListener('change', (e) => {
             const t = e.target.value;
             const sc = document.getElementById('sel-cat');
-            
+            sc.innerHTML = '<option value="">-- SCEGLI CATEGORIA --</option>';
             if(t === 'categoria') {
-                // Controlla se abbiamo già selezionato un pacchetto
-                const currentPackageId = document.getElementById('sel-package').value;
-                if (!currentPackageId) {
-                    alert('Seleziona prima un pacchetto!');
-                    e.target.value = ''; // Resetta la selezione
-                    return;
-                }
-                
-                // Se il dropdown categorie è già popolato, abilitalo
-                if (sc.options.length > 1) {
-                    sc.disabled = false;
-                } else {
-                    // Altrimenti richiedi le categorie al server
-                    socket.emit('get_categories', { packageId: currentPackageId });
-                }
+                sc.disabled = false;
+                dbStructure.categories.forEach(c => sc.innerHTML += `<option value="${c}">${c.replace('_',' ')}</option>`);
             } else {
                 sc.disabled = true;
-                const currentPackageId = document.getElementById('sel-package').value;
-                if (currentPackageId) {
-                    socket.emit('get_questions', {type: t});
-                }
-            }
-        });
-
-        // Evento per ricevere le categorie
-        socket.on('categories_list', (data) => {
-            const catSelect = document.getElementById('sel-cat');
-            catSelect.innerHTML = '<option value="">-- SCEGLI CATEGORIA --</option>';
-            
-            if (data.categories && data.categories.length > 0) {
-                data.categories.forEach(c => {
-                    catSelect.innerHTML += `<option value="${c}">${c}</option>`;
-                });
-                catSelect.disabled = false;
+                socket.emit('get_questions', {type: t});
             }
         });
 
         document.getElementById('sel-cat').addEventListener('change', (e) => {
-            const currentPackageId = document.getElementById('sel-package').value;
-            if (!currentPackageId) {
-                alert('Seleziona prima un pacchetto!');
-                return;
-            }
             socket.emit('get_questions', {type: 'categoria', key: e.target.value});
         });
 
@@ -245,9 +170,7 @@
             s.disabled = false;
             s.innerHTML = '';
             q.forEach((item, i) => {
-                const difficoltaEmoji = item.difficolta === 'facile' ? '🟢' : 
-                                       item.difficolta === 'medio' ? '🟡' : '🔴';
-                s.innerHTML += `<option value="${i}">${difficoltaEmoji} ${item.domanda.substring(0,40)}...</option>`;
+                s.innerHTML += `<option value="${i}">${item.domanda.substring(0,40)}...</option>`;
             });
         });
 
@@ -257,58 +180,31 @@
 
         // Gestione Risposte Live (Monitor Centrale)
         socket.on('update_round_monitor', (data) => {
-            currentRoundAnswers = data;
             const table = document.getElementById('round-table');
             document.getElementById('answers-count').innerText = `${data.length} risposte`;
             table.innerHTML = '';
             
-            data.forEach((res, index) => {
+            data.forEach((res) => {
                 const bg = res.corretta ? 'text-green-400' : 'text-red-400';
                 const punti = res.punti || 0;
                 const puntiColor = res.corretta ? 'text-green-400' : 'text-gray-600';
-                
-                let puntiCell;
-                if (res.corretta) {
-                    puntiCell = `
-                        <td class="text-right pr-2">
-                            <div class="flex items-center justify-end space-x-1">
-                                <button onclick="updatePoints(${index}, -10)" class="bg-gray-800 text-gray-400 w-6 h-6 rounded flex items-center justify-center hover:bg-gray-700 text-xs">-10</button>
-                                <span class="font-black text-sm ${puntiColor} px-2">+${punti}</span>
-                                <button onclick="updatePoints(${index}, 10)" class="bg-gray-800 text-gray-400 w-6 h-6 rounded flex items-center justify-center hover:bg-gray-700 text-xs">+10</button>
-                            </div>
-                        </td>
-                    `;
-                } else {
-                    puntiCell = `<td class="text-right font-black text-sm ${puntiColor} pr-2">${punti}</td>`;
-                }
                 
                 table.innerHTML += `
                     <tr class="border-b border-gray-800 animate-in fade-in duration-300">
                         <td class="py-2 font-bold">${res.teamName}</td>
                         <td class="px-2 font-mono ${bg}">${res.corretta ? '✅' : '❌'} ${res.risposta}</td>
                         <td class="text-right text-gray-500 text-[10px]">${res.tempo}s</td>
-                        ${puntiCell}
+                        <td class="text-right font-black text-sm ${puntiColor} pr-2">${res.corretta ? '+' : ''}${punti}</td>
                     </tr>`;
             });
             
+            // Mostra bottone "Mostra Soluzione" se ci sono risposte
             if(data.length > 0) {
                 document.getElementById('show-solution-btn').classList.remove('hidden');
             }
         });
 
-        // Funzione per aggiornare manualmente i punti
-        function updatePoints(answerIndex, delta) {
-            if (!currentRoundAnswers[answerIndex]) return;
-            const currentPoints = currentRoundAnswers[answerIndex].punti;
-            const newPoints = Math.max(0, currentPoints + delta);
-            socket.emit('update_answer_points', { 
-                answerIndex: answerIndex, 
-                newPoints: newPoints 
-            });
-        }
-
         socket.on('reset_round_monitor', () => {
-            currentRoundAnswers = [];
             document.getElementById('round-table').innerHTML = '';
             document.getElementById('answers-count').innerText = "0 risposte";
             document.getElementById('buzzer-alert').classList.add('hidden');
@@ -316,7 +212,7 @@
             document.getElementById('show-solution-btn').classList.add('hidden');
         });
 
-        // Gestione Buzzer
+        // Gestione Buzzer - NUOVA VERSIONE CON LISTA COMPLETA
         socket.on('buzzer_queue_full', (d) => {
             document.getElementById('classic-monitor').classList.add('hidden');
             document.getElementById('buzzer-alert').classList.remove('hidden');
@@ -374,19 +270,7 @@
             });
         }
 
-        function lancia(m) { 
-            if(!selectedQ) {
-                alert('Seleziona una domanda prima!');
-                return;
-            }
-            const currentPackageId = document.getElementById('sel-package').value;
-            if (!currentPackageId) {
-                alert('Seleziona prima un pacchetto!');
-                return;
-            }
-            socket.emit('invia_domanda', {...selectedQ, modalita: m}); 
-        }
-        
+        function lancia(m) { if(selectedQ) socket.emit('invia_domanda', {...selectedQ, modalita: m}); }
         function toggleLock(s) { socket.emit('toggle_buzzer_lock', s); }
         function buzzerCorrect() { socket.emit('buzzer_correct_assign', {points: 100}); }
         function buzzerWrong() { socket.emit('buzzer_wrong_next'); }
@@ -394,6 +278,7 @@
         function punti(id, p) { socket.emit('admin_punti_manuali', {id: id, punti: p}); }
         function resetGame() { if(confirm("Vuoi resettare tutti i punteggi e le squadre?")) socket.emit('reset_game'); }
         
+        // Nuovo sistema buzzer
         function assignPoints(teamId, points) {
             socket.emit('buzzer_assign_points', { teamId: teamId, points: points });
         }
@@ -404,22 +289,54 @@
             document.getElementById('classic-monitor').classList.remove('hidden');
         }
         
+        // NUOVO: Reset buzzer per gioco musicale
+        function resetBuzzer() {
+            socket.emit('buzzer_reset');
+            document.getElementById('buzzer-alert').classList.add('hidden');
+            document.getElementById('classic-monitor').classList.remove('hidden');
+        }
+        
+        // NUOVO: Pausa/Riprendi gioco
+        let isPaused = false;
+        function togglePause() {
+            const btn = document.getElementById('pause-btn');
+            if(isPaused) {
+                socket.emit('resume_game');
+                btn.innerHTML = '⏸️ PAUSA';
+                btn.className = 'px-3 py-1 bg-orange-600 hover:bg-orange-500 text-white rounded font-bold text-xs';
+                isPaused = false;
+            } else {
+                socket.emit('pause_game');
+                btn.innerHTML = '▶️ RIPRENDI';
+                btn.className = 'px-3 py-1 bg-green-600 hover:bg-green-500 text-white rounded font-bold text-xs';
+                isPaused = true;
+            }
+        }
+        
+        // NUOVO: Editor schermata custom
+        function toggleCustomEditor() {
+            const editor = document.getElementById('custom-editor');
+            editor.classList.toggle('hidden');
+        }
+        
+        function saveCustomScreen() {
+            const text = document.getElementById('custom-text').value;
+            socket.emit('save_custom_screen', { text: text });
+            alert('✅ Schermata salvata!');
+        }
+        
+        function showCustomScreen() {
+            socket.emit('show_custom_screen');
+        }
+        
+        // Mostra la soluzione sul display
         function mostraSoluzioneSuDisplay() {
             if(selectedQ && selectedQ.corretta !== undefined) {
                 let soluzione = selectedQ.corretta;
                 if(typeof selectedQ.corretta === 'number' && selectedQ.risposte) {
                     soluzione = selectedQ.risposte[selectedQ.corretta];
                 }
-                socket.emit('mostra_soluzione', { soluzione: soluzione, risultati: currentRoundAnswers });
-            }
-        }
-        
-        // Funzione per mostrare il vincitore
-        function mostraVincitore() {
-            // Chiedi conferma
-            if (confirm("Vuoi mostrare il vincitore finale? Assicurati che il gioco sia finito.")) {
-                // Emetti un evento al server
-                socket.emit('mostra_vincitore_finale');
+                socket.emit('mostra_soluzione', { soluzione: soluzione, risultati: [] });
             }
         }
     </script>

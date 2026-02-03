@@ -22,11 +22,9 @@ try {
       fullDb.anagramma = rawData.pacchetti["1"].anagramma || [];
       console.log('✅ Caricato pacchetto con categorie:', Object.keys(fullDb.categorie));
     } 
-    // Gestione vecchia struttura diretta
     else if(rawData.categorie) {
       fullDb = rawData;
     }
-    // Fallback: considera tutto come categorie
     else {
       fullDb.categorie = rawData;
     }
@@ -45,13 +43,8 @@ let gameState = {
   buzzerQueue: [],      
   buzzerLocked: true,
   isPaused: false,
-  customScreen: {            
-    text: "Messaggio personalizzato"
-  }
+  customScreen: { text: "Messaggio personalizzato" }
 };
-
-// Variabile per celebrazione vincitore
-let winnerCelebrationActive = false;
 
 app.use(express.static('public'));
 app.get('/admin', (req, res) => res.sendFile(path.join(publicPath, 'admin.html')));
@@ -105,7 +98,7 @@ io.on('connection', (socket) => {
         if (d.risposte) datiPerClient.risposte = d.risposte;
     }
 
-    io.emit('cambia_vista', { view: 'game' });
+    io.emit('cambia_vista', { view: 'gioco' });
     io.emit('nuova_domanda', datiPerClient);
     
     io.emit('stato_buzzer', { 
@@ -123,6 +116,17 @@ io.on('connection', (socket) => {
     }
   });
 
+  // BUZZER STANDALONE - Apre buzzer SENZA domanda (per gioco musicale)
+  socket.on('open_buzzer_standalone', () => {
+    gameState.buzzerQueue = [];
+    gameState.buzzerLocked = false;
+    gameState.questionStartTime = Date.now();
+    
+    io.emit('buzzer_standalone_mode', { active: true });
+    io.emit('stato_buzzer', { locked: false, attiva: true });
+    console.log('🎵 Buzzer aperto in modalità standalone (gioco musicale)');
+  });
+
   socket.on('prenoto', () => {
     if (!gameState.buzzerLocked && gameState.teams[socket.id]) {
       if (!gameState.buzzerQueue.find(p => p.id === socket.id)) {
@@ -137,7 +141,6 @@ io.on('connection', (socket) => {
           });
           
           io.to(socket.id).emit('buzzer_position', { position: position, time: reactionTime });
-          
           io.emit('buzzer_queue_update', { queue: gameState.buzzerQueue });
           inviaAggiornamentoCodaAdmin();
       }
@@ -169,7 +172,7 @@ io.on('connection', (socket) => {
         if(gameState.teams[winner.id]) gameState.teams[winner.id].score += parseInt(data.points);
         gameState.roundAnswers.push({ teamName: winner.name, risposta: "Risposta Vocale", corretta: true, tempo: winner.time || "---", punti: data.points });
         io.emit('update_teams', Object.values(gameState.teams));
-        io.emit('mostra_soluzione', { soluzione: gameState.currentQuestion.corretta, risultati: gameState.roundAnswers });
+        io.emit('mostra_soluzione', { soluzione: gameState.currentQuestion ? gameState.currentQuestion.corretta : "Corretto!", risultati: gameState.roundAnswers });
         gameState.buzzerQueue = [];
         io.to('admin').emit('reset_buzzer_admin');
     }
@@ -183,10 +186,25 @@ io.on('connection', (socket) => {
   socket.on('buzzer_reset', () => {
     gameState.buzzerQueue = [];
     gameState.buzzerLocked = false;
+    gameState.questionStartTime = Date.now();
     io.emit('buzzer_queue_update', { queue: [] });
     io.emit('stato_buzzer', { locked: false, attiva: true });
     io.to('admin').emit('buzzer_queue_full', { queue: [], correctAnswer: "---" });
+    io.emit('reset_buzzer_display');
     console.log('🔄 Buzzer resettato per nuovo round');
+  });
+
+  // RESET DISPLAY COMPLETO
+  socket.on('reset_displays', () => {
+    gameState.currentQuestion = null;
+    gameState.roundAnswers = [];
+    gameState.buzzerQueue = [];
+    gameState.buzzerLocked = true;
+    
+    io.emit('cambia_vista', { view: 'logo' });
+    io.emit('reset_client_ui');
+    io.to('admin').emit('reset_round_monitor');
+    console.log('🔄 Display e telefoni resettati');
   });
 
   socket.on('pause_game', () => {
@@ -200,10 +218,10 @@ io.on('connection', (socket) => {
   socket.on('resume_game', () => {
     gameState.isPaused = false;
     io.emit('game_resumed');
+    io.emit('cambia_vista', { view: 'logo' });
     console.log('▶️ Gioco ripreso');
   });
 
-  // CORREZIONE: Salva schermata custom con testo fornito
   socket.on('save_custom_screen', (data) => {
     gameState.customScreen.text = data.text || "Messaggio personalizzato";
     console.log('💾 Schermata custom salvata:', gameState.customScreen.text);
@@ -220,15 +238,13 @@ io.on('connection', (socket) => {
     console.log('📺 Mostro schermata custom:', gameState.customScreen.text);
   });
 
-  // NUOVO: Mostra celebrazione vincitore
+  // CELEBRAZIONE VINCITORE
   socket.on('show_winner', () => {
     const sortedTeams = Object.values(gameState.teams).sort((a,b) => b.score - a.score);
     const winner = sortedTeams[0] || null;
     
     if(winner) {
-      winnerCelebrationActive = true;
       console.log(`🎉 Mostro vincitore: ${winner.name} con ${winner.score} punti`);
-      
       io.emit('cambia_vista', { 
         view: 'winner',
         data: { 
@@ -237,11 +253,6 @@ io.on('connection', (socket) => {
           teams: sortedTeams
         }
       });
-      
-      // Dopo 10 secondi, disattiva la celebrazione
-      setTimeout(() => {
-        winnerCelebrationActive = false;
-      }, 10000);
     }
   });
 
@@ -267,13 +278,9 @@ io.on('connection', (socket) => {
       let punti = 0;
       if(isCorrect) {
           const puntiBase = q.punti || 100;
-          // CALCOLO BONUS VELOCITÀ ORIGINALE
-          let bonusVelocita = 0;
-          if (tempoSecondi <= 10) bonusVelocita = 50;
-          else if (tempoSecondi <= 20) bonusVelocita = 25;
-          else if (tempoSecondi <= 30) bonusVelocita = 10;
-          
-          punti = puntiBase + bonusVelocita;
+          // Bonus velocità lineare che decresce
+          const bonusVelocita = Math.max(0, 50 - (tempoSecondi * 2.5));
+          punti = puntiBase + Math.round(bonusVelocita);
           
           team.score += punti;
           io.emit('update_teams', Object.values(gameState.teams));
@@ -291,7 +298,9 @@ io.on('connection', (socket) => {
       io.to('admin').emit('update_round_monitor', gameState.roundAnswers);
   });
 
-  socket.on('regia_cmd', (cmd) => io.emit('cambia_vista', { view: cmd, data: gameState.roundAnswers }));
+  socket.on('regia_cmd', (cmd) => {
+    io.emit('cambia_vista', { view: cmd, data: gameState.roundAnswers });
+  });
   
   socket.on('reset_game', () => { 
     gameState.teams = {}; 
@@ -334,7 +343,6 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => { 
     if(gameState.teams[socket.id]) {
         const teamName = gameState.teams[socket.id].name;
-        const teamScore = gameState.teams[socket.id].score;
         
         if(gameState.isPaused) {
             gameState.teams[socket.id].disconnected = true;
@@ -347,11 +355,11 @@ io.on('connection', (socket) => {
         
         gameState.teams[socket.id].removeTimer = setTimeout(() => {
             if(gameState.teams[socket.id] && gameState.teams[socket.id].disconnected) {
-                console.log(`❌ Rimosso definitivamente: ${teamName} (disconnesso per più di 15 minuti)`);
+                console.log(`❌ Rimosso: ${teamName} (oltre 15 minuti)`);
                 delete gameState.teams[socket.id];
                 io.emit('update_teams', Object.values(gameState.teams));
             }
-        }, 900000);
+        }, 900000); // 15 minuti
     }
   });
 });
@@ -369,9 +377,11 @@ Server in ascolto sulla porta: ${PORT}
 🎯 Giocatori:  http://localhost:${PORT}/
 📺 Display:    http://localhost:${PORT}/display
 
-✅ Calcolo punteggi automatico con bonus velocità attivo!
-✅ Schermata personalizzata funzionante!
-✅ Celebrazione vincitore attiva!
+✅ Bonus velocità lineare attivo!
+✅ Buzzer standalone per giochi musicali!
+✅ Reset display completo!
+✅ Celebrazione vincitore con confetti!
+✅ Grace period 15 minuti!
 
 Pronto per il gioco!
 `));

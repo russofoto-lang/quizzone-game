@@ -12,9 +12,27 @@ const jsonPath = path.join(publicPath, 'domande.json');
 let fullDb = { categorie: {}, raffica: [], bonus: [], stima: [], anagramma: [] };
 try {
   if (fs.existsSync(jsonPath)) {
-    fullDb = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
+    const rawData = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
+    
+    // Gestione nuova struttura con "pacchetti"
+    if(rawData.pacchetti && rawData.pacchetti["1"] && rawData.pacchetti["1"].categorie) {
+      fullDb.categorie = rawData.pacchetti["1"].categorie;
+      console.log('✅ Caricato pacchetto con categorie:', Object.keys(fullDb.categorie));
+    } 
+    // Gestione vecchia struttura diretta
+    else if(rawData.categorie) {
+      fullDb = rawData;
+    }
+    // Fallback: considera tutto come categorie
+    else {
+      fullDb.categorie = rawData;
+    }
+  } else {
+    console.warn('⚠️ File domande.json non trovato');
   }
-} catch (e) { console.error("Errore JSON:", e.message); }
+} catch (e) { 
+  console.error("❌ Errore caricamento JSON:", e.message); 
+}
 
 let gameState = {
   teams: {},           

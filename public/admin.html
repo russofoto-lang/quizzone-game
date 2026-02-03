@@ -52,12 +52,13 @@
             <button onclick="mostraSoluzioneSuDisplay()" class="px-2 py-1 bg-green-600 hover:bg-green-500 text-white rounded font-bold text-[10px]">✅ Mostra Risposta</button>
         </div>
         
-        <!-- EDITOR SCHERMATA CUSTOM -->
+        <!-- EDITOR SCHERMATA CUSTOM - MODIFICATO -->
         <div id="custom-editor" class="hidden mt-2 bg-black/30 rounded p-2">
-            <textarea id="custom-text" class="w-full h-20 p-2 rounded text-sm text-black" placeholder="Scrivi il tuo messaggio...">Messaggio personalizzato</textarea>
-            <div class="grid grid-cols-2 gap-1 mt-1">
+            <textarea id="custom-text" class="w-full h-20 p-2 rounded text-sm text-black" placeholder="Scrivi il tuo messaggio per il display..."></textarea>
+            <div class="grid grid-cols-3 gap-1 mt-1">
                 <button onclick="saveCustomScreen()" class="px-2 py-1 bg-green-600 hover:bg-green-500 text-white rounded font-bold text-[10px]">💾 Salva</button>
-                <button onclick="showCustomScreen()" class="px-2 py-1 bg-blue-600 hover:bg-blue-500 text-white rounded font-bold text-[10px]">📺 Mostra</button>
+                <button onclick="showCustomScreen()" class="px-2 py-1 bg-blue-600 hover:bg-blue-500 text-white rounded font-bold text-[10px]">📺 Salva & Mostra</button>
+                <button onclick="sendCustomMessage()" class="px-2 py-1 bg-purple-600 hover:bg-purple-500 text-white rounded font-bold text-[10px]">🚀 Invia Diretto</button>
             </div>
         </div>
     </div>
@@ -470,20 +471,49 @@
             }
         }
         
-        // EDITOR SCHERMATA CUSTOM
+        // EDITOR SCHERMATA CUSTOM - CORRETTO
         function toggleCustomEditor() {
             const editor = document.getElementById('custom-editor');
             editor.classList.toggle('hidden');
         }
         
         function saveCustomScreen() {
-            const text = document.getElementById('custom-text').value || "Messaggio personalizzato";
+            const text = document.getElementById('custom-text').value.trim();
+            if (text === "") {
+                showAlert('⚠️ Inserisci un messaggio!', 'warning');
+                return;
+            }
+            
             socket.emit('save_custom_screen', { text: text });
-            alert('✅ Schermata salvata!\n\n"' + text + '"');
+            showAlert(`✅ Schermata salvata: "${text}"`, 'success');
         }
         
         function showCustomScreen() {
+            const text = document.getElementById('custom-text').value.trim();
+            if (text === "") {
+                showAlert('⚠️ Inserisci un messaggio prima di mostrarlo!', 'warning');
+                return;
+            }
+            
+            // Salva e mostra immediatamente
+            socket.emit('save_custom_screen', { text: text });
             socket.emit('show_custom_screen');
+            
+            showAlert(`📺 Mostrando: "${text}"`, 'success');
+        }
+        
+        // NUOVA FUNZIONE: Invia messaggio diretto
+        function sendCustomMessage() {
+            const text = document.getElementById('custom-text').value.trim();
+            if (text === "") {
+                showAlert('⚠️ Inserisci un messaggio!', 'warning');
+                return;
+            }
+            
+            socket.emit('save_custom_screen', { text: text });
+            socket.emit('show_custom_screen');
+            
+            showAlert(`🚀 Messaggio inviato: "${text}"`, 'success');
         }
         
         // MOSTRA CELEBRAZIONE VINCITORE

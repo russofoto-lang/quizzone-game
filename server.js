@@ -9,30 +9,12 @@ const PORT = process.env.PORT || 3001;
 const publicPath = path.join(__dirname, 'public');
 const jsonPath = path.join(publicPath, 'domande.json');
 
-// Struttura dati per pacchetti
-let fullDb = { 
-  pacchetti: {
-    "1": { nome: "Pacchetto Principale", categorie: {}, bonus: [], stima: [], anagramma: [] }
-  }
-};
-
-// Carica i dati dal file domande.json
+let fullDb = { categorie: {}, raffica: [], bonus: [], stima: [], anagramma: [] };
 try {
   if (fs.existsSync(jsonPath)) {
-    const data = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
-    if (data.pacchetti) {
-      fullDb.pacchetti = data.pacchetti;
-      console.log(`✅ Caricati ${Object.keys(data.pacchetti).length} pacchetto/i da domande.json`);
-    } else {
-      console.log("⚠️  Formato vecchio di domande.json, usando pacchetto predefinito");
-    }
-  } else {
-    console.log("❌ File domande.json non trovato nella cartella public/");
-    console.log("📄 Crea il file domande.json con la struttura corretta");
+    fullDb = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
   }
-} catch (e) { 
-  console.error("❌ Errore caricamento domande.json:", e.message);
-}
+} catch (e) { console.error("Errore JSON:", e.message); }
 
 let gameState = {
   teams: {},           
@@ -40,10 +22,12 @@ let gameState = {
   questionStartTime: 0,
   roundAnswers: [], 
   buzzerQueue: [],      
-  buzzerLocked: true    
+  buzzerLocked: true,
+  isPaused: false,           // NUOVO: stato pausa
+  customScreen: {            // NUOVO: schermata personalizzabile
+    text: "Messaggio personalizzato"
+  }
 };
-
-let currentPackageId = "1"; // Pacchetto corrente
 
 app.use(express.static('public'));
 app.get('/admin', (req, res) => res.sendFile(path.join(publicPath, 'admin.html')));
@@ -59,90 +43,21 @@ function inviaAggiornamentoCodaAdmin() {
     }
 }
 
-// Funzione per determinare e mostrare il vincitore
-function mostraVincitoreFinale() {
-    const teams = Object.values(gameState.teams);
-    
-    if (teams.length === 0) {
-        console.log("Nessuna squadra registrata");
-        io.emit('mostra_vincitore', { 
-            name: "Nessun vincitore", 
-            score: 0,
-            message: "Nessuna squadra registrata!" 
-        });
-        return;
-    }
-    
-    // Ordina le squadre per punteggio (decrescente)
-    teams.sort((a, b) => b.score - a.score);
-    
-    // La prima è il vincitore
-    const vincitore = teams[0];
-    
-    // Invia al display
-    io.emit('mostra_vincitore', vincitore);
-    console.log(`🎉 Vincitore: ${vincitore.name} con ${vincitore.score} punti`);
-    
-    // Invia anche la classifica completa
-    io.emit('classifica_finale', teams);
-}
-
 io.on('connection', (socket) => {
   socket.on('admin_connect', () => {
     socket.join('admin');
-    const packageList = Object.keys(fullDb.pacchetti).map(id => ({ 
-      id, 
-      name: fullDb.pacchetti[id].nome || `Pacchetto ${id}` 
-    }));
-    
-    const currentPackage = fullDb.pacchetti[currentPackageId];
     socket.emit('init_data', { 
-      packages: packageList,
-      currentPackage: currentPackageId,
-      categories: currentPackage && currentPackage.categorie ? Object.keys(currentPackage.categorie) : [],
-      teams: Object.values(gameState.teams) 
+        categories: fullDb.categorie ? Object.keys(fullDb.categorie) : [],
+        teams: Object.values(gameState.teams) 
     });
-  });
-
-  socket.on('select_package', (packageId) => {
-    if (fullDb.pacchetti[packageId]) {
-      currentPackageId = packageId;
-      const currentPackage = fullDb.pacchetti[currentPackageId];
-      
-      // Invia l'elenco aggiornato delle categorie
-      io.to('admin').emit('package_selected', { 
-        packageId: currentPackageId,
-        packageName: currentPackage.nome || `Pacchetto ${currentPackageId}`,
-        categories: Object.keys(currentPackage.categorie)
-      });
-      
-      console.log(`📦 Pacchetto selezionato: ${currentPackageId} - ${currentPackage.nome}`);
-      console.log(`📚 Categorie caricate:`, Object.keys(currentPackage.categorie));
-    }
-  });
-
-  // Nuovo evento per ottenere le categorie
-  socket.on('get_categories', (data) => {
-    const packageId = data.packageId || currentPackageId;
-    if (fullDb.pacchetti[packageId]) {
-      const currentPackage = fullDb.pacchetti[packageId];
-      socket.emit('categories_list', {
-        packageId: packageId,
-        categories: Object.keys(currentPackage.categorie)
-      });
-    }
   });
 
   socket.on('get_questions', (p) => {
     let list = [];
-    const currentPackage = fullDb.pacchetti[currentPackageId];
-    if (!currentPackage) return socket.emit('receive_questions', []);
-
-    if (p.type === 'categoria') {
-      list = currentPackage.categorie[p.key] || [];
-    } else if (p.type === 'bonus') list = currentPackage.bonus || [];
-    else if (p.type === 'stima') list = currentPackage.stima || [];
-    else if (p.type === 'anagramma') list = currentPackage.anagramma || [];
+    if (p.type === 'categoria') list = fullDb.categorie[p.key] || [];
+    else if (p.type === 'bonus') list = fullDb.bonus || [];
+    else if (p.type === 'stima') list = fullDb.stima || [];
+    else if (p.type === 'anagramma') list = fullDb.anagramma || [];
     socket.emit('receive_questions', list);
   });
 
@@ -159,7 +74,7 @@ io.on('connection', (socket) => {
         domanda: d.domanda,
         modalita: d.modalita,
         categoria: d.categoria,
-        startTime: gameState.questionStartTime
+        startTime: gameState.questionStartTime  // AGGIUNTO per sincronizzare timer
     };
 
     if (d.modalita !== 'buzzer') {
@@ -185,7 +100,9 @@ io.on('connection', (socket) => {
   });
 
   socket.on('prenoto', () => {
+    // Buzzer aperto: tutti possono premere!
     if (!gameState.buzzerLocked && gameState.teams[socket.id]) {
+      // Controlla se ha già premuto
       if (!gameState.buzzerQueue.find(p => p.id === socket.id)) {
           const reactionTime = ((Date.now() - gameState.questionStartTime) / 1000).toFixed(2);
           const position = gameState.buzzerQueue.length + 1;
@@ -197,15 +114,19 @@ io.on('connection', (socket) => {
               position: position
           });
           
+          // Notifica al giocatore la sua posizione
           io.to(socket.id).emit('buzzer_position', { position: position, time: reactionTime });
           
+          // Aggiorna display e admin con lista completa
           io.emit('buzzer_queue_update', { queue: gameState.buzzerQueue });
           inviaAggiornamentoCodaAdmin();
       }
     }
   });
 
+  // Nuovo evento: assegna punti a una squadra specifica dal buzzer
   socket.on('buzzer_assign_points', (data) => {
+    // data = { teamId: 'socket-id', points: 100 }
     if(gameState.teams[data.teamId]) {
         gameState.teams[data.teamId].score += parseInt(data.points);
         io.emit('update_teams', Object.values(gameState.teams));
@@ -213,6 +134,7 @@ io.on('connection', (socket) => {
   });
 
   socket.on('buzzer_wrong_next', () => {
+    // Rimuovi il primo dalla coda (non più usato, ma lo tengo per compatibilità)
     gameState.buzzerQueue.shift();
     if (gameState.buzzerQueue.length > 0) {
         inviaAggiornamentoCodaAdmin();
@@ -225,6 +147,7 @@ io.on('connection', (socket) => {
   });
 
   socket.on('buzzer_correct_assign', (data) => {
+    // Vecchio sistema, lo tengo per compatibilità
     if(gameState.buzzerQueue.length > 0) {
         const winner = gameState.buzzerQueue[0];
         if(gameState.teams[winner.id]) gameState.teams[winner.id].score += parseInt(data.points);
@@ -236,9 +159,50 @@ io.on('connection', (socket) => {
     }
   });
 
+  // Chiudi il buzzer manualmente
   socket.on('buzzer_close', () => {
     gameState.buzzerLocked = true;
     io.emit('stato_buzzer', { locked: true, attiva: false });
+  });
+
+  // NUOVO: Reset buzzer (per gioco musicale)
+  socket.on('buzzer_reset', () => {
+    gameState.buzzerQueue = [];
+    gameState.buzzerLocked = false;
+    io.emit('buzzer_queue_update', { queue: [] });
+    io.emit('stato_buzzer', { locked: false, attiva: true });
+    io.to('admin').emit('buzzer_queue_full', { queue: [], correctAnswer: "---" });
+    console.log('🔄 Buzzer resettato per nuovo round');
+  });
+
+  // NUOVO: Pausa gioco
+  socket.on('pause_game', () => {
+    gameState.isPaused = true;
+    io.emit('game_paused', { 
+      teams: Object.values(gameState.teams).sort((a,b) => b.score - a.score)
+    });
+    console.log('⏸️ Gioco in pausa');
+  });
+
+  // NUOVO: Riprendi gioco
+  socket.on('resume_game', () => {
+    gameState.isPaused = false;
+    io.emit('game_resumed');
+    console.log('▶️ Gioco ripreso');
+  });
+
+  // NUOVO: Salva schermata custom
+  socket.on('save_custom_screen', (data) => {
+    gameState.customScreen.text = data.text;
+    console.log('💾 Schermata custom salvata');
+  });
+
+  // NUOVO: Mostra schermata custom
+  socket.on('show_custom_screen', () => {
+    io.emit('cambia_vista', { 
+      view: 'custom', 
+      data: { text: gameState.customScreen.text }
+    });
   });
 
   socket.on('toggle_buzzer_lock', (s) => { 
@@ -246,30 +210,7 @@ io.on('connection', (socket) => {
     io.emit('stato_buzzer', { locked: s, attiva: true }); 
   });
 
-  socket.on('update_answer_points', (data) => {
-    const answer = gameState.roundAnswers[data.answerIndex];
-    if (answer) {
-        const oldPoints = answer.punti || 0;
-        const newPoints = data.newPoints;
-        answer.punti = newPoints;
-
-        if (gameState.teams[answer.teamId]) {
-            const diff = newPoints - oldPoints;
-            gameState.teams[answer.teamId].score += diff;
-            io.emit('update_teams', Object.values(gameState.teams));
-        }
-
-        io.to('admin').emit('update_round_monitor', gameState.roundAnswers);
-    }
-  });
-
-  socket.on('mostra_soluzione', (data) => {
-    io.emit('mostra_soluzione', { 
-        soluzione: data.soluzione, 
-        risultati: gameState.roundAnswers 
-    });
-  });
-
+  // ============ CALCOLO AUTOMATICO PUNTEGGI CON BONUS VELOCITÀ ============
   socket.on('invia_risposta', (risp) => {
       const team = gameState.teams[socket.id];
       if(!team || !gameState.currentQuestion) return;
@@ -284,12 +225,15 @@ io.on('connection', (socket) => {
 
       const tempoSecondi = (Date.now() - gameState.questionStartTime) / 1000;
       
+      // CALCOLO PUNTEGGIO CON BONUS VELOCITÀ
       let punti = 0;
       if(isCorrect) {
           const puntiBase = q.punti || 100;
+          // Bonus velocità: max 50 punti, decresce linearmente fino a 20 secondi
           const bonusVelocita = Math.max(0, 50 - (tempoSecondi * 2.5));
           punti = puntiBase + Math.round(bonusVelocita);
           
+          // ASSEGNA PUNTI ALLA SQUADRA IMMEDIATAMENTE
           team.score += punti;
           io.emit('update_teams', Object.values(gameState.teams));
       }
@@ -300,7 +244,7 @@ io.on('connection', (socket) => {
           risposta: risp, 
           corretta: isCorrect,
           tempo: tempoSecondi.toFixed(2),
-          punti: punti
+          punti: punti  // Aggiungiamo anche i punti nei risultati
       });
       
       io.to('admin').emit('update_round_monitor', gameState.roundAnswers);
@@ -308,12 +252,59 @@ io.on('connection', (socket) => {
 
   socket.on('regia_cmd', (cmd) => io.emit('cambia_vista', { view: cmd, data: gameState.roundAnswers }));
   socket.on('reset_game', () => { gameState.teams={}; gameState.roundAnswers=[]; gameState.buzzerQueue=[]; io.emit('force_reload'); });
-  socket.on('login', (n) => { gameState.teams[socket.id]={id:socket.id, name:n, score:0}; socket.emit('login_success', {id:socket.id, name:n}); io.emit('update_teams', Object.values(gameState.teams)); });
-  socket.on('disconnect', () => { if(gameState.teams[socket.id]) { delete gameState.teams[socket.id]; io.emit('update_teams', Object.values(gameState.teams)); } });
   
-  // Evento per mostrare il vincitore finale
-  socket.on('mostra_vincitore_finale', () => {
-    mostraVincitoreFinale();
+  socket.on('login', (n) => {
+    // Cerca se esiste già una squadra con questo nome (riconnessione)
+    let existingTeam = Object.values(gameState.teams).find(t => t.name === n);
+    
+    if(existingTeam) {
+        // Riconnessione: mantieni punteggio e cancella timer di rimozione
+        if(existingTeam.removeTimer) {
+            clearTimeout(existingTeam.removeTimer);
+        }
+        delete gameState.teams[existingTeam.id];
+        gameState.teams[socket.id] = {
+            id: socket.id, 
+            name: n, 
+            score: existingTeam.score,
+            disconnected: false
+        };
+        console.log(`✅ Riconnessione: ${n} (punteggio: ${existingTeam.score})`);
+    } else {
+        // Nuova squadra
+        gameState.teams[socket.id] = {id:socket.id, name:n, score:0, disconnected: false};
+        console.log(`🆕 Nuova squadra: ${n}`);
+    }
+    
+    socket.emit('login_success', {id:socket.id, name:n}); 
+    io.emit('update_teams', Object.values(gameState.teams)); 
+  });
+  
+  socket.on('disconnect', () => { 
+    if(gameState.teams[socket.id]) {
+        const teamName = gameState.teams[socket.id].name;
+        const teamScore = gameState.teams[socket.id].score;
+        
+        // Se il gioco è in pausa, NON disconnettere MAI
+        if(gameState.isPaused) {
+            gameState.teams[socket.id].disconnected = true;
+            console.log(`⏸️ ${teamName} disconnesso durante PAUSA - Mantenuto attivo`);
+            return; // Non impostare timer di rimozione
+        }
+        
+        // Segna come disconnesso ma non cancellare subito
+        gameState.teams[socket.id].disconnected = true;
+        console.log(`⚠️ Disconnesso: ${teamName} - Aspetto 15 minuti per riconnessione...`);
+        
+        // Imposta timer di 15 minuti (900000 ms)
+        gameState.teams[socket.id].removeTimer = setTimeout(() => {
+            if(gameState.teams[socket.id] && gameState.teams[socket.id].disconnected) {
+                console.log(`❌ Rimosso definitivamente: ${teamName} (disconnesso per più di 15 minuti)`);
+                delete gameState.teams[socket.id];
+                io.emit('update_teams', Object.values(gameState.teams));
+            }
+        }, 900000); // 15 minuti = 900000 millisecondi
+    }
   });
 });
 
@@ -324,18 +315,13 @@ http.listen(PORT, '0.0.0.0', () => console.log(`
 ║                                                          ║
 ╚══════════════════════════════════════════════════════════╝
 
-✅ Server in ascolto sulla porta: ${PORT}
+Server in ascolto sulla porta: ${PORT}
 
 📱 Admin:      http://localhost:${PORT}/admin
 🎯 Giocatori:  http://localhost:${PORT}/
 📺 Display:    http://localhost:${PORT}/display
 
-📦 Sistema a pacchetti attivo!
-   Pacchetto disponibile: "Pacchetto Principale"
-   Categorie: Storia, Geografia, Scienze, Cinema, Musica, Arte, Sport
-   + Bonus, Stima e Anagrammi
-
-🎉 Funzionalità vincitore aggiunta!
+✅ Calcolo punteggi automatico con bonus velocità attivo!
 
 Pronto per il gioco!
 `));

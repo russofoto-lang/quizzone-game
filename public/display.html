@@ -275,7 +275,8 @@
             
             // Schermata custom
             if(data.view === 'custom' && data.data) {
-                document.getElementById('custom-text-display').textContent = data.data.text;
+                console.log('📺 Ricevuto testo custom:', data.data.text);
+                document.getElementById('custom-text-display').textContent = data.data.text || 'Nessun messaggio';
             }
         });
 

@@ -212,7 +212,7 @@ io.on('connection', (socket) => {
   // NUOVO: Salva schermata custom
   socket.on('save_custom_screen', (data) => {
     gameState.customScreen.text = data.text;
-    console.log('💾 Schermata custom salvata');
+    console.log('💾 Schermata custom salvata:', data.text);
   });
 
   // NUOVO: Mostra schermata custom
@@ -221,6 +221,7 @@ io.on('connection', (socket) => {
       view: 'custom', 
       data: { text: gameState.customScreen.text }
     });
+    console.log('📺 Mostro schermata custom:', gameState.customScreen.text);
   });
 
   socket.on('toggle_buzzer_lock', (s) => { 

@@ -189,6 +189,23 @@
             document.getElementById('timer-container').classList.add('hidden');
         }
         
+        // PAUSA GIOCO
+        socket.on('game_paused', () => {
+            resetUI();
+            document.getElementById('msg-box').innerHTML = `
+                <div class="bg-orange-600 p-6 rounded-xl">
+                    <div class="text-6xl mb-4">☕</div>
+                    <div class="text-3xl font-black">PAUSA</div>
+                    <div class="text-xl mt-2">Torniamo tra pochissimo!</div>
+                </div>
+            `;
+        });
+        
+        socket.on('game_resumed', () => {
+            document.getElementById('msg-box').innerHTML = 'In attesa...';
+            document.getElementById('msg-box').className = 'absolute top-4 text-center w-full text-gray-400 font-bold text-lg';
+        });
+        
         socket.on('force_reload', () => window.location.reload());
     </script>
 </body>

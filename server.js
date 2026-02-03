@@ -122,8 +122,12 @@ io.on('connection', (socket) => {
     gameState.buzzerLocked = false;
     gameState.questionStartTime = Date.now();
     
+    // Mostra schermata gioco con overlay buzzer vuoto
+    io.emit('cambia_vista', { view: 'gioco' });
     io.emit('buzzer_standalone_mode', { active: true });
     io.emit('stato_buzzer', { locked: false, attiva: true });
+    io.emit('buzzer_queue_update', { queue: [] }); // Mostra overlay vuoto sul display
+    
     console.log('🎵 Buzzer aperto in modalità standalone (gioco musicale)');
   });
 

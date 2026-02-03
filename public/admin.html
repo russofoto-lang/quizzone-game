@@ -30,6 +30,9 @@
                 <button onclick="togglePause()" id="pause-btn" class="px-3 py-1 bg-orange-600 hover:bg-orange-500 text-white rounded font-bold text-xs">
                     ⏸️ PAUSA
                 </button>
+                <button onclick="showWinner()" class="px-3 py-1 bg-gradient-to-r from-green-600 to-yellow-500 hover:from-green-500 hover:to-yellow-400 text-white rounded font-bold text-xs animate-pulse">
+                    🎉 VINCITORE
+                </button>
             </div>
         </div>
         <div class="grid grid-cols-4 gap-1 mb-2">
@@ -321,9 +324,9 @@
         }
         
         function saveCustomScreen() {
-            const text = document.getElementById('custom-text').value;
+            const text = document.getElementById('custom-text').value || "Messaggio personalizzato";
             socket.emit('save_custom_screen', { text: text });
-            alert('✅ Schermata salvata!');
+            alert('✅ Schermata salvata: "' + text + '"');
         }
         
         function showCustomScreen() {
@@ -340,6 +343,12 @@
                 socket.emit('mostra_soluzione', { soluzione: soluzione, risultati: [] });
             }
         }
+        
+        // NUOVO: Mostra vincitore
+        function showWinner() {
+            socket.emit('show_winner');
+        }
     </script>
 </body>
 </html>
+[file content end]

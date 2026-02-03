@@ -399,14 +399,13 @@
         // Ricarica preview cellulare
         function refreshPreview() {
             const iframe = document.getElementById('mobile-preview');
-            iframe.src = iframe.src || window.location.origin + '/';
-            iframe.contentWindow.location.reload();
+            iframe.src = window.location.origin + '/preview';
         }
         
         // Inizializza preview al caricamento
         window.addEventListener('DOMContentLoaded', () => {
             const iframe = document.getElementById('mobile-preview');
-            iframe.src = window.location.origin + '/';
+            iframe.src = window.location.origin + '/preview';
         });
     </script>
 </body>

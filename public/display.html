@@ -219,6 +219,37 @@
             </div>
         </div>
 
+        <!-- VISTA VINCITORE -->
+        <div id="view-winner" class="view-section hidden absolute inset-0 bg-gradient-to-br from-yellow-400 via-pink-500 to-purple-600 z-50 flex flex-col items-center justify-center overflow-hidden">
+            
+            <!-- Confetti animati -->
+            <div id="confetti-container" class="absolute inset-0 overflow-hidden"></div>
+            
+            <div class="relative z-10 text-center animate__animated animate__bounceIn">
+                <!-- Corona animata -->
+                <div class="text-9xl mb-8 animate__animated animate__tada animate__infinite animate__slower">
+                    👑
+                </div>
+                
+                <h1 class="text-8xl font-black text-white mb-6 drop-shadow-2xl">
+                    🏆 VINCITORE! 🏆
+                </h1>
+                
+                <div class="bg-white/20 backdrop-blur-sm rounded-[3rem] p-12 mb-10 border-8 border-yellow-300 shadow-2xl">
+                    <div class="text-9xl font-black text-white mb-6" id="winner-name">
+                        NOME SQUADRA
+                    </div>
+                    <div class="text-7xl font-bold text-yellow-300">
+                        <span id="winner-score">0</span> PUNTI
+                    </div>
+                </div>
+                
+                <div class="text-5xl text-white/90 font-bold animate__animated animate__pulse animate__infinite">
+                    🎊 COMPLIMENTI! 🎊
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <script>
@@ -234,8 +265,33 @@
             if(el) {
                 el.classList.remove('hidden');
                 console.log('Mostro vista:', viewId);
+                
+                // Se è la vista del vincitore, genera i confetti
+                if(viewId === 'view-winner') {
+                    generateConfetti();
+                }
             } else {
                 console.error('Vista non trovata:', viewId);
+            }
+        }
+
+        // Funzione per generare confetti
+        function generateConfetti() {
+            const confettiContainer = document.getElementById('confetti-container');
+            confettiContainer.innerHTML = '';
+            const colors = ['#FFD700', '#FF69B4', '#9370DB', '#00FF00', '#00BFFF', '#FF4500', '#FF1493'];
+            
+            for(let i = 0; i < 150; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.width = Math.random() * 20 + 5 + 'px';
+                confetti.style.height = Math.random() * 20 + 5 + 'px';
+                confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+                confetti.style.animationDuration = (Math.random() * 3 + 2) + 's';
+                confetti.style.animationDelay = Math.random() * 5 + 's';
+                confettiContainer.appendChild(confetti);
             }
         }
 
@@ -248,6 +304,12 @@
         socket.on('cambia_vista', (data) => {
             console.log('Ricevuto comando regia:', data.view);
             stopTimer();
+            
+            // Se è la vista del vincitore, mostra i dati del vincitore
+            if(data.view === 'winner' && data.data) {
+                document.getElementById('winner-name').textContent = data.data.winnerName || "Nessun vincitore";
+                document.getElementById('winner-score').textContent = data.data.winnerScore || 0;
+            }
             
             showView(data.view);
             

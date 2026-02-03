@@ -62,7 +62,6 @@
             resetUI();
             document.getElementById('msg-box').innerText = d.domanda;
 
-            // Avvia timer per modalità con risposte ABCD
             if(d.modalita !== 'buzzer' && d.risposte && d.risposte.length > 0) {
                 questionStartTime = d.startTime || Date.now();
                 maxTime = 20;
@@ -93,7 +92,20 @@
             }
         });
 
-        // ============ TIMER FUNCTIONS ============
+        // BUZZER STANDALONE MODE (per gioco musicale)
+        socket.on('buzzer_standalone_mode', (data) => {
+            if(data.active) {
+                resetUI();
+                document.getElementById('msg-box').innerText = "🎵 Premi quando sai la risposta!";
+                document.getElementById('btn-buzzer').classList.remove('hidden');
+                const btn = document.getElementById('btn-buzzer');
+                btn.className = "w-64 h-64 rounded-full bg-red-600 border-red-800 flex items-center justify-center animate-pulse shadow-[0_0_50px_rgba(255,0,0,0.5)]";
+                btn.innerHTML = "<span class='text-4xl font-black text-white uppercase tracking-widest'>VAI!</span>";
+                btn.onclick = prenota;
+                buzzerLocked = false;
+            }
+        });
+
         function startTimer() {
             stopTimer();
             document.getElementById('timer-container').classList.remove('hidden');
@@ -102,7 +114,7 @@
             const timerBar = document.getElementById('timer-bar');
             
             timerBar.style.width = '100%';
-            timerBar.style.backgroundColor = '#10b981'; // green
+            timerBar.style.backgroundColor = '#10b981';
             
             timerInterval = setInterval(() => {
                 const elapsed = (Date.now() - questionStartTime) / 1000;
@@ -111,15 +123,14 @@
                 timerDisplay.textContent = Math.ceil(remaining);
                 timerBar.style.width = `${(remaining / maxTime) * 100}%`;
                 
-                // Cambia colore in base al tempo
                 if(remaining <= 5) {
-                    timerBar.style.backgroundColor = '#ef4444'; // red
+                    timerBar.style.backgroundColor = '#ef4444';
                     timerDisplay.style.color = '#ef4444';
                 } else if(remaining <= 10) {
-                    timerBar.style.backgroundColor = '#f59e0b'; // yellow
+                    timerBar.style.backgroundColor = '#f59e0b';
                     timerDisplay.style.color = '#f59e0b';
                 } else {
-                    timerBar.style.backgroundColor = '#10b981'; // green
+                    timerBar.style.backgroundColor = '#10b981';
                     timerDisplay.style.color = '#10b981';
                 }
                 
@@ -150,7 +161,6 @@
             `;
             if(navigator.vibrate) navigator.vibrate([200, 100, 200]);
             
-            // Disabilita il bottone dopo che ha premuto
             b.onclick = null;
             b.classList.add('opacity-75');
         });
@@ -171,11 +181,6 @@
                 btn.innerHTML = "<span class='text-4xl font-black text-white uppercase tracking-widest'>VAI!</span>";
                 btn.onclick = prenota;
             }
-        });
-
-        socket.on('prenotazione_vinta', () => {
-            // Questo evento non è più usato nel nuovo sistema
-            // Lo tengo per compatibilità ma il feedback viene da buzzer_position
         });
 
         function prenota() { if(!buzzerLocked) socket.emit('prenoto'); }
@@ -203,7 +208,14 @@
         
         socket.on('game_resumed', () => {
             document.getElementById('msg-box').innerHTML = 'In attesa...';
-            document.getElementById('msg-box').className = 'absolute top-4 text-center w-full text-gray-400 font-bold text-lg';
+            document.getElementById('msg-box').className = 'absolute top-4 text-center w-full text-gray-400 font-bold text-lg px-4';
+        });
+        
+        // RESET CLIENT UI
+        socket.on('reset_client_ui', () => {
+            resetUI();
+            document.getElementById('msg-box').innerHTML = 'In attesa...';
+            document.getElementById('msg-box').className = 'absolute top-4 text-center w-full text-gray-400 font-bold text-lg px-4';
         });
         
         socket.on('force_reload', () => window.location.reload());

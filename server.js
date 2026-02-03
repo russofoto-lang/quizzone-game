@@ -43,7 +43,7 @@ let gameState = {
   buzzerLocked: true,
   isPaused: false,
   customScreen: {            
-    text: "Messaggio personalizzato"
+    text: ""
   }
 };
 
@@ -202,14 +202,21 @@ io.on('connection', (socket) => {
 
   // CORREZIONE: Salva schermata custom con testo fornito
   socket.on('save_custom_screen', (data) => {
-    gameState.customScreen.text = data.text || "Messaggio personalizzato";
+    gameState.customScreen.text = data.text || "";
     console.log('💾 Schermata custom salvata:', gameState.customScreen.text);
   });
 
   socket.on('show_custom_screen', () => {
+    if (!gameState.customScreen.text || gameState.customScreen.text.trim() === "") {
+      gameState.customScreen.text = "Messaggio dalla regia";
+    }
+    
     io.emit('cambia_vista', { 
       view: 'custom', 
-      data: { text: gameState.customScreen.text }
+      data: { 
+        text: gameState.customScreen.text,
+        timestamp: Date.now()
+      }
     });
     console.log('📺 Mostro schermata custom:', gameState.customScreen.text);
   });
@@ -286,6 +293,7 @@ io.on('connection', (socket) => {
     gameState.teams = {}; 
     gameState.roundAnswers = []; 
     gameState.buzzerQueue = []; 
+    gameState.customScreen.text = "";
     io.emit('force_reload'); 
   });
 

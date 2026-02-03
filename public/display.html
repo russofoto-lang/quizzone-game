@@ -281,6 +281,7 @@
 
         // PAUSA GIOCO
         socket.on('game_paused', (data) => {
+            console.log('Ricevuto comando pausa');
             showView('pausa');
             const leaderboard = document.getElementById('pause-leaderboard');
             leaderboard.innerHTML = '';
@@ -296,10 +297,13 @@
                         </div>
                     `;
                 });
+            } else {
+                leaderboard.innerHTML = '<p class="text-white/60">Nessuna squadra registrata</p>';
             }
         });
 
         socket.on('game_resumed', () => {
+            console.log('Gioco ripreso');
             showView('logo');
         });
 

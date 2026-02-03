@@ -178,9 +178,9 @@ io.on('connection', (socket) => {
   // NUOVO: Pausa gioco
   socket.on('pause_game', () => {
     gameState.isPaused = true;
-    io.emit('game_paused', { 
-      teams: Object.values(gameState.teams).sort((a,b) => b.score - a.score)
-    });
+    const sortedTeams = Object.values(gameState.teams).sort((a,b) => b.score - a.score);
+    io.emit('game_paused', { teams: sortedTeams });
+    io.emit('cambia_vista', { view: 'pausa', data: { teams: sortedTeams } }); // AGGIUNGI QUESTA RIGA
     console.log('⏸️ Gioco in pausa');
   });
 

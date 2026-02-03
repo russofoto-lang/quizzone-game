@@ -132,30 +132,22 @@
             <div class="border-t border-gray-700 pt-2">
                 <div class="flex justify-between items-center mb-1">
                     <h3 class="font-black uppercase text-xs text-blue-400 tracking-widest">📱 Preview Cellulare</h3>
-                    <button onclick="togglePreview()" id="toggle-preview-btn" class="text-xs bg-gray-800 text-white px-2 py-1 rounded hover:bg-gray-700">Nascondi</button>
+                    <div class="flex gap-1">
+                        <button onclick="refreshPreview()" class="text-xs bg-blue-600 px-2 py-1 rounded hover:bg-blue-500 text-white" title="Ricarica preview">🔄</button>
+                        <button onclick="togglePreview()" id="toggle-preview-btn" class="text-xs bg-gray-800 text-white px-2 py-1 rounded hover:bg-gray-700">Nascondi</button>
+                    </div>
                 </div>
                 <div id="mobile-preview-container" class="bg-black rounded overflow-hidden border border-gray-700" style="height: 200px;">
-                    <iframe id="mobile-preview" src="/" class="w-full h-full border-0 pointer-events-none" style="transform: scale(0.4); transform-origin: top left; width: 250%; height: 250%;"></iframe>
+                    <iframe id="mobile-preview" src="" class="w-full h-full border-0 pointer-events-none" style="transform: scale(0.4); transform-origin: top left; width: 250%; height: 250%;"></iframe>
                 </div>
             </div>
         </div>
 
-        <!-- COLONNA DESTRA: PUNTEGGI + PREVIEW MOBILE -->
+        <!-- COLONNA DESTRA: PUNTEGGI -->
         <div class="col-span-3 bg-white p-3 rounded shadow flex flex-col text-gray-800">
             <h2 class="font-black border-b border-gray-200 mb-2 uppercase text-xs text-gray-500 tracking-widest">Punteggi Live</h2>
-            <div class="flex-1 overflow-y-auto mb-2">
+            <div class="flex-1 overflow-y-auto">
                 <table class="w-full"><tbody id="team-list"></tbody></table>
-            </div>
-            
-            <!-- PREVIEW CELLULARE -->
-            <div class="border-t border-gray-200 pt-2">
-                <div class="flex justify-between items-center mb-1">
-                    <h3 class="font-black uppercase text-xs text-gray-500 tracking-widest">📱 Preview Cellulare</h3>
-                    <button onclick="togglePreview()" id="toggle-preview-btn" class="text-xs bg-gray-200 px-2 py-1 rounded hover:bg-gray-300">Nascondi</button>
-                </div>
-                <div id="mobile-preview-container" class="bg-gray-900 rounded overflow-hidden" style="height: 300px;">
-                    <iframe id="mobile-preview" src="/" class="w-full h-full border-0 pointer-events-none" style="transform: scale(0.5); transform-origin: top left; width: 200%; height: 200%;"></iframe>
-                </div>
             </div>
         </div>
 
@@ -403,6 +395,19 @@
                 btn.textContent = 'Mostra';
             }
         }
+        
+        // Ricarica preview cellulare
+        function refreshPreview() {
+            const iframe = document.getElementById('mobile-preview');
+            iframe.src = iframe.src || window.location.origin + '/';
+            iframe.contentWindow.location.reload();
+        }
+        
+        // Inizializza preview al caricamento
+        window.addEventListener('DOMContentLoaded', () => {
+            const iframe = document.getElementById('mobile-preview');
+            iframe.src = window.location.origin + '/';
+        });
     </script>
 </body>
 </html>

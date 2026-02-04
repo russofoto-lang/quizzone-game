@@ -303,23 +303,58 @@ io.on('connection', (socket) => {
     gameState.questionStartTime = Date.now();
     gameState.roundAnswers = [];
     
+    if(isAllIn) {
+        // ALL IN: Prima mostra solo schermata scommesse
+        gameState.finaleMode.allInBets = {};
+        
+        io.emit('cambia_vista', { view: 'allin_betting' });
+        io.emit('show_allin_betting', {
+            finaleQuestion: gameState.finaleMode.currentQuestion,
+            totalFinaleQuestions: gameState.finaleMode.totalQuestions
+        });
+        
+        console.log(`💰 ALL IN - Fase scommesse`);
+        
+        // Dopo che tutti hanno scommesso, invieremo la domanda con evento separato
+    } else {
+        // Domande 2-5: Invio normale
+        let datiPerClient = {
+            id: d.id,
+            domanda: d.domanda,
+            modalita: 'finale',
+            categoria: d.categoria,
+            startTime: gameState.questionStartTime,
+            finaleQuestion: gameState.finaleMode.currentQuestion,
+            totalFinaleQuestions: gameState.finaleMode.totalQuestions,
+            risposte: d.risposte
+        };
+
+        io.emit('nuova_domanda', datiPerClient);
+        console.log(`🔥 Domanda finale ${gameState.finaleMode.currentQuestion}/5`);
+    }
+    
+    io.to('admin').emit('reset_round_monitor');
+  });
+  
+  // Mostra domanda ALL IN dopo scommesse
+  socket.on('show_allin_question', () => {
+    if(!gameState.currentQuestion) return;
+    
     let datiPerClient = {
-        id: d.id,
-        domanda: d.domanda,
-        modalita: isAllIn ? 'allin' : 'finale',
-        categoria: d.categoria,
-        startTime: gameState.questionStartTime,
+        id: gameState.currentQuestion.id,
+        domanda: gameState.currentQuestion.domanda,
+        modalita: 'allin_question',
+        categoria: gameState.currentQuestion.categoria,
+        startTime: Date.now(),
         finaleQuestion: gameState.finaleMode.currentQuestion,
         totalFinaleQuestions: gameState.finaleMode.totalQuestions,
-        isAllIn: isAllIn
+        risposte: gameState.currentQuestion.risposte
     };
 
-    if (d.risposte) datiPerClient.risposte = d.risposte;
-
+    gameState.questionStartTime = Date.now();
     io.emit('nuova_domanda', datiPerClient);
-    io.to('admin').emit('reset_round_monitor');
-    
-    console.log(`🔥 Domanda finale ${gameState.finaleMode.currentQuestion}/5 ${isAllIn ? '(ALL IN)' : ''}`);
+    io.emit('cambia_vista', { view: 'gioco' });
+    console.log(`💰 ALL IN - Domanda mostrata`);
   });
   
   // Ricevi scommessa ALL IN
@@ -327,6 +362,37 @@ io.on('connection', (socket) => {
     if(gameState.teams[socket.id] && !gameState.teams[socket.id].isPreview) {
       gameState.finaleMode.allInBets[socket.id] = parseInt(data.amount);
       console.log(`💰 ${gameState.teams[socket.id].name} scommette ${data.amount}`);
+      
+      // Conta quante squadre reali ci sono
+      const realTeams = Object.values(gameState.teams).filter(t => !t.isPreview);
+      const betsCount = Object.keys(gameState.finaleMode.allInBets).length;
+      
+      // Notifica admin
+      io.to('admin').emit('allin_bet_placed', {
+        teamName: gameState.teams[socket.id].name,
+        amount: data.amount,
+        betsCount: betsCount,
+        totalTeams: realTeams.length
+      });
+      
+      console.log(`📊 Scommesse: ${betsCount}/${realTeams.length}`);
+      
+      // Se tutti hanno scommesso, mostra domanda automaticamente
+      if(betsCount >= realTeams.length && gameState.currentQuestion) {
+        console.log('✅ Tutti hanno scommesso! Mostro domanda...');
+        
+        setTimeout(() => {
+          const newStartTime = Date.now();
+          gameState.questionStartTime = newStartTime;
+          
+          io.emit('show_allin_question', {
+            domanda: gameState.currentQuestion.domanda,
+            risposte: gameState.currentQuestion.risposte,
+            categoria: gameState.currentQuestion.categoria,
+            startTime: newStartTime
+          });
+        }, 1000);
+      }
     }
   });
   
@@ -350,6 +416,23 @@ io.on('connection', (socket) => {
     });
     
     console.log(`🏆 VINCITORE RIVELATO: ${winner.name} con ${winner.score} punti!`);
+  });
+  
+  // Admin forza visualizzazione domanda ALL IN
+  socket.on('admin_force_show_allin', () => {
+    if(gameState.currentQuestion) {
+      const newStartTime = Date.now();
+      gameState.questionStartTime = newStartTime;
+      
+      io.emit('show_allin_question', {
+        domanda: gameState.currentQuestion.domanda,
+        risposte: gameState.currentQuestion.risposte,
+        categoria: gameState.currentQuestion.categoria,
+        startTime: newStartTime
+      });
+      
+      console.log('👤 Admin ha forzato visualizzazione domanda ALL IN');
+    }
   });
 
   socket.on('toggle_buzzer_lock', (s) => { 

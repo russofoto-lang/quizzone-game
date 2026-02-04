@@ -43,7 +43,14 @@ let gameState = {
   buzzerQueue: [],      
   buzzerLocked: true,
   isPaused: false,
-  customScreen: { text: "Messaggio personalizzato" }
+  customScreen: { text: "Messaggio personalizzato" },
+  finaleMode: {
+    active: false,           // Se la finale è attiva
+    currentQuestion: 0,      // Domanda corrente (1-5)
+    totalQuestions: 5,       // Totale domande finale
+    allInBets: {},           // Scommesse ALL IN {teamId: amount}
+    hideLeaderboard: false   // Nascondi classifica
+  }
 };
 
 app.use(express.static('public'));
@@ -266,6 +273,85 @@ io.on('connection', (socket) => {
     }
   });
 
+  // ============ SFIDA FINALE ============
+  
+  // Mostra spiegazione finale
+  socket.on('show_finale_explanation', () => {
+    io.emit('cambia_vista', { view: 'finale_explanation' });
+    console.log('📋 Mostro spiegazione Sfida Finale');
+  });
+  
+  // Inizia finale (5 domande)
+  socket.on('start_finale', () => {
+    gameState.finaleMode.active = true;
+    gameState.finaleMode.currentQuestion = 0;
+    gameState.finaleMode.hideLeaderboard = true;
+    gameState.finaleMode.allInBets = {};
+    
+    io.emit('finale_started', { 
+      totalQuestions: gameState.finaleMode.totalQuestions 
+    });
+    console.log('🔥 Sfida Finale INIZIATA');
+  });
+  
+  // Domanda finale (con check se è ALL IN)
+  socket.on('invia_domanda_finale', (d) => {
+    gameState.finaleMode.currentQuestion++;
+    const isAllIn = gameState.finaleMode.currentQuestion === 1;
+    
+    gameState.currentQuestion = JSON.parse(JSON.stringify(d));
+    gameState.questionStartTime = Date.now();
+    gameState.roundAnswers = [];
+    
+    let datiPerClient = {
+        id: d.id,
+        domanda: d.domanda,
+        modalita: isAllIn ? 'allin' : 'finale',
+        categoria: d.categoria,
+        startTime: gameState.questionStartTime,
+        finaleQuestion: gameState.finaleMode.currentQuestion,
+        totalFinaleQuestions: gameState.finaleMode.totalQuestions,
+        isAllIn: isAllIn
+    };
+
+    if (d.risposte) datiPerClient.risposte = d.risposte;
+
+    io.emit('nuova_domanda', datiPerClient);
+    io.to('admin').emit('reset_round_monitor');
+    
+    console.log(`🔥 Domanda finale ${gameState.finaleMode.currentQuestion}/5 ${isAllIn ? '(ALL IN)' : ''}`);
+  });
+  
+  // Ricevi scommessa ALL IN
+  socket.on('place_allin_bet', (data) => {
+    if(gameState.teams[socket.id] && !gameState.teams[socket.id].isPreview) {
+      gameState.finaleMode.allInBets[socket.id] = parseInt(data.amount);
+      console.log(`💰 ${gameState.teams[socket.id].name} scommette ${data.amount}`);
+    }
+  });
+  
+  // Rivela vincitore finale
+  socket.on('reveal_winner', () => {
+    gameState.finaleMode.active = false;
+    gameState.finaleMode.hideLeaderboard = false;
+    
+    const sortedTeams = Object.values(gameState.teams)
+      .filter(t => !t.isPreview)
+      .sort((a,b) => b.score - a.score);
+    const winner = sortedTeams[0];
+    
+    io.emit('cambia_vista', { 
+      view: 'winner',
+      data: { 
+        winnerName: winner.name,
+        winnerScore: winner.score,
+        teams: sortedTeams
+      }
+    });
+    
+    console.log(`🏆 VINCITORE RIVELATO: ${winner.name} con ${winner.score} punti!`);
+  });
+
   socket.on('toggle_buzzer_lock', (s) => { 
     gameState.buzzerLocked = s; 
     io.emit('stato_buzzer', { locked: s, attiva: true }); 
@@ -292,15 +378,48 @@ io.on('connection', (socket) => {
       let punti = 0;
       if(isCorrect) {
           const puntiBase = q.punti || 100;
-          // Bonus velocità lineare che decresce
           const bonusVelocita = Math.max(0, 50 - (tempoSecondi * 2.5));
           punti = puntiBase + Math.round(bonusVelocita);
           
+          // FINALE MODE: Raddoppia punti
+          if(gameState.finaleMode.active) {
+              punti = punti * 2;
+          }
+          
+          // STREAK BONUS
+          if(!team.streak) team.streak = 0;
+          team.streak++;
+          
+          let streakBonus = 0;
+          if(team.streak >= 2) streakBonus = 10;
+          if(team.streak >= 3) streakBonus = 25;
+          if(team.streak >= 4) streakBonus = 50;
+          if(team.streak >= 5) streakBonus = 100;
+          
+          punti += streakBonus;
           team.score += punti;
           
-          // Invia solo squadre reali (non preview)
-          const realTeams = Object.values(gameState.teams).filter(t => !t.isPreview);
-          io.emit('update_teams', realTeams);
+      } else {
+          // Reset streak se sbagliata
+          if(team.streak) team.streak = 0;
+          
+          // ALL IN: Togli scommessa se sbagliata
+          if(gameState.finaleMode.active && gameState.finaleMode.currentQuestion === 1) {
+              const bet = gameState.finaleMode.allInBets[socket.id] || 0;
+              if(bet > 0) {
+                  team.score = Math.max(0, team.score - bet);
+                  punti = -bet;
+              }
+          }
+      }
+      
+      // ALL IN: Aggiungi vincita scommessa se corretta
+      if(isCorrect && gameState.finaleMode.active && gameState.finaleMode.currentQuestion === 1) {
+          const bet = gameState.finaleMode.allInBets[socket.id] || 0;
+          if(bet > 0) {
+              team.score += bet * 2; // Vinci il doppio della scommessa
+              punti += bet * 2;
+          }
       }
 
       gameState.roundAnswers.push({
@@ -309,9 +428,13 @@ io.on('connection', (socket) => {
           risposta: risp, 
           corretta: isCorrect,
           tempo: tempoSecondi.toFixed(2),
-          punti: punti
+          punti: punti,
+          streak: team.streak || 0
       });
       
+      // Invia solo squadre reali (non preview)
+      const realTeams = Object.values(gameState.teams).filter(t => !t.isPreview);
+      io.emit('update_teams', realTeams);
       io.to('admin').emit('update_round_monitor', gameState.roundAnswers);
   });
 

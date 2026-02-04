@@ -80,8 +80,8 @@
             </div>
         </div>
 
-        <!-- COLONNA CENTRO: PREVIEW + MONITOR (35%) -->
-        <div class="w-[35%] flex flex-col gap-2">
+        <!-- COLONNA CENTRO: PREVIEW + MONITOR (30%) -->
+        <div class="w-[30%] flex flex-col gap-2">
             <!-- Preview -->
             <div class="flex-1 bg-gray-900/50 rounded-lg p-3 border border-gray-800 overflow-hidden">
                 <div class="flex justify-between items-center mb-2">
@@ -89,7 +89,7 @@
                     <button onclick="refreshPreview()" class="text-xs bg-gray-800 px-3 py-1 rounded hover:bg-gray-700 font-bold">🔄</button>
                 </div>
                 <div class="preview-frame h-full overflow-hidden">
-                    <iframe id="mobile-preview" src="" class="w-full h-full border-0 pointer-events-none" style="transform: scale(0.45); transform-origin: top left; width: 222%; height: 222%;"></iframe>
+                    <iframe id="mobile-preview" src="" class="w-full h-full border-0 pointer-events-none" style="transform: scale(0.38); transform-origin: top left; width: 263%; height: 263%;"></iframe>
                 </div>
             </div>
 
@@ -100,11 +100,14 @@
                     <span id="answers-count" class="text-xs bg-gray-800 px-3 py-1 rounded font-bold">0/10</span>
                 </div>
                 <div id="answers-list" class="overflow-y-auto h-32 space-y-1 text-sm"></div>
+                
+                <!-- Buzzer Queue (quando lancia buzzer con domanda) -->
+                <div id="buzzer-monitor" class="hidden overflow-y-auto h-32 space-y-1 text-sm"></div>
             </div>
         </div>
 
-        <!-- COLONNA DESTRA: MIXER (45%) -->
-        <div class="w-[45%] flex flex-col gap-2 overflow-y-auto">
+        <!-- COLONNA DESTRA: MIXER (50%) -->
+        <div class="w-1/2 flex flex-col gap-2 overflow-y-auto">
             
             <!-- Classifica -->
             <div class="bg-gray-900/50 rounded-lg p-2 border border-gray-800">
@@ -331,31 +334,70 @@
 
         socket.on('reset_round_monitor', () => {
             document.getElementById('answers-list').innerHTML = '';
+            document.getElementById('answers-list').classList.remove('hidden');
+            document.getElementById('buzzer-monitor').classList.add('hidden');
+            document.getElementById('buzzer-monitor').innerHTML = '';
         });
 
         socket.on('buzzer_queue_full', (d) => {
-            const queueDiv = document.getElementById('buzzer-queue-admin');
-            queueDiv.classList.remove('hidden');
-            queueDiv.innerHTML = '';
+            // Controlla se è buzzer musicale standalone o con domanda
+            const isMusicBuzzer = d.standalone || false;
             
-            if(d.queue && d.queue.length > 0) {
-                d.queue.forEach((player, idx) => {
-                    const medals = ['🥇', '🥈', '🥉'];
-                    const div = document.createElement('div');
-                    div.className = 'bg-black/30 rounded p-2 mb-1';
-                    div.innerHTML = `
-                        <div class="flex justify-between items-center mb-1">
-                            <span class="font-bold">${medals[idx] || (idx+1)+'.'} ${player.name}</span>
-                            <span class="text-yellow-400 text-xs">${player.time}s</span>
-                        </div>
-                        <div class="grid grid-cols-3 gap-1">
-                            <button onclick="assignPoints('${player.id}', 100)" class="bg-green-600 hover:bg-green-500 text-white text-xs py-1 rounded font-bold">+100</button>
-                            <button onclick="assignPoints('${player.id}', 50)" class="bg-blue-600 hover:bg-blue-500 text-white text-xs py-1 rounded font-bold">+50</button>
-                            <button onclick="assignPoints('${player.id}', -50)" class="bg-red-600 hover:bg-red-500 text-white text-xs py-1 rounded font-bold">-50</button>
-                        </div>
-                    `;
-                    queueDiv.appendChild(div);
-                });
+            if(isMusicBuzzer) {
+                // Buzzer Musicale: Mostra in sezione musicale
+                const queueDiv = document.getElementById('buzzer-queue-admin');
+                queueDiv.classList.remove('hidden');
+                queueDiv.innerHTML = '';
+                
+                if(d.queue && d.queue.length > 0) {
+                    d.queue.forEach((player, idx) => {
+                        const medals = ['🥇', '🥈', '🥉'];
+                        const div = document.createElement('div');
+                        div.className = 'bg-black/30 rounded p-2 mb-1';
+                        div.innerHTML = `
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="font-bold">${medals[idx] || (idx+1)+'.'} ${player.name}</span>
+                                <span class="text-yellow-400 text-xs">${player.time}s</span>
+                            </div>
+                            <div class="grid grid-cols-3 gap-1">
+                                <button onclick="assignPoints('${player.id}', 100)" class="bg-green-600 hover:bg-green-500 text-white text-xs py-1 rounded font-bold">+100</button>
+                                <button onclick="assignPoints('${player.id}', 50)" class="bg-blue-600 hover:bg-blue-500 text-white text-xs py-1 rounded font-bold">+50</button>
+                                <button onclick="assignPoints('${player.id}', -50)" class="bg-red-600 hover:bg-red-500 text-white text-xs py-1 rounded font-bold">-50</button>
+                            </div>
+                        `;
+                        queueDiv.appendChild(div);
+                    });
+                }
+            } else {
+                // Buzzer con Domanda: Mostra in Monitor Risposte
+                const monitorDiv = document.getElementById('buzzer-monitor');
+                const answersList = document.getElementById('answers-list');
+                
+                monitorDiv.classList.remove('hidden');
+                answersList.classList.add('hidden');
+                monitorDiv.innerHTML = '';
+                
+                document.getElementById('answers-count').textContent = `${d.queue.length}/10`;
+                
+                if(d.queue && d.queue.length > 0) {
+                    d.queue.forEach((player, idx) => {
+                        const medals = ['🥇', '🥈', '🥉'];
+                        const div = document.createElement('div');
+                        div.className = 'bg-black/30 rounded p-2 mb-1';
+                        div.innerHTML = `
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="font-bold">${medals[idx] || (idx+1)+'.'} ${player.name}</span>
+                                <span class="text-yellow-400 text-xs">${player.time}s</span>
+                            </div>
+                            <div class="grid grid-cols-3 gap-1">
+                                <button onclick="assignPoints('${player.id}', 100)" class="bg-green-600 hover:bg-green-500 text-white text-xs py-1 rounded font-bold">+100</button>
+                                <button onclick="assignPoints('${player.id}', 50)" class="bg-blue-600 hover:bg-blue-500 text-white text-xs py-1 rounded font-bold">+50</button>
+                                <button onclick="assignPoints('${player.id}', -50)" class="bg-red-600 hover:bg-red-500 text-white text-xs py-1 rounded font-bold">-50</button>
+                            </div>
+                        `;
+                        monitorDiv.appendChild(div);
+                    });
+                }
             }
         });
 

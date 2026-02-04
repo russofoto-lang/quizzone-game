@@ -41,7 +41,7 @@
         </div>
     </div>
 
-    <!-- LAYOUT L-SHAPE: 3 COLONNE -->
+    <!-- LAYOUT: 20-40-40 -->
     <div class="flex-1 flex gap-2 p-2 overflow-hidden">
         
         <!-- COLONNA SINISTRA: MOTORE (20%) -->
@@ -80,41 +80,39 @@
             </div>
         </div>
 
-        <!-- COLONNA CENTRO: PREVIEW + MONITOR (30%) -->
-        <div class="w-[30%] flex flex-col gap-2">
-            <!-- Preview -->
-            <div class="flex-1 bg-gray-900/50 rounded-lg p-3 border border-gray-800 overflow-hidden">
-                <div class="flex justify-between items-center mb-2">
-                    <div class="text-sm font-bold text-purple-400 uppercase">📱 Preview Live</div>
-                    <button onclick="refreshPreview()" class="text-xs bg-gray-800 px-3 py-1 rounded hover:bg-gray-700 font-bold">🔄</button>
+        <!-- COLONNA CENTRO: PREVIEW + RISPOSTE + CLASSIFICA (40%) -->
+        <div class="w-2/5 flex flex-col gap-2">
+            <!-- Preview Ridotta -->
+            <div class="h-40 bg-gray-900/50 rounded-lg p-2 border border-gray-800 overflow-hidden">
+                <div class="flex justify-between items-center mb-1">
+                    <div class="text-xs font-bold text-purple-400 uppercase">📱 Preview</div>
+                    <button onclick="refreshPreview()" class="text-[10px] bg-gray-800 px-2 py-0.5 rounded hover:bg-gray-700 font-bold">🔄</button>
                 </div>
                 <div class="preview-frame h-full overflow-hidden">
-                    <iframe id="mobile-preview" src="" class="w-full h-full border-0 pointer-events-none" style="transform: scale(0.38); transform-origin: top left; width: 263%; height: 263%;"></iframe>
+                    <iframe id="mobile-preview" src="" class="w-full h-full border-0 pointer-events-none" style="transform: scale(0.32); transform-origin: top left; width: 313%; height: 313%;"></iframe>
                 </div>
             </div>
 
             <!-- Monitor Risposte -->
-            <div class="h-48 bg-gray-900/50 rounded-lg p-3 border border-gray-800 overflow-hidden">
-                <div class="flex justify-between items-center mb-2">
-                    <div class="text-sm font-bold text-green-400 uppercase">⚡ Monitor Risposte</div>
-                    <span id="answers-count" class="text-xs bg-gray-800 px-3 py-1 rounded font-bold">0/10</span>
+            <div class="h-32 bg-gray-900/50 rounded-lg p-2 border border-gray-800 overflow-hidden">
+                <div class="flex justify-between items-center mb-1">
+                    <div class="text-xs font-bold text-green-400 uppercase">⚡ Risposte</div>
+                    <span id="answers-count" class="text-[10px] bg-gray-800 px-2 py-0.5 rounded font-bold">0/10</span>
                 </div>
-                <div id="answers-list" class="overflow-y-auto h-32 space-y-1 text-sm"></div>
-                
-                <!-- Buzzer Queue (quando lancia buzzer con domanda) -->
-                <div id="buzzer-monitor" class="hidden overflow-y-auto h-32 space-y-1 text-sm"></div>
+                <div id="answers-list" class="overflow-y-auto h-24 space-y-1 text-xs"></div>
+                <div id="buzzer-monitor" class="hidden overflow-y-auto h-24 space-y-1 text-xs"></div>
+            </div>
+
+            <!-- Classifica 2 Colonne con Bottoni [+][-] -->
+            <div class="flex-1 bg-gray-900/50 rounded-lg p-2 border border-gray-800 overflow-hidden">
+                <div class="text-xs font-bold text-yellow-400 mb-1 uppercase">📊 Classifica</div>
+                <div id="leaderboard-center" class="grid grid-cols-2 gap-1 text-xs overflow-y-auto h-full"></div>
             </div>
         </div>
 
-        <!-- COLONNA DESTRA: MIXER (50%) -->
-        <div class="w-1/2 flex flex-col gap-2 overflow-y-auto">
+        <!-- COLONNA DESTRA: MIXER (40%) -->
+        <div class="w-2/5 flex flex-col gap-2 overflow-y-auto">
             
-            <!-- Classifica -->
-            <div class="bg-gray-900/50 rounded-lg p-2 border border-gray-800">
-                <div class="text-xs font-bold text-yellow-400 mb-2 uppercase">📊 Classifica</div>
-                <div id="leaderboard" class="space-y-1 text-xs"></div>
-            </div>
-
             <!-- Scene/Display -->
             <div class="bg-gray-900/50 rounded-lg p-2 border border-gray-800">
                 <div class="text-xs font-bold text-blue-400 mb-2 uppercase">📺 Scene</div>
@@ -340,11 +338,9 @@
         });
 
         socket.on('buzzer_queue_full', (d) => {
-            // Controlla se è buzzer musicale standalone o con domanda
             const isMusicBuzzer = d.standalone || false;
             
             if(isMusicBuzzer) {
-                // Buzzer Musicale: Mostra in sezione musicale
                 const queueDiv = document.getElementById('buzzer-queue-admin');
                 queueDiv.classList.remove('hidden');
                 queueDiv.innerHTML = '';
@@ -369,7 +365,6 @@
                     });
                 }
             } else {
-                // Buzzer con Domanda: Mostra in Monitor Risposte
                 const monitorDiv = document.getElementById('buzzer-monitor');
                 const answersList = document.getElementById('answers-list');
                 
@@ -401,18 +396,29 @@
             }
         });
 
+        socket.on('reset_buzzer_admin', () => {
+            document.getElementById('buzzer-queue-admin').classList.add('hidden');
+            document.getElementById('buzzer-queue-admin').innerHTML = '';
+        });
+
+        function resetBuzzer() { 
+            socket.emit('buzzer_reset'); 
+        }
+        
+        function openBuzzerStandalone() { 
+            socket.emit('open_buzzer_standalone'); 
+        }
+        
+        function closeBuzzer() { 
+            socket.emit('buzzer_close');
+            document.getElementById('buzzer-queue-admin').classList.add('hidden');
+            document.getElementById('buzzer-queue-admin').innerHTML = '';
+        }
+
         function assignPoints(teamId, points) {
             socket.emit('admin_punti_manuali', { id: teamId, punti: points });
             console.log(`Assegnati ${points} punti a ${teamId}`);
         }
-
-        socket.on('reset_buzzer_admin', () => {
-            document.getElementById('buzzer-queue-admin').classList.add('hidden');
-        });
-
-        function resetBuzzer() { socket.emit('buzzer_reset'); }
-        function openBuzzerStandalone() { socket.emit('open_buzzer_standalone'); }
-        function closeBuzzer() { socket.emit('buzzer_close'); }
 
         socket.on('update_teams', (t) => {
             totalTeams = t.length;
@@ -421,22 +427,33 @@
         
         function updateTeams(t) {
             t.sort((a,b) => b.score - a.score);
-            const lb = document.getElementById('leaderboard');
+            const lb = document.getElementById('leaderboard-center');
             lb.innerHTML = '';
             
-            t.slice(0, 6).forEach((x, i) => {
+            t.forEach((x, i) => {
                 const medals = ['🥇', '🥈', '🥉'];
+                const medal = medals[i] || `${i+1}°`;
+                
                 const div = document.createElement('div');
-                div.className = 'flex justify-between items-center p-1.5 bg-gray-800/50 rounded';
+                div.className = 'bg-gray-800/50 rounded p-1.5';
                 div.innerHTML = `
-                    <div class="flex items-center gap-1">
-                        <span>${medals[i] || (i+1)+'°'}</span>
-                        <span class="font-bold">${x.name}</span>
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-[10px]">${medal}</span>
+                        <span class="font-bold text-[11px]">${x.name}</span>
+                        <span class="font-black text-yellow-400 text-xs">${x.score}</span>
                     </div>
-                    <span class="font-black text-yellow-400">${x.score}</span>
+                    <div class="grid grid-cols-2 gap-1">
+                        <button onclick="adjustPoints('${x.id}', 50)" class="bg-green-600 hover:bg-green-500 text-white text-[10px] py-0.5 rounded font-bold">+</button>
+                        <button onclick="adjustPoints('${x.id}', -50)" class="bg-red-600 hover:bg-red-500 text-white text-[10px] py-0.5 rounded font-bold">-</button>
+                    </div>
                 `;
                 lb.appendChild(div);
             });
+        }
+        
+        function adjustPoints(teamId, points) {
+            socket.emit('admin_punti_manuali', { id: teamId, punti: points });
+            console.log(`Punti ${points > 0 ? '+' : ''}${points} assegnati a ${teamId}`);
         }
 
         function regia(v) { socket.emit('regia_cmd', v); }
@@ -540,7 +557,6 @@
             document.getElementById('mobile-preview').src = window.location.origin + '/preview';
         });
 
-        // Hotkeys opzionali
         document.addEventListener('keydown', (e) => {
             if(e.target.tagName === 'SELECT' || e.target.tagName === 'INPUT') return;
             if(e.code === 'Space') { e.preventDefault(); lanciaQuiz(); }

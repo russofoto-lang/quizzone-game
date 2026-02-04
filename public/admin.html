@@ -439,16 +439,16 @@
                 const medal = medals[i] || `${i+1}°`;
                 
                 const div = document.createElement('div');
-                div.className = 'bg-gray-800/50 rounded p-0.5 mb-0.5';
+                div.className = 'bg-gray-800/50 rounded mb-1';
                 div.innerHTML = `
-                    <div class="flex justify-between items-center px-1 py-0.5">
+                    <div class="flex justify-between items-center px-2 py-1">
                         <span class="text-[9px]">${medal}</span>
                         <span class="font-bold text-[10px] truncate max-w-[50px]">${x.name}</span>
                         <span class="font-black text-yellow-400 text-[11px]">${x.score}</span>
                     </div>
-                    <div class="grid grid-cols-2 gap-0.5 px-0.5 pb-0.5">
-                        <button onclick="adjustPoints('${x.id}', 50)" class="bg-green-600 hover:bg-green-500 text-white text-[9px] py-0.5 rounded font-bold">+</button>
-                        <button onclick="adjustPoints('${x.id}', -50)" class="bg-red-600 hover:bg-red-500 text-white text-[9px] py-0.5 rounded font-bold">-</button>
+                    <div class="grid grid-cols-2 gap-1 px-1 pb-1">
+                        <button onclick="adjustPoints('${x.id}', 50)" class="bg-green-600 hover:bg-green-500 text-white text-[9px] py-1 rounded font-bold">+</button>
+                        <button onclick="adjustPoints('${x.id}', -50)" class="bg-red-600 hover:bg-red-500 text-white text-[9px] py-1 rounded font-bold">-</button>
                     </div>
                 `;
                 lb.appendChild(div);

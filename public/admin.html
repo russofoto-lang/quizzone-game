@@ -24,30 +24,31 @@
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
         .step-btn { opacity: 0.4; pointer-events: none; }
         .step-btn.active { opacity: 1; pointer-events: auto; }
-        .preview-frame { background: #000; border: 2px solid #374151; border-radius: 12px; height: 100%; overflow: hidden; }
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #1f2937; }
-        ::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 3px; }
+        .preview-frame { background: #000; border: 2px solid #374151; border-radius: 12px; }
     </style>
 </head>
 <body class="h-screen flex flex-col overflow-hidden">
 
-    <div class="bg-gradient-to-r from-gray-900 to-gray-800 px-4 py-2 border-b border-gray-700 flex justify-between items-center shrink-0">
+    <!-- HEADER MINIMAL -->
+    <div class="bg-gradient-to-r from-gray-900 to-gray-800 px-4 py-2 border-b border-gray-700 flex justify-between items-center">
         <div class="flex items-center gap-4">
             <h1 class="font-black text-xl text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-red-600">CONTROL CENTER</h1>
             <span id="question-counter" class="text-lg font-bold text-gray-400">Q: 0</span>
         </div>
-        <div class="flex gap-2 text-xs font-bold">
-            <button onclick="togglePause()" id="pause-btn" class="px-4 py-2 bg-orange-600 hover:bg-orange-500 rounded-lg">⏸️ PAUSA</button>
-            <button onclick="socket.emit('admin_msg', 'PROSSIMA DOMANDA TRA POCO...')" class="px-3 py-2 bg-blue-900/40 hover:bg-blue-800 rounded-lg border border-blue-500/30">Manda Attesa</button>
+        <div class="flex gap-2">
+            <button onclick="togglePause()" id="pause-btn" class="px-4 py-2 bg-orange-600 hover:bg-orange-500 rounded-lg font-bold text-sm">⏸️ PAUSA</button>
+            <button onclick="resetGame()" class="px-3 py-2 bg-red-900 hover:bg-red-800 rounded-lg font-bold text-xs opacity-60">Reset</button>
         </div>
     </div>
 
+    <!-- LAYOUT L-SHAPE: 3 COLONNE -->
     <div class="flex-1 flex gap-2 p-2 overflow-hidden">
         
-        <div class="w-1/5 flex flex-col gap-2 shrink-0">
+        <!-- COLONNA SINISTRA: MOTORE (20%) -->
+        <div class="w-1/5 flex flex-col gap-2">
+            <!-- Selezione -->
             <div class="bg-gray-900/50 rounded-lg p-2 border border-gray-800">
-                <div class="text-[10px] font-bold text-blue-400 mb-1 uppercase">📚 Selezione</div>
+                <div class="text-xs font-bold text-blue-400 mb-1 uppercase">📚 Selezione</div>
                 <select id="sel-tipo" class="w-full bg-gray-800 text-white p-2 rounded text-xs font-bold border border-gray-700 mb-1">
                     <option value="">Tipo</option>
                     <option value="categoria">📚 Categorie</option>
@@ -60,96 +61,169 @@
                 </select>
             </div>
 
-            <div class="flex-1 bg-gray-900/50 rounded-lg p-2 border border-gray-800 overflow-hidden flex flex-col">
-                <div class="text-[10px] font-bold text-blue-400 mb-1 uppercase">📋 Domande</div>
-                <div id="questions-container" class="overflow-y-auto flex-1 text-[10px] space-y-1"></div>
+            <!-- Lista Domande -->
+            <div class="flex-1 bg-gray-900/50 rounded-lg p-2 border border-gray-800 overflow-hidden">
+                <div class="text-xs font-bold text-blue-400 mb-1 uppercase">📋 Domande</div>
+                <div id="questions-container" class="overflow-y-auto h-full text-[10px]">
+                    <div class="text-gray-500 text-center py-4">Seleziona tipo...</div>
+                </div>
             </div>
 
-            <div class="bg-gray-900/50 rounded-lg p-2 border border-gray-800 shrink-0">
-                <button onclick="lanciaQuiz()" class="w-full btn-primary text-white font-bold py-3 rounded-lg mb-1 text-sm">🎯 LANCIA QUIZ</button>
-                <button onclick="lanciaBuzzer()" class="w-full btn-danger text-white font-bold py-3 rounded-lg text-sm">⚡ LANCIA BUZZER</button>
+            <!-- Azioni Lancio -->
+            <div class="bg-gray-900/50 rounded-lg p-2 border border-gray-800">
+                <button onclick="lanciaQuiz()" class="w-full btn-primary text-white font-bold py-3 rounded-lg mb-1 text-sm">
+                    🎯 LANCIA QUIZ
+                </button>
+                <button onclick="lanciaBuzzer()" class="w-full btn-danger text-white font-bold py-3 rounded-lg text-sm">
+                    ⚡ LANCIA BUZZER
+                </button>
             </div>
         </div>
 
-        <div class="w-[40%] flex flex-col gap-2 shrink-0">
-            <div class="h-44 bg-gray-900/50 rounded-lg p-2 border border-gray-800 overflow-hidden shrink-0 flex flex-col">
-                <div class="flex justify-between items-center mb-1">
-                    <div class="text-[10px] font-bold text-purple-400 uppercase">📱 Preview Live</div>
-                    <button onclick="refreshPreview()" class="text-[10px] bg-gray-800 px-2 py-1 rounded">🔄</button>
+        <!-- COLONNA CENTRO: PREVIEW + MONITOR (30%) -->
+        <div class="w-[30%] flex flex-col gap-2">
+            <!-- Preview -->
+            <div class="flex-1 bg-gray-900/50 rounded-lg p-3 border border-gray-800 overflow-hidden">
+                <div class="flex justify-between items-center mb-2">
+                    <div class="text-sm font-bold text-purple-400 uppercase">📱 Preview Live</div>
+                    <button onclick="refreshPreview()" class="text-xs bg-gray-800 px-3 py-1 rounded hover:bg-gray-700 font-bold">🔄</button>
                 </div>
-                <div class="preview-frame w-full flex-1 relative bg-black">
-                    <iframe id="mobile-preview" src="" class="absolute top-0 left-0 w-[400%] h-[400%] border-0 pointer-events-none origin-top-left scale-[0.25]"></iframe>
+                <div class="preview-frame h-full overflow-hidden">
+                    <iframe id="mobile-preview" src="" class="w-full h-full border-0 pointer-events-none" style="transform: scale(0.38); transform-origin: top left; width: 263%; height: 263%;"></iframe>
                 </div>
             </div>
 
-            <div id="monitor-box" class="h-48 bg-gray-900/50 rounded-lg p-2 border border-gray-800 overflow-hidden shrink-0 flex flex-col">
-                <div class="flex justify-between items-center mb-1">
-                    <div class="text-[10px] font-bold text-green-400 uppercase">⚡ Monitor Risposte</div>
-                    <span id="answers-count" class="text-[10px] bg-gray-800 px-2 py-0.5 rounded">0/0</span>
+            <!-- Monitor Risposte -->
+            <div class="h-48 bg-gray-900/50 rounded-lg p-3 border border-gray-800 overflow-hidden">
+                <div class="flex justify-between items-center mb-2">
+                    <div class="text-sm font-bold text-green-400 uppercase">⚡ Monitor Risposte</div>
+                    <span id="answers-count" class="text-xs bg-gray-800 px-3 py-1 rounded font-bold">0/10</span>
                 </div>
-                <div id="answers-list" class="overflow-y-auto flex-1 space-y-1 text-sm"></div>
-                <div id="buzzer-monitor" class="hidden overflow-y-auto flex-1 space-y-1 text-sm"></div>
-            </div>
-
-            <div class="flex-1 bg-gray-900/50 rounded-lg p-2 border border-gray-800 overflow-hidden flex flex-col">
-                <div class="text-[10px] font-bold text-yellow-400 uppercase mb-2">🏆 Classifica Live</div>
-                <div id="leaderboard" class="grid grid-cols-2 gap-2 overflow-y-auto flex-1 content-start"></div>
+                <div id="answers-list" class="overflow-y-auto h-32 space-y-1 text-sm"></div>
+                
+                <!-- Buzzer Queue (quando lancia buzzer con domanda) -->
+                <div id="buzzer-monitor" class="hidden overflow-y-auto h-32 space-y-1 text-sm"></div>
             </div>
         </div>
 
-        <div class="w-[40%] flex flex-col gap-2 overflow-y-auto">
-            <div class="bg-gray-900/50 rounded-lg p-3 border border-gray-800">
-                <div class="text-xs font-bold text-red-500 mb-3 uppercase border-b border-gray-700 pb-1">🔥 Sfida Finale</div>
-                <div id="finale-steps" class="grid grid-cols-5 gap-2 mb-4">
-                    <button onclick="activateStep(1)" class="step-btn active bg-gray-800 p-2 rounded text-center border border-gray-700 hover:bg-gray-700">
-                        <div class="text-[10px] opacity-50">#1</div><div class="font-bold text-xs">1000</div>
-                    </button>
-                    <button onclick="activateStep(2)" class="step-btn bg-gray-800 p-2 rounded text-center border border-gray-700">
-                        <div class="text-[10px] opacity-50">#2</div><div class="font-bold text-xs">2000</div>
-                    </button>
-                    <button onclick="activateStep(3)" class="step-btn bg-gray-800 p-2 rounded text-center border border-gray-700">
-                        <div class="text-[10px] opacity-50">#3</div><div class="font-bold text-xs">3000</div>
-                    </button>
-                    <button onclick="activateStep(4)" class="step-btn bg-gray-800 p-2 rounded text-center border border-gray-700">
-                        <div class="text-[10px] opacity-50">#4</div><div class="font-bold text-xs">5000</div>
-                    </button>
-                    <button onclick="activateStep(5)" class="step-btn bg-red-900/30 p-2 rounded text-center border border-red-900/50">
-                        <div class="text-[10px] opacity-50">#5</div><div class="font-bold text-[10px]">ALL IN</div>
-                    </button>
-                </div>
+        <!-- COLONNA DESTRA: MIXER (50%) -->
+        <div class="w-1/2 flex flex-col gap-2 overflow-y-auto">
+            
+            <!-- Classifica -->
+            <div class="bg-gray-900/50 rounded-lg p-2 border border-gray-800">
+                <div class="text-xs font-bold text-yellow-400 mb-2 uppercase">📊 Classifica</div>
+                <div id="leaderboard" class="space-y-1 text-xs"></div>
+            </div>
 
-                <div id="finale-progress" class="hidden mb-4 p-3 bg-gray-800/50 rounded-lg border border-red-900/30">
-                    <div class="flex justify-between items-center mb-2">
-                        <span class="text-xs font-bold uppercase text-red-400" id="finale-step-title">Fase Finale</span>
-                        <div id="finale-dots">
-                            <span class="progress-dot"></span><span class="progress-dot"></span><span class="progress-dot"></span>
-                        </div>
+            <!-- Scene/Display -->
+            <div class="bg-gray-900/50 rounded-lg p-2 border border-gray-800">
+                <div class="text-xs font-bold text-blue-400 mb-2 uppercase">📺 Scene</div>
+                <div class="grid grid-cols-4 gap-1 mb-2">
+                    <div onclick="regia('logo')" class="btn-scene text-center text-[10px] font-bold">
+                        <div class="text-lg">📱</div>
+                        <div>QR</div>
                     </div>
-                    <div id="allin-bets-status" class="text-xs text-orange-400 font-bold mb-2 hidden">💰 Puntate: 0/0</div>
-                    <div class="flex gap-2">
-                        <button id="btn-next-finale" onclick="lanciaDomandaFinale()" class="flex-1 btn-danger py-2 rounded font-bold text-xs">PROSSIMA DOMANDA</button>
-                        <button onclick="revealWinner()" class="flex-1 btn-success py-2 rounded font-bold text-xs text-black">SVELA VINCITORE</button>
+                    <div onclick="regia('gioco')" class="btn-scene text-center text-[10px] font-bold">
+                        <div class="text-lg">🎮</div>
+                        <div>Game</div>
+                    </div>
+                    <div onclick="regia('classifica_round')" class="btn-scene text-center text-[10px] font-bold">
+                        <div class="text-lg">🏆</div>
+                        <div>Pod</div>
+                    </div>
+                    <div onclick="regia('classifica_gen')" class="btn-scene text-center text-[10px] font-bold">
+                        <div class="text-lg">📊</div>
+                        <div>Cls</div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-6 gap-1">
+                    <div onclick="regia('benvenuto')" class="btn-scene text-center text-[9px] font-bold py-1">
+                        <div>🎉</div>
+                        <div>Ben</div>
+                    </div>
+                    <div onclick="regia('regole')" class="btn-scene text-center text-[9px] font-bold py-1">
+                        <div>📋</div>
+                        <div>Reg</div>
+                    </div>
+                    <div onclick="regia('punteggi')" class="btn-scene text-center text-[9px] font-bold py-1">
+                        <div>🎯</div>
+                        <div>Pun</div>
+                    </div>
+                    <div onclick="regia('prossima')" class="btn-scene text-center text-[9px] font-bold py-1">
+                        <div>⏰</div>
+                        <div>Pros</div>
+                    </div>
+                    <div onclick="regia('logo_forever')" class="btn-scene text-center text-[9px] font-bold py-1">
+                        <div>🎮</div>
+                        <div>Logo</div>
+                    </div>
+                    <div onclick="showWinnerButton()" class="btn-scene text-center text-[9px] font-bold py-1">
+                        <div>👑</div>
+                        <div>Win</div>
                     </div>
                 </div>
             </div>
 
-            <div class="bg-gray-900/50 rounded-lg p-3 border border-gray-800">
-                <div class="text-xs font-bold text-pink-400 mb-2 uppercase">🎬 Mixer Audio</div>
-                <div class="grid grid-cols-2 gap-2">
-                    <button class="btn-scene text-xs" onclick="socket.emit('play_audio', 'sigla')">🎵 Sigla</button>
-                    <button class="btn-scene text-xs" onclick="socket.emit('play_audio', 'stacco')">🥁 Stacco</button>
-                    <button class="btn-scene text-xs" onclick="socket.emit('play_audio', 'tensione')">😬 Tensione</button>
-                    <button class="btn-scene text-xs" onclick="socket.emit('play_audio', 'vittoria')">🎉 Vittoria</button>
-                    <button class="btn-scene text-xs col-span-2 bg-red-900/50" onclick="socket.emit('stop_audio')">🔇 STOP AUDIO</button>
+            <!-- Azioni Rapide -->
+            <div class="bg-gray-900/50 rounded-lg p-2 border border-gray-800">
+                <div class="text-xs font-bold text-green-400 mb-2 uppercase">⚡ Azioni</div>
+                <div class="grid grid-cols-2 gap-1">
+                    <button onclick="mostraSoluzioneSuDisplay()" class="btn-warning text-white font-bold py-2 rounded text-xs">
+                        📺 Soluzione
+                    </button>
+                    <button onclick="resetDisplays()" class="btn-danger text-white font-bold py-2 rounded text-xs">
+                        🔄 Reset Disp
+                    </button>
                 </div>
             </div>
 
-            <div class="bg-gray-900/50 rounded-lg p-3 border border-gray-800 flex-1">
-                <div class="text-xs font-bold text-blue-300 mb-2 uppercase">💬 Messaggio Live</div>
-                <textarea id="custom-msg" class="w-full bg-gray-800 rounded p-2 text-xs mb-2 h-20" placeholder="Scrivi un messaggio..."></textarea>
-                <div class="flex gap-2">
-                    <button onclick="inviaMessaggio()" class="flex-1 btn-primary py-2 rounded font-bold text-xs">INVIA</button>
-                    <button onclick="pulisciMessaggio()" class="flex-1 btn-scene py-2 rounded font-bold text-xs">PULISCI</button>
+            <!-- Buzzer Musicale -->
+            <div class="bg-purple-900/20 rounded-lg p-2 border border-purple-700">
+                <div class="text-xs font-bold text-purple-300 mb-2 uppercase">🎵 Gioco Musicale</div>
+                <div class="grid grid-cols-3 gap-1 mb-2">
+                    <button onclick="openBuzzerStandalone()" class="btn-success text-white font-bold py-2 rounded text-xs">
+                        🔓 Apri
+                    </button>
+                    <button onclick="closeBuzzer()" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 rounded text-xs">
+                        🔒 Blocca
+                    </button>
+                    <button onclick="resetBuzzer()" class="btn-primary text-white font-bold py-2 rounded text-xs">
+                        🔄 Reset
+                    </button>
+                </div>
+                <div id="buzzer-queue-admin" class="hidden space-y-1 text-xs max-h-24 overflow-y-auto"></div>
+            </div>
+
+            <!-- Sfida Finale -->
+            <div class="bg-red-900/20 rounded-lg p-2 border border-red-700">
+                <div class="text-xs font-bold text-red-300 mb-2 uppercase">🔥 Sfida Finale</div>
+                <div class="space-y-1">
+                    <button onclick="showFinaleExplanation()" id="step-1" class="step-btn active w-full btn-primary text-white font-bold py-2 rounded text-xs">
+                        1️⃣ Spiega Regole
+                    </button>
+                    <button onclick="startFinale()" id="step-2" class="step-btn w-full btn-danger text-white font-bold py-2 rounded text-xs">
+                        2️⃣ Attiva Finale
+                    </button>
+                    <button onclick="prepareAllIn()" id="step-3" class="step-btn w-full btn-warning text-white font-bold py-2 rounded text-xs">
+                        3️⃣ Prepara ALL IN
+                    </button>
+                    <div id="allin-bets-status" class="hidden text-[10px] text-center text-yellow-400 py-1 font-bold"></div>
+                    <button onclick="showAllInQuestion()" id="step-4" class="step-btn w-full btn-warning text-white font-bold py-2 rounded text-xs">
+                        4️⃣ Mostra Domanda
+                    </button>
+                    <div id="step-5" class="step-btn text-[10px] text-gray-400 text-center py-1">
+                        5️⃣ Lancia domande 2-5 (x2)
+                    </div>
+                    <button onclick="revealWinner()" id="step-6" class="step-btn w-full btn-warning text-white font-bold py-2 rounded text-xs">
+                        6️⃣ RIVELA VINCITORE 👑
+                    </button>
+                    <div id="finale-progress" class="hidden text-center py-1">
+                        <span class="progress-dot"></span>
+                        <span class="progress-dot"></span>
+                        <span class="progress-dot"></span>
+                        <span class="progress-dot"></span>
+                        <span class="progress-dot"></span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -157,125 +231,322 @@
 
     <script>
         const socket = io();
-        let selectedDomanda = null;
-        let finaleActive = false;
-        let finaleQuestionCount = 0;
-        let currentFinaleStep = 1;
+        let currentQuestions = [], selectedQ = null, dbStructure = {};
+        let isPaused = false, finaleActive = false, finaleQuestionCount = 0;
+        let totalQuestionsAsked = 0, allInPrepared = false, totalTeams = 0;
 
-        socket.on('init_data', (data) => {
-            const sel = document.getElementById('sel-cat');
-            sel.innerHTML = '<option value="">Seleziona Categoria</option>';
-            data.categories.forEach(c => { sel.innerHTML += `<option value="${c}">${c}</option>`; });
-            updateLeaderboard(data.teams);
+        socket.on('connect', () => { socket.emit('admin_connect'); });
+        
+        socket.on('init_data', (d) => { 
+            dbStructure = d; 
+            totalTeams = d.teams.length;
+            updateTeams(d.teams); 
+            populateCategories();
         });
 
+        function populateCategories() {
+            const sc = document.getElementById('sel-cat');
+            sc.innerHTML = '<option value="">Categoria</option>';
+            if(dbStructure.categories) {
+                dbStructure.categories.forEach(c => {
+                    sc.innerHTML += `<option value="${c}">${c.replace(/_/g,' ')}</option>`;
+                });
+            }
+        }
+
         document.getElementById('sel-tipo').addEventListener('change', (e) => {
-            const catSel = document.getElementById('sel-cat');
-            if(e.target.value === 'categoria') { catSel.disabled = false; catSel.value = ""; }
-            else { catSel.disabled = true; caricaDomande(e.target.value, null); }
+            const t = e.target.value;
+            const sc = document.getElementById('sel-cat');
+            if(t === 'categoria') {
+                sc.disabled = false;
+            } else {
+                sc.disabled = true;
+                if(t) socket.emit('get_questions', {type: t});
+            }
         });
 
         document.getElementById('sel-cat').addEventListener('change', (e) => {
-            if(e.target.value) caricaDomande('categoria', e.target.value);
+            if(e.target.value) socket.emit('get_questions', {type: 'categoria', key: e.target.value});
         });
 
-        function caricaDomande(tipo, key) {
-            socket.emit('get_questions', { type: tipo, key: key });
-        }
+        socket.on('receive_questions', (q) => {
+            currentQuestions = q;
+            showQuestionsList(q);
+        });
 
-        socket.on('receive_questions', (list) => {
+        function showQuestionsList(questions) {
             const container = document.getElementById('questions-container');
             container.innerHTML = '';
-            list.forEach((q, i) => {
-                const color = q.difficolta === 'facile' ? 'border-green-800' : (q.difficolta === 'medio' ? 'border-yellow-800' : 'border-red-800');
+            
+            questions.forEach((item, i) => {
                 const div = document.createElement('div');
-                div.className = `p-2 mb-1 bg-gray-800 border-l-4 ${color} hover:bg-gray-700 cursor-pointer rounded flex justify-between items-center q-item`;
-                div.innerHTML = `<div class="truncate w-4/5">${q.domanda}</div><div class="text-[9px] opacity-50">${q.punti}</div>`;
-                div.onclick = () => {
-                    document.querySelectorAll('.q-item').forEach(el => el.classList.remove('bg-blue-900', 'border-blue-400'));
-                    div.classList.add('bg-blue-900', 'border-blue-400');
-                    selectedDomanda = q;
-                };
+                div.className = 'p-2 bg-gray-800 rounded mb-1 cursor-pointer hover:bg-gray-700 border border-gray-700';
+                div.innerHTML = `
+                    <div class="font-bold text-blue-400">Q${i+1}</div>
+                    <div class="leading-tight mt-0.5">${item.domanda.substring(0,50)}...</div>
+                `;
+                div.onclick = () => selectQuestion(i);
                 container.appendChild(div);
+            });
+        }
+
+        function selectQuestion(index) {
+            selectedQ = currentQuestions[index];
+            document.querySelectorAll('#questions-container > div').forEach((el, i) => {
+                el.className = i === index ? 
+                    'p-2 bg-blue-600 rounded mb-1 cursor-pointer border-2 border-blue-400' : 
+                    'p-2 bg-gray-800 rounded mb-1 cursor-pointer hover:bg-gray-700 border border-gray-700';
+            });
+        }
+
+        function lanciaQuiz() { if(selectedQ) lancia('quiz'); else alert('❌ Seleziona domanda!'); }
+        function lanciaBuzzer() { if(selectedQ) lancia('buzzer'); else alert('❌ Seleziona domanda!'); }
+
+        function lancia(m) {
+            totalQuestionsAsked++;
+            document.getElementById('question-counter').textContent = `Q: ${totalQuestionsAsked}`;
+            
+            if(finaleActive) {
+                finaleQuestionCount++;
+                updateFinaleProgress();
+                socket.emit('invia_domanda_finale', {...selectedQ, modalita: m});
+                if(finaleQuestionCount >= 5) activateStep(6);
+            } else {
+                socket.emit('invia_domanda', {...selectedQ, modalita: m});
+            }
+        }
+
+        socket.on('update_round_monitor', (data) => {
+            document.getElementById('answers-count').textContent = `${data.length}/${totalTeams}`;
+            const list = document.getElementById('answers-list');
+            list.innerHTML = '';
+            
+            data.forEach((res) => {
+                const div = document.createElement('div');
+                div.className = `p-2 rounded ${res.corretta ? 'bg-green-900/30 text-green-400' : 'bg-red-900/30 text-red-400'}`;
+                div.innerHTML = `
+                    <span class="font-bold">${res.teamName}</span>
+                    <span class="float-right font-bold">${res.corretta ? '+' : ''}${res.punti || 0}</span>
+                `;
+                list.appendChild(div);
             });
         });
 
-        function lanciaQuiz() { if(selectedDomanda) socket.emit('invia_domanda', selectedDomanda); }
-        function lanciaBuzzer() { socket.emit('open_buzzer_standalone'); }
-        function togglePause() { socket.emit('toggle_pause'); }
-        function inviaMessaggio() { socket.emit('admin_msg', document.getElementById('custom-msg').value); }
-        function pulisciMessaggio() { socket.emit('admin_msg', ''); document.getElementById('custom-msg').value=''; }
-
-        socket.on('nuova_domanda', (d) => {
+        socket.on('reset_round_monitor', () => {
             document.getElementById('answers-list').innerHTML = '';
             document.getElementById('answers-list').classList.remove('hidden');
             document.getElementById('buzzer-monitor').classList.add('hidden');
-            document.getElementById('question-counter').textContent = `Q: ${d.punti}`;
+            document.getElementById('buzzer-monitor').innerHTML = '';
         });
 
-        socket.on('update_teams', (teams) => { updateLeaderboard(teams); });
+        socket.on('buzzer_queue_full', (d) => {
+            // Controlla se è buzzer musicale standalone o con domanda
+            const isMusicBuzzer = d.standalone || false;
+            
+            if(isMusicBuzzer) {
+                // Buzzer Musicale: Mostra in sezione musicale
+                const queueDiv = document.getElementById('buzzer-queue-admin');
+                queueDiv.classList.remove('hidden');
+                queueDiv.innerHTML = '';
+                
+                if(d.queue && d.queue.length > 0) {
+                    d.queue.forEach((player, idx) => {
+                        const medals = ['🥇', '🥈', '🥉'];
+                        const div = document.createElement('div');
+                        div.className = 'bg-black/30 rounded p-2 mb-1';
+                        div.innerHTML = `
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="font-bold">${medals[idx] || (idx+1)+'.'} ${player.name}</span>
+                                <span class="text-yellow-400 text-xs">${player.time}s</span>
+                            </div>
+                            <div class="grid grid-cols-3 gap-1">
+                                <button onclick="assignPoints('${player.id}', 100)" class="bg-green-600 hover:bg-green-500 text-white text-xs py-1 rounded font-bold">+100</button>
+                                <button onclick="assignPoints('${player.id}', 50)" class="bg-blue-600 hover:bg-blue-500 text-white text-xs py-1 rounded font-bold">+50</button>
+                                <button onclick="assignPoints('${player.id}', -50)" class="bg-red-600 hover:bg-red-500 text-white text-xs py-1 rounded font-bold">-50</button>
+                            </div>
+                        `;
+                        queueDiv.appendChild(div);
+                    });
+                }
+            } else {
+                // Buzzer con Domanda: Mostra in Monitor Risposte
+                const monitorDiv = document.getElementById('buzzer-monitor');
+                const answersList = document.getElementById('answers-list');
+                
+                monitorDiv.classList.remove('hidden');
+                answersList.classList.add('hidden');
+                monitorDiv.innerHTML = '';
+                
+                document.getElementById('answers-count').textContent = `${d.queue.length}/10`;
+                
+                if(d.queue && d.queue.length > 0) {
+                    d.queue.forEach((player, idx) => {
+                        const medals = ['🥇', '🥈', '🥉'];
+                        const div = document.createElement('div');
+                        div.className = 'bg-black/30 rounded p-2 mb-1';
+                        div.innerHTML = `
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="font-bold">${medals[idx] || (idx+1)+'.'} ${player.name}</span>
+                                <span class="text-yellow-400 text-xs">${player.time}s</span>
+                            </div>
+                            <div class="grid grid-cols-3 gap-1">
+                                <button onclick="assignPoints('${player.id}', 100)" class="bg-green-600 hover:bg-green-500 text-white text-xs py-1 rounded font-bold">+100</button>
+                                <button onclick="assignPoints('${player.id}', 50)" class="bg-blue-600 hover:bg-blue-500 text-white text-xs py-1 rounded font-bold">+50</button>
+                                <button onclick="assignPoints('${player.id}', -50)" class="bg-red-600 hover:bg-red-500 text-white text-xs py-1 rounded font-bold">-50</button>
+                            </div>
+                        `;
+                        monitorDiv.appendChild(div);
+                    });
+                }
+            }
+        });
 
-        function updateLeaderboard(teams) {
+        function assignPoints(teamId, points) {
+            socket.emit('admin_punti_manuali', { id: teamId, punti: points });
+            console.log(`Assegnati ${points} punti a ${teamId}`);
+        }
+
+        socket.on('reset_buzzer_admin', () => {
+            document.getElementById('buzzer-queue-admin').classList.add('hidden');
+        });
+
+        function resetBuzzer() { socket.emit('buzzer_reset'); }
+        function openBuzzerStandalone() { socket.emit('open_buzzer_standalone'); }
+        function closeBuzzer() { socket.emit('buzzer_close'); }
+
+        socket.on('update_teams', (t) => {
+            totalTeams = t.length;
+            updateTeams(t);
+        });
+        
+        function updateTeams(t) {
+            t.sort((a,b) => b.score - a.score);
             const lb = document.getElementById('leaderboard');
             lb.innerHTML = '';
-            teams.sort((a,b) => b.score - a.score).forEach(t => {
-                lb.innerHTML += `
-                    <div class="bg-gray-800/80 p-2 rounded border border-gray-700 flex justify-between items-center">
-                        <span class="text-xs font-bold truncate pr-1">${t.name}</span>
-                        <span class="text-yellow-500 font-black text-xs">${t.score}</span>
+            
+            t.slice(0, 6).forEach((x, i) => {
+                const medals = ['🥇', '🥈', '🥉'];
+                const div = document.createElement('div');
+                div.className = 'flex justify-between items-center p-1.5 bg-gray-800/50 rounded';
+                div.innerHTML = `
+                    <div class="flex items-center gap-1">
+                        <span>${medals[i] || (i+1)+'°'}</span>
+                        <span class="font-bold">${x.name}</span>
                     </div>
+                    <span class="font-black text-yellow-400">${x.score}</span>
                 `;
+                lb.appendChild(div);
             });
-            document.getElementById('answers-count').textContent = `Teams: ${teams.length}`;
         }
 
-        socket.on('buzzer_queue_full', (data) => {
-            const bm = document.getElementById('buzzer-monitor');
-            document.getElementById('answers-list').classList.add('hidden');
-            bm.classList.remove('hidden');
-            bm.innerHTML = '';
-            data.queue.forEach((q, i) => {
-                bm.innerHTML += `<div class="bg-gray-700 p-2 rounded flex justify-between items-center ${i===0?'border border-green-500':''}">
-                    <span class="font-bold text-xs">#${i+1} ${q.name}</span><span class="text-[10px] font-mono text-gray-400">${q.time}s</span>
-                </div>`;
-            });
+        function regia(v) { socket.emit('regia_cmd', v); }
+        function resetDisplays() { if(confirm("Reset?")) socket.emit('reset_displays'); }
+        function resetGame() { if(confirm("⚠️ RESET TOTALE?")) socket.emit('reset_game'); }
+        function showWinnerButton() { socket.emit('show_winner'); }
+        
+        function mostraSoluzioneSuDisplay() {
+            if(selectedQ && selectedQ.corretta !== undefined) {
+                let soluzione = selectedQ.corretta;
+                if(typeof selectedQ.corretta === 'number' && selectedQ.risposte) {
+                    soluzione = selectedQ.risposte[selectedQ.corretta];
+                }
+                socket.emit('mostra_soluzione', { soluzione: soluzione });
+            } else {
+                alert('❌ Seleziona domanda!');
+            }
+        }
+
+        function togglePause() {
+            const btn = document.getElementById('pause-btn');
+            if(isPaused) {
+                socket.emit('resume_game');
+                btn.innerHTML = '⏸️ PAUSA';
+                btn.className = 'px-4 py-2 bg-orange-600 hover:bg-orange-500 rounded-lg font-bold text-sm';
+                isPaused = false;
+            } else {
+                socket.emit('pause_game');
+                btn.innerHTML = '▶️ RIPRENDI';
+                btn.className = 'px-4 py-2 bg-green-600 hover:bg-green-500 rounded-lg font-bold text-sm';
+                isPaused = true;
+            }
+        }
+
+        function activateStep(stepNum) {
+            for(let i = 1; i <= 6; i++) {
+                const step = document.getElementById(`step-${i}`);
+                if(step) {
+                    step.className = step.className.replace(' active', '');
+                    if(i === stepNum) step.className += ' active';
+                }
+            }
+        }
+
+        function showFinaleExplanation() {
+            socket.emit('show_finale_explanation');
+            setTimeout(() => activateStep(2), 20000);
+        }
+
+        function startFinale() {
+            if(confirm('🔥 Iniziare FINALE?')) {
+                socket.emit('start_finale');
+                finaleActive = true;
+                finaleQuestionCount = 0;
+                document.getElementById('finale-progress').classList.remove('hidden');
+                activateStep(3);
+            }
+        }
+
+        function prepareAllIn() {
+            if(!selectedQ) return alert('❌ Seleziona domanda 1!');
+            allInPrepared = true;
+            socket.emit('invia_domanda_finale', {...selectedQ, modalita: 'quiz'});
+            document.getElementById('allin-bets-status').classList.remove('hidden');
+            document.getElementById('allin-bets-status').textContent = `💰 0/${totalTeams}`;
+            activateStep(4);
+        }
+
+        function showAllInQuestion() {
+            socket.emit('admin_force_show_allin');
+            allInPrepared = false;
+            activateStep(5);
+        }
+
+        socket.on('allin_bet_placed', (data) => {
+            document.getElementById('allin-bets-status').textContent = `💰 ${data.betsCount}/${data.totalTeams}`;
+            if(data.betsCount >= data.totalTeams) {
+                document.getElementById('allin-bets-status').textContent = `✅ Tutti!`;
+            }
         });
-
-        function activateStep(step) {
-            currentFinaleStep = step;
-            finaleActive = true;
-            finaleQuestionCount = 0;
-            document.getElementById('finale-progress').classList.remove('hidden');
-            document.getElementById('btn-next-finale').disabled = false;
-            document.getElementById('finale-step-title').textContent = step === 5 ? "ALL-IN FINALE" : `FASE FINALE #${step}`;
-            document.getElementById('allin-bets-status').classList.toggle('hidden', step !== 5);
-            updateFinaleProgress();
-            socket.emit('start_finale_step', step);
-        }
-
-        function lanciaDomandaFinale() {
-            if(finaleQuestionCount >= 3) return;
-            finaleQuestionCount++;
-            updateFinaleProgress();
-            socket.emit('next_finale_question', { step: currentFinaleStep, index: finaleQuestionCount });
-            if(finaleQuestionCount === 3) document.getElementById('btn-next-finale').disabled = true;
-        }
 
         function revealWinner() {
             socket.emit('reveal_winner');
             finaleActive = false;
             document.getElementById('finale-progress').classList.add('hidden');
+            activateStep(1);
         }
 
         function updateFinaleProgress() {
-            const dots = document.querySelectorAll('#finale-dots .progress-dot');
+            const dots = document.querySelectorAll('#finale-progress .progress-dot');
             dots.forEach((dot, i) => {
                 dot.className = i < finaleQuestionCount ? 'progress-dot active' : 'progress-dot';
             });
         }
 
-        function refreshPreview() { document.getElementById('mobile-preview').src = window.location.origin + '/preview'; }
-        window.addEventListener('DOMContentLoaded', () => { refreshPreview(); });
+        function refreshPreview() {
+            document.getElementById('mobile-preview').src = window.location.origin + '/preview';
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('mobile-preview').src = window.location.origin + '/preview';
+        });
+
+        // Hotkeys opzionali
+        document.addEventListener('keydown', (e) => {
+            if(e.target.tagName === 'SELECT' || e.target.tagName === 'INPUT') return;
+            if(e.code === 'Space') { e.preventDefault(); lanciaQuiz(); }
+            if(e.code === 'KeyB') { e.preventDefault(); lanciaBuzzer(); }
+            if(e.code === 'KeyP') { e.preventDefault(); togglePause(); }
+        });
     </script>
 </body>
 </html>

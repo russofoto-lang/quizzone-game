@@ -210,6 +210,39 @@
             <div id="buzzer-queue-admin" class="hidden space-y-1 text-sm max-h-24 overflow-y-auto"></div>
         </div>
 
+        <!-- Karaoke YouTube -->
+        <div class="bg-pink-900/20 rounded-lg p-2 border border-pink-700">
+            <div class="text-sm font-bold text-pink-300 mb-2 uppercase">🎤 Karaoke YouTube</div>
+            
+            <!-- Input Libero -->
+            <div class="mb-2">
+                <input type="text" id="youtube-id-input" placeholder="ID Video (es: dQw4w9WgXcQ)" 
+                       class="w-full bg-gray-800 text-white text-xs p-2 rounded border border-gray-700 mb-1">
+                <div class="grid grid-cols-2 gap-1">
+                    <button onclick="playYoutubeKaraoke()" class="btn-success text-white font-bold py-2 rounded text-sm">
+                        ▶️ Play
+                    </button>
+                    <button onclick="stopKaraoke()" class="btn-danger text-white font-bold py-2 rounded text-sm">
+                        ⏹️ Stop
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Preset Videos -->
+            <div class="text-xs text-gray-400 mb-1">Preset:</div>
+            <div class="space-y-1">
+                <button onclick="playYoutubePreset('M8gH4hVR8_w')" class="w-full bg-pink-800 hover:bg-pink-700 text-white font-bold py-1.5 rounded text-xs">
+                    🎵 Volare - Modugno
+                </button>
+                <button onclick="playYoutubePreset('aVli1cR51sM')" class="w-full bg-pink-800 hover:bg-pink-700 text-white font-bold py-1.5 rounded text-xs">
+                    🎵 Felicità - Albano
+                </button>
+                <button onclick="playYoutubePreset('kxopViU98Xo')" class="w-full bg-pink-800 hover:bg-pink-700 text-white font-bold py-1.5 rounded text-xs">
+                    🎵 Laura non c'è
+                </button>
+            </div>
+        </div>
+
         <!-- Sfida Finale -->
         <div class="bg-red-900/20 rounded-lg p-2 border border-red-700">
             <div class="text-sm font-bold text-red-300 mb-2 uppercase">🔥 Sfida Finale</div>
@@ -474,6 +507,28 @@
         console.log(`Punti ${points > 0 ? '+' : ''}${points} assegnati a ${teamId}`);
     }
 
+    // YouTube Karaoke Functions
+    function playYoutubeKaraoke() {
+        const videoId = document.getElementById('youtube-id-input').value.trim();
+        if(!videoId) {
+            alert('❌ Inserisci un Video ID!');
+            return;
+        }
+        socket.emit('play_youtube_karaoke', { videoId: videoId });
+        console.log('🎤 Karaoke avviato:', videoId);
+    }
+
+    function playYoutubePreset(videoId) {
+        socket.emit('play_youtube_karaoke', { videoId: videoId });
+        document.getElementById('youtube-id-input').value = videoId;
+        console.log('🎤 Preset karaoke:', videoId);
+    }
+
+    function stopKaraoke() {
+        socket.emit('stop_karaoke');
+        console.log('⏹️ Karaoke fermato');
+    }
+
     function regia(v) { socket.emit('regia_cmd', v); }
     function resetDisplays() { if(confirm("Reset?")) socket.emit('reset_displays'); }
     function resetGame() { if(confirm("⚠️ RESET TOTALE?")) socket.emit('reset_game'); }
@@ -580,6 +635,45 @@
         if(e.code === 'Space') { e.preventDefault(); lanciaQuiz(); }
         if(e.code === 'KeyB') { e.preventDefault(); lanciaBuzzer(); }
         if(e.code === 'KeyP') { e.preventDefault(); togglePause(); }
+    });
+
+    // Layout Presets System
+    function setLayout(type) {
+        const left = document.getElementById('column-left');
+        const center = document.getElementById('column-center');
+        const right = document.getElementById('column-right');
+        
+        const layouts = {
+            compact: ['15%', '35%', '50%'],   // Focus controlli
+            balanced: ['20%', '40%', '40%'],  // Default
+            preview: ['15%', '50%', '35%']    // Focus preview/risposte
+        };
+        
+        const [l, c, r] = layouts[type];
+        
+        // Applica dimensioni con smooth transition
+        left.style.width = l;
+        center.style.width = c;
+        right.style.width = r;
+        
+        // Aggiorna bottoni attivi
+        document.querySelectorAll('[onclick^="setLayout"]').forEach(btn => {
+            btn.className = 'px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded text-xs font-bold transition';
+        });
+        event.target.className = 'px-3 py-1 bg-blue-600 hover:bg-blue-500 rounded text-xs font-bold transition';
+        
+        // Salva preferenza
+        localStorage.setItem('preferredLayout', type);
+        console.log(`📐 Layout: ${type.toUpperCase()} (${l} / ${c} / ${r})`);
+    }
+    
+    // Carica layout salvato all'avvio
+    window.addEventListener('DOMContentLoaded', () => {
+        const saved = localStorage.getItem('preferredLayout') || 'balanced';
+        setTimeout(() => {
+            const btn = document.querySelector(`[onclick="setLayout('${saved}')"]`);
+            if(btn) btn.click();
+        }, 100);
     });
 </script>
 ```

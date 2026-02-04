@@ -72,7 +72,7 @@
         </div>
 
         <div class="w-[40%] flex flex-col gap-2 shrink-0">
-            <div class="h-54 bg-gray-900/50 rounded-lg p-2 border border-gray-800 overflow-hidden shrink-0 flex flex-col">
+            <div class="h-44 bg-gray-900/50 rounded-lg p-2 border border-gray-800 overflow-hidden shrink-0 flex flex-col">
                 <div class="flex justify-between items-center mb-1">
                     <div class="text-[10px] font-bold text-purple-400 uppercase">📱 Preview Live</div>
                     <button onclick="refreshPreview()" class="text-[10px] bg-gray-800 px-2 py-1 rounded">🔄</button>
@@ -93,8 +93,7 @@
 
             <div class="flex-1 bg-gray-900/50 rounded-lg p-2 border border-gray-800 overflow-hidden flex flex-col">
                 <div class="text-[10px] font-bold text-yellow-400 uppercase mb-2">🏆 Classifica Live</div>
-                <div id="leaderboard" class="grid grid-cols-2 gap-2 overflow-y-auto flex-1 content-start text-xs font-bold uppercase">
-                    </div>
+                <div id="leaderboard" class="grid grid-cols-2 gap-2 overflow-y-auto flex-1 content-start"></div>
             </div>
         </div>
 
@@ -105,16 +104,16 @@
                     <button onclick="activateStep(1)" class="step-btn active bg-gray-800 p-2 rounded text-center border border-gray-700 hover:bg-gray-700">
                         <div class="text-[10px] opacity-50">#1</div><div class="font-bold text-xs">1000</div>
                     </button>
-                    <button onclick="activateStep(2)" class="step-btn bg-gray-800 p-2 rounded text-center border border-gray-700 hover:bg-gray-700">
+                    <button onclick="activateStep(2)" class="step-btn bg-gray-800 p-2 rounded text-center border border-gray-700">
                         <div class="text-[10px] opacity-50">#2</div><div class="font-bold text-xs">2000</div>
                     </button>
-                    <button onclick="activateStep(3)" class="step-btn bg-gray-800 p-2 rounded text-center border border-gray-700 hover:bg-gray-700">
+                    <button onclick="activateStep(3)" class="step-btn bg-gray-800 p-2 rounded text-center border border-gray-700">
                         <div class="text-[10px] opacity-50">#3</div><div class="font-bold text-xs">3000</div>
                     </button>
-                    <button onclick="activateStep(4)" class="step-btn bg-gray-800 p-2 rounded text-center border border-gray-700 hover:bg-gray-700">
+                    <button onclick="activateStep(4)" class="step-btn bg-gray-800 p-2 rounded text-center border border-gray-700">
                         <div class="text-[10px] opacity-50">#4</div><div class="font-bold text-xs">5000</div>
                     </button>
-                    <button onclick="activateStep(5)" class="step-btn bg-red-900/30 p-2 rounded text-center border border-red-900/50 hover:bg-red-900/50">
+                    <button onclick="activateStep(5)" class="step-btn bg-red-900/30 p-2 rounded text-center border border-red-900/50">
                         <div class="text-[10px] opacity-50">#5</div><div class="font-bold text-[10px]">ALL IN</div>
                     </button>
                 </div>
@@ -222,8 +221,8 @@
             teams.sort((a,b) => b.score - a.score).forEach(t => {
                 lb.innerHTML += `
                     <div class="bg-gray-800/80 p-2 rounded border border-gray-700 flex justify-between items-center">
-                        <span class="truncate pr-1">${t.name}</span>
-                        <span class="text-yellow-500 font-black">${t.score}</span>
+                        <span class="text-xs font-bold truncate pr-1">${t.name}</span>
+                        <span class="text-yellow-500 font-black text-xs">${t.score}</span>
                     </div>
                 `;
             });

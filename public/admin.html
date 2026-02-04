@@ -93,20 +93,20 @@
                 </div>
             </div>
 
-            <!-- Monitor Risposte -->
-            <div class="h-32 bg-gray-900/50 rounded-lg p-2 border border-gray-800 overflow-hidden">
+            <!-- Monitor Risposte - PIÙ GRANDE -->
+            <div class="h-48 bg-gray-900/50 rounded-lg p-2 border border-gray-800 overflow-hidden">
                 <div class="flex justify-between items-center mb-1">
                     <div class="text-xs font-bold text-green-400 uppercase">⚡ Risposte</div>
                     <span id="answers-count" class="text-[10px] bg-gray-800 px-2 py-0.5 rounded font-bold">0/10</span>
                 </div>
-                <div id="answers-list" class="overflow-y-auto h-24 space-y-1 text-xs"></div>
-                <div id="buzzer-monitor" class="hidden overflow-y-auto h-24 space-y-1 text-xs"></div>
+                <div id="answers-list" class="overflow-y-auto h-40 space-y-1 text-xs"></div>
+                <div id="buzzer-monitor" class="hidden overflow-y-auto h-40 space-y-1 text-xs"></div>
             </div>
 
-            <!-- Classifica 2 Colonne con Bottoni [+][-] -->
+            <!-- Classifica 2 Colonne - COMPATTA -->
             <div class="flex-1 bg-gray-900/50 rounded-lg p-2 border border-gray-800 overflow-hidden">
                 <div class="text-xs font-bold text-yellow-400 mb-1 uppercase">📊 Classifica</div>
-                <div id="leaderboard-center" class="grid grid-cols-2 gap-1 text-xs overflow-y-auto h-full"></div>
+                <div id="leaderboard-center" class="grid grid-cols-2 gap-1 text-xs"></div>
             </div>
         </div>
 
@@ -439,17 +439,13 @@
                 const medal = medals[i] || `${i+1}°`;
                 
                 const div = document.createElement('div');
-                div.className = 'bg-gray-800/50 rounded mb-1';
+                div.className = 'bg-gray-800/50 rounded px-1 py-0.5 flex items-center justify-between gap-1';
                 div.innerHTML = `
-                    <div class="flex justify-between items-center px-2 py-1">
-                        <span class="text-[9px]">${medal}</span>
-                        <span class="font-bold text-[10px] truncate max-w-[50px]">${x.name}</span>
-                        <span class="font-black text-yellow-400 text-[11px]">${x.score}</span>
-                    </div>
-                    <div class="grid grid-cols-2 gap-1 px-1 pb-1">
-                        <button onclick="adjustPoints('${x.id}', 50)" class="bg-green-600 hover:bg-green-500 text-white text-[9px] py-1 rounded font-bold">+</button>
-                        <button onclick="adjustPoints('${x.id}', -50)" class="bg-red-600 hover:bg-red-500 text-white text-[9px] py-1 rounded font-bold">-</button>
-                    </div>
+                    <span class="text-[9px] flex-shrink-0">${medal}</span>
+                    <span class="font-bold text-[9px] truncate flex-1">${x.name}</span>
+                    <span class="font-black text-yellow-400 text-[10px] flex-shrink-0">${x.score}</span>
+                    <button onclick="adjustPoints('${x.id}', 50)" class="bg-green-600 hover:bg-green-500 text-white text-[8px] px-1.5 py-0.5 rounded font-bold flex-shrink-0">+</button>
+                    <button onclick="adjustPoints('${x.id}', -50)" class="bg-red-600 hover:bg-red-500 text-white text-[8px] px-1.5 py-0.5 rounded font-bold flex-shrink-0">-</button>
                 `;
                 lb.appendChild(div);
             });

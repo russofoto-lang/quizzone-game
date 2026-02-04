@@ -80,16 +80,16 @@
             </div>
         </div>
 
-        <!-- COLONNA CENTRO: PREVIEW + MONITOR (50%) -->
-        <div class="w-1/2 flex flex-col gap-2">
-            <!-- Preview Gigante -->
+        <!-- COLONNA CENTRO: PREVIEW + MONITOR (30%) -->
+        <div class="w-[30%] flex flex-col gap-2">
+            <!-- Preview -->
             <div class="flex-1 bg-gray-900/50 rounded-lg p-3 border border-gray-800 overflow-hidden">
                 <div class="flex justify-between items-center mb-2">
                     <div class="text-sm font-bold text-purple-400 uppercase">📱 Preview Live</div>
-                    <button onclick="refreshPreview()" class="text-xs bg-gray-800 px-3 py-1 rounded hover:bg-gray-700 font-bold">🔄 Refresh</button>
+                    <button onclick="refreshPreview()" class="text-xs bg-gray-800 px-3 py-1 rounded hover:bg-gray-700 font-bold">🔄</button>
                 </div>
                 <div class="preview-frame h-full overflow-hidden">
-                    <iframe id="mobile-preview" src="" class="w-full h-full border-0 pointer-events-none" style="transform: scale(0.5); transform-origin: top left; width: 200%; height: 200%;"></iframe>
+                    <iframe id="mobile-preview" src="" class="w-full h-full border-0 pointer-events-none" style="transform: scale(0.45); transform-origin: top left; width: 222%; height: 222%;"></iframe>
                 </div>
             </div>
 
@@ -103,7 +103,7 @@
             </div>
         </div>
 
-        <!-- COLONNA DESTRA: MIXER (30%) -->
+        <!-- COLONNA DESTRA: MIXER (40%) -->
         <div class="w-[30%] flex flex-col gap-2 overflow-y-auto">
             
             <!-- Classifica -->
@@ -341,15 +341,28 @@
             if(d.queue && d.queue.length > 0) {
                 d.queue.forEach((player, idx) => {
                     const medals = ['🥇', '🥈', '🥉'];
-                    queueDiv.innerHTML += `
-                        <div class="bg-black/30 rounded p-1 flex justify-between">
-                            <span>${medals[idx] || (idx+1)+'.'} ${player.name}</span>
-                            <span class="text-yellow-400">${player.time}s</span>
+                    const div = document.createElement('div');
+                    div.className = 'bg-black/30 rounded p-2 mb-1';
+                    div.innerHTML = `
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-bold">${medals[idx] || (idx+1)+'.'} ${player.name}</span>
+                            <span class="text-yellow-400 text-xs">${player.time}s</span>
+                        </div>
+                        <div class="grid grid-cols-3 gap-1">
+                            <button onclick="assignPoints('${player.id}', 100)" class="bg-green-600 hover:bg-green-500 text-white text-xs py-1 rounded font-bold">+100</button>
+                            <button onclick="assignPoints('${player.id}', 50)" class="bg-blue-600 hover:bg-blue-500 text-white text-xs py-1 rounded font-bold">+50</button>
+                            <button onclick="assignPoints('${player.id}', -50)" class="bg-red-600 hover:bg-red-500 text-white text-xs py-1 rounded font-bold">-50</button>
                         </div>
                     `;
+                    queueDiv.appendChild(div);
                 });
             }
         });
+
+        function assignPoints(teamId, points) {
+            socket.emit('admin_punti_manuali', { id: teamId, punti: points });
+            console.log(`Assegnati ${points} punti a ${teamId}`);
+        }
 
         socket.on('reset_buzzer_admin', () => {
             document.getElementById('buzzer-queue-admin').classList.add('hidden');

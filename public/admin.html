@@ -5,6 +5,7 @@
     <title>Control Center - Siponto</title>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
     <style>
         body { background: #0a0e1a; color: white; font-family: 'Inter', sans-serif; margin: 0; padding: 0; }
         .btn-primary { background: #3b82f6; transition: all 0.15s; }
@@ -43,9 +44,9 @@
 
     <!-- LAYOUT: 20-40-40 -->
     <div class="flex-1 flex gap-2 p-2 overflow-hidden">
-        
+
         <!-- COLONNA SINISTRA: MOTORE (20%) -->
-        <div class="w-1/5 flex flex-col gap-2">
+        <div class="resizable w-1/5 flex flex-col gap-2">
             <!-- Selezione -->
             <div class="bg-gray-900/50 rounded-lg p-2 border border-gray-800">
                 <div class="text-sm font-bold text-blue-400 mb-1 uppercase">📚 Selezione</div>
@@ -81,7 +82,7 @@
         </div>
 
         <!-- COLONNA CENTRO: PREVIEW + RISPOSTE + CLASSIFICA (40%) -->
-        <div class="w-2/5 flex flex-col gap-2">
+        <div class="resizable w-2/5 flex flex-col gap-2">
             <!-- Preview Ridotta -->
             <div class="h-40 bg-gray-900/50 rounded-lg p-2 border border-gray-800 overflow-hidden">
                 <div class="flex justify-between items-center mb-1">
@@ -111,8 +112,8 @@
         </div>
 
         <!-- COLONNA DESTRA: MIXER (40%) -->
-        <div class="w-2/5 flex flex-col gap-2 overflow-y-auto">
-            
+        <div class="resizable w-2/5 flex flex-col gap-2 overflow-y-auto">
+
             <!-- Scene/Display -->
             <div class="bg-gray-900/50 rounded-lg p-2 border border-gray-800">
                 <div class="text-sm font-bold text-blue-400 mb-2 uppercase">📺 Scene</div>
@@ -234,11 +235,11 @@
         let totalQuestionsAsked = 0, allInPrepared = false, totalTeams = 0;
 
         socket.on('connect', () => { socket.emit('admin_connect'); });
-        
-        socket.on('init_data', (d) => { 
-            dbStructure = d; 
+
+        socket.on('init_data', (d) => {
+            dbStructure = d;
             totalTeams = d.teams.length;
-            updateTeams(d.teams); 
+            updateTeams(d.teams);
             populateCategories();
         });
 
@@ -275,7 +276,7 @@
         function showQuestionsList(questions) {
             const container = document.getElementById('questions-container');
             container.innerHTML = '';
-            
+
             questions.forEach((item, i) => {
                 const div = document.createElement('div');
                 div.className = 'p-2 bg-gray-800 rounded mb-1 cursor-pointer hover:bg-gray-700 border border-gray-700';
@@ -291,8 +292,8 @@
         function selectQuestion(index) {
             selectedQ = currentQuestions[index];
             document.querySelectorAll('#questions-container > div').forEach((el, i) => {
-                el.className = i === index ? 
-                    'p-2 bg-blue-600 rounded mb-1 cursor-pointer border-2 border-blue-400' : 
+                el.className = i === index ?
+                    'p-2 bg-blue-600 rounded mb-1 cursor-pointer border-2 border-blue-400' :
                     'p-2 bg-gray-800 rounded mb-1 cursor-pointer hover:bg-gray-700 border border-gray-700';
             });
         }
@@ -303,7 +304,7 @@
         function lancia(m) {
             totalQuestionsAsked++;
             document.getElementById('question-counter').textContent = `Q: ${totalQuestionsAsked}`;
-            
+
             if(finaleActive) {
                 finaleQuestionCount++;
                 updateFinaleProgress();
@@ -318,7 +319,7 @@
             document.getElementById('answers-count').textContent = `${data.length}/${totalTeams}`;
             const list = document.getElementById('answers-list');
             list.innerHTML = '';
-            
+
             data.forEach((res) => {
                 const div = document.createElement('div');
                 div.className = `p-2 rounded ${res.corretta ? 'bg-green-900/30 text-green-400' : 'bg-red-900/30 text-red-400'}`;
@@ -339,12 +340,12 @@
 
         socket.on('buzzer_queue_full', (d) => {
             const isMusicBuzzer = d.standalone || false;
-            
+
             if(isMusicBuzzer) {
                 const queueDiv = document.getElementById('buzzer-queue-admin');
                 queueDiv.classList.remove('hidden');
                 queueDiv.innerHTML = '';
-                
+
                 if(d.queue && d.queue.length > 0) {
                     d.queue.forEach((player, idx) => {
                         const medals = ['🥇', '🥈', '🥉'];
@@ -367,13 +368,13 @@
             } else {
                 const monitorDiv = document.getElementById('buzzer-monitor');
                 const answersList = document.getElementById('answers-list');
-                
+
                 monitorDiv.classList.remove('hidden');
                 answersList.classList.add('hidden');
                 monitorDiv.innerHTML = '';
-                
+
                 document.getElementById('answers-count').textContent = `${d.queue.length}/10`;
-                
+
                 if(d.queue && d.queue.length > 0) {
                     d.queue.forEach((player, idx) => {
                         const medals = ['🥇', '🥈', '🥉'];
@@ -401,15 +402,15 @@
             document.getElementById('buzzer-queue-admin').innerHTML = '';
         });
 
-        function resetBuzzer() { 
-            socket.emit('buzzer_reset'); 
+        function resetBuzzer() {
+            socket.emit('buzzer_reset');
         }
-        
-        function openBuzzerStandalone() { 
-            socket.emit('open_buzzer_standalone'); 
+
+        function openBuzzerStandalone() {
+            socket.emit('open_buzzer_standalone');
         }
-        
-        function closeBuzzer() { 
+
+        function closeBuzzer() {
             socket.emit('buzzer_close');
             document.getElementById('buzzer-queue-admin').classList.add('hidden');
             document.getElementById('buzzer-queue-admin').innerHTML = '';
@@ -424,20 +425,20 @@
             totalTeams = t.length;
             updateTeams(t);
         });
-        
+
         function updateTeams(t) {
             t.sort((a,b) => b.score - a.score);
-            
+
             // Filtra preview
             const realTeams = t.filter(x => !x.isPreview);
-            
+
             const lb = document.getElementById('leaderboard-center');
             lb.innerHTML = '';
-            
+
             realTeams.forEach((x, i) => {
                 const medals = ['🥇', '🥈', '🥉'];
                 const medal = medals[i] || `${i+1}°`;
-                
+
                 const div = document.createElement('div');
                 div.className = 'bg-gray-800/50 rounded px-1.5 py-1 flex items-center justify-between gap-1';
                 div.innerHTML = `
@@ -450,7 +451,7 @@
                 lb.appendChild(div);
             });
         }
-        
+
         function adjustPoints(teamId, points) {
             socket.emit('admin_punti_manuali', { id: teamId, punti: points });
             console.log(`Punti ${points > 0 ? '+' : ''}${points} assegnati a ${teamId}`);
@@ -460,7 +461,7 @@
         function resetDisplays() { if(confirm("Reset?")) socket.emit('reset_displays'); }
         function resetGame() { if(confirm("⚠️ RESET TOTALE?")) socket.emit('reset_game'); }
         function showWinnerButton() { socket.emit('show_winner'); }
-        
+
         function mostraSoluzioneSuDisplay() {
             if(selectedQ && selectedQ.corretta !== undefined) {
                 let soluzione = selectedQ.corretta;
@@ -563,6 +564,19 @@
             if(e.code === 'KeyB') { e.preventDefault(); lanciaBuzzer(); }
             if(e.code === 'KeyP') { e.preventDefault(); togglePause(); }
         });
+
+        // Script per il ridimensionamento
+        interact('.resizable')
+            .resizable({
+                edges: { left: true, right: true, bottom: true, top: true },
+                listeners: {
+                    move(event) {
+                        let target = event.target;
+                        target.style.width = event.rect.width + 'px';
+                        target.style.height = event.rect.height + 'px';
+                    }
+                }
+            });
     </script>
 </body>
 </html>

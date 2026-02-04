@@ -42,6 +42,7 @@ let gameState = {
   roundAnswers: [], 
   buzzerQueue: [],      
   buzzerLocked: true,
+  buzzerStandalone: false,  // Flag per distinguere buzzer musicale da buzzer con domanda
   isPaused: false,
   customScreen: { text: "Messaggio personalizzato" },
   finaleMode: {
@@ -63,7 +64,8 @@ function inviaAggiornamentoCodaAdmin() {
     if (gameState.buzzerQueue.length > 0) {
         io.to('admin').emit('buzzer_queue_full', { 
             queue: gameState.buzzerQueue,
-            correctAnswer: gameState.currentQuestion ? (gameState.currentQuestion.corretta || "---") : "---"
+            correctAnswer: gameState.currentQuestion ? (gameState.currentQuestion.corretta || "---") : "---",
+            standalone: gameState.buzzerStandalone || false
         });
     }
 }
@@ -92,8 +94,13 @@ io.on('connection', (socket) => {
     gameState.roundAnswers = [];
     gameState.buzzerQueue = [];
     
-    // Se è buzzer, SBLOCCA (false = sbloccato)
-    gameState.buzzerLocked = (d.modalita !== 'buzzer'); 
+    // Se è buzzer con domanda, NON è standalone
+    if(d.modalita === 'buzzer') {
+      gameState.buzzerStandalone = false;
+      gameState.buzzerLocked = false;  // SBLOCCA
+    } else {
+      gameState.buzzerLocked = true;
+    }
 
     let datiPerClient = {
         id: d.id,
@@ -129,6 +136,7 @@ io.on('connection', (socket) => {
   socket.on('open_buzzer_standalone', () => {
     gameState.buzzerQueue = [];
     gameState.buzzerLocked = false;
+    gameState.buzzerStandalone = true;  // Flag: è buzzer musicale
     gameState.questionStartTime = Date.now();
     
     // Mostra schermata gioco con overlay buzzer vuoto

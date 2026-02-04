@@ -83,13 +83,7 @@
                 document.getElementById('finale-indicator').textContent = `🔥 ${d.finaleQuestion}/${d.totalFinaleQuestions}`;
             }
 
-            // ALL IN
-            if(d.isAllIn) {
-                document.getElementById('msg-box').innerText = "💰 ALL IN - Scommetti!";
-                document.getElementById('allin-buttons').classList.remove('hidden');
-                return;
-            }
-
+            // Modalità normale (non ALL IN)
             if(d.modalita !== 'buzzer' && d.risposte && d.risposte.length > 0) {
                 questionStartTime = d.startTime || Date.now();
                 maxTime = 20;
@@ -119,6 +113,16 @@
                 });
             }
         });
+        
+        // ALL IN - Mostra bottoni scommessa
+        socket.on('show_allin_betting', (d) => {
+            console.log('📱 Ricevuto evento scommesse ALL IN');
+            resetUI();
+            document.getElementById('msg-box').innerText = "💰 ALL IN - Scommetti!";
+            document.getElementById('allin-buttons').classList.remove('hidden');
+            document.getElementById('finale-indicator').classList.remove('hidden');
+            document.getElementById('finale-indicator').textContent = `🔥 1/${d.totalFinaleQuestions || 5}`;
+        });
 
         // ALL IN - Scommessa
         function placeBet(amount) {
@@ -136,6 +140,33 @@
                     <div class="text-xl mt-2">Leggete le regole sul display!</div>
                 </div>
             `;
+        });
+        
+        // MOSTRA DOMANDA ALL IN (dopo scommesse)
+        socket.on('show_allin_question', (d) => {
+            console.log('📱 Ricevuta domanda ALL IN');
+            document.getElementById('msg-box').innerText = d.domanda;
+            
+            const g = document.getElementById('opts-grid');
+            g.classList.remove('hidden');
+            g.innerHTML = '';
+            
+            d.risposte.forEach(r => {
+                const b = document.createElement('button');
+                b.className = "bg-blue-600 rounded-xl p-4 font-bold text-lg shadow-xl active:bg-blue-800 transition-all";
+                b.innerText = r;
+                b.onclick = () => {
+                    socket.emit('invia_risposta', r);
+                    g.classList.add('opacity-40','pointer-events-none');
+                    document.getElementById('msg-box').innerText = "✓ Risposta inviata!";
+                    stopTimer();
+                };
+                g.appendChild(b);
+            });
+            
+            questionStartTime = d.startTime;
+            maxTime = 20;
+            startTimer();
         });
 
         // BUZZER STANDALONE MODE

@@ -12,6 +12,11 @@
         .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
         #qrcode img { margin: 0 auto; border: 15px solid white; border-radius: 10px; }
         
+        /* Responsive text sizing */
+        .question-text { font-size: clamp(2rem, 4vw, 4rem); line-height: 1.2; }
+        .answer-option { font-size: clamp(1.5rem, 2.5vw, 2rem); }
+        .category-text { font-size: clamp(1rem, 1.5vw, 1.5rem); }
+        
         @keyframes countdown-pulse {
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.1); }
@@ -50,36 +55,36 @@
         </div>
 
         <!-- VISTA GIOCO -->
-        <div id="view-gioco" class="view-section hidden absolute inset-0 flex flex-col items-center justify-center">
-            <div id="buzzer-overlay" class="hidden absolute inset-0 bg-black/90 z-50 flex flex-col items-center justify-center">
-                <p class="text-6xl text-red-500 font-black mb-8 animate__animated animate__bounceIn">⚡ PRENOTAZIONI BUZZER ⚡</p>
+        <div id="view-gioco" class="view-section hidden absolute inset-0 flex flex-col items-center justify-center p-4">
+            <div id="buzzer-overlay" class="hidden absolute inset-0 bg-black/90 z-50 flex flex-col items-center justify-center p-6">
+                <p class="text-5xl text-red-500 font-black mb-6 animate__animated animate__bounceIn">⚡ PRENOTAZIONI BUZZER ⚡</p>
                 
-                <div class="bg-red-900/50 rounded-3xl p-8 max-w-4xl w-full">
-                    <div id="buzzer-queue-display" class="space-y-4"></div>
+                <div class="bg-red-900/50 rounded-3xl p-6 max-w-4xl w-full max-h-[70vh] overflow-y-auto">
+                    <div id="buzzer-queue-display" class="space-y-3"></div>
                 </div>
             </div>
 
-            <div class="bg-gray-800/80 w-full max-w-6xl p-12 rounded-[3rem] border-t-8 border-blue-500 shadow-2xl text-center glass">
+            <div class="bg-gray-800/80 w-full max-w-7xl p-6 rounded-[2rem] border-t-8 border-blue-500 shadow-2xl text-center glass max-h-[85vh] overflow-y-auto">
                 
                 <!-- TIMER DISPLAY -->
-                <div id="timer-display-container" class="hidden mb-8">
-                    <div class="flex justify-center items-center gap-6 mb-4">
-                        <span class="text-2xl text-white font-semibold">Tempo rimasto:</span>
-                        <span id="timer-display-text" class="text-7xl font-black" style="color: #10b981;">20</span>
-                        <span class="text-3xl text-white">secondi</span>
+                <div id="timer-display-container" class="hidden mb-4">
+                    <div class="flex justify-center items-center gap-4 mb-2">
+                        <span class="text-xl text-white font-semibold">Tempo rimasto:</span>
+                        <span id="timer-display-text" class="text-6xl font-black" style="color: #10b981;">20</span>
+                        <span class="text-2xl text-white">secondi</span>
                     </div>
-                    <div class="w-full bg-gray-700 rounded-full h-4 overflow-hidden">
-                        <div id="timer-display-bar" class="h-4 rounded-full transition-all duration-1000" style="background-color: #10b981; width: 100%;"></div>
+                    <div class="w-full bg-gray-700 rounded-full h-3 overflow-hidden">
+                        <div id="timer-display-bar" class="h-3 rounded-full transition-all duration-1000" style="background-color: #10b981; width: 100%;"></div>
                     </div>
                 </div>
 
-                <h2 id="cat" class="text-2xl font-bold text-blue-400 mb-6 uppercase tracking-[0.3em]">CATEGORIA</h2>
-                <div id="q-text" class="text-6xl font-black leading-tight mb-10 text-white">Caricamento domanda...</div>
+                <h2 id="cat" class="category-text font-bold text-blue-400 mb-4 uppercase tracking-[0.3em]">CATEGORIA</h2>
+                <div id="q-text" class="question-text font-black leading-tight mb-6 text-white px-4">Caricamento domanda...</div>
                 
-                <div id="opts" class="grid grid-cols-2 gap-6 text-3xl hidden"></div>
+                <div id="opts" class="grid grid-cols-2 gap-4 hidden max-w-5xl mx-auto"></div>
 
-                <div id="solution" class="hidden mt-8 border-t border-gray-600 pt-8 animate__animated animate__fadeInUp">
-                    <div class="inline-block bg-green-600 text-white px-12 py-5 rounded-full text-5xl font-black shadow-2xl uppercase italic">
+                <div id="solution" class="hidden mt-6 border-t border-gray-600 pt-6 animate__animated animate__fadeInUp">
+                    <div class="inline-block bg-green-600 text-white px-8 py-4 rounded-full text-4xl font-black shadow-2xl uppercase italic">
                         ✅ <span id="sol-text">RISPOSTA</span>
                     </div>
                 </div>
@@ -292,6 +297,23 @@
             </div>
         </div>
 
+        <!-- VISTA ALL IN BETTING -->
+        <div id="view-allin_betting" class="view-section hidden absolute inset-0 bg-gradient-to-br from-yellow-900 via-orange-900 to-red-900 z-50 flex flex-col items-center justify-center">
+            <div class="text-center animate__animated animate__zoomIn">
+                <div class="text-9xl mb-8 animate-bounce">💰</div>
+                <h1 class="text-9xl font-black text-white mb-6 uppercase">ALL IN!</h1>
+                <p class="text-6xl text-yellow-300 mb-12">Scommettete sui vostri telefoni!</p>
+                <div class="bg-black/40 rounded-3xl p-8 max-w-2xl mx-auto">
+                    <p class="text-4xl text-white mb-4">Scegliete: 0 - 50 - 100 - 200</p>
+                    <p class="text-3xl text-green-400 mb-2">✅ Corretta → Doppio</p>
+                    <p class="text-3xl text-red-400">❌ Sbagliata → Perdi tutto</p>
+                </div>
+                <div class="mt-12 text-5xl text-yellow-300 animate-pulse">
+                    📱 Guardate i vostri telefoni! 📱
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <script>
@@ -461,6 +483,25 @@
             document.getElementById('buzzer-overlay').classList.add('hidden');
             document.getElementById('solution').classList.add('hidden');
             document.getElementById('cat').innerText = (d.categoria || "PROVA").toUpperCase();
+            
+            // ALL IN: Mostra schermata attesa scommesse
+            if(d.isAllIn) {
+                document.getElementById('q-text').innerText = "💰 ALL IN";
+                document.getElementById('opts').classList.add('hidden');
+                document.getElementById('timer-display-container').classList.add('hidden');
+                
+                // Mostra messaggio attesa
+                const qText = document.getElementById('q-text');
+                qText.innerHTML = `
+                    <div class="text-center">
+                        <div class="text-9xl mb-6 animate-pulse">💰</div>
+                        <div class="text-7xl font-black mb-4">ALL IN</div>
+                        <div class="text-5xl text-yellow-400">Le squadre stanno scommettendo...</div>
+                    </div>
+                `;
+                return;
+            }
+            
             document.getElementById('q-text').innerText = d.domanda;
             
             const o = document.getElementById('opts'); 
@@ -469,7 +510,7 @@
             if(d.risposte && d.modalita !== 'buzzer' && d.modalita !== 'stima' && d.modalita !== 'anagramma') { 
                 o.classList.remove('hidden'); 
                 d.risposte.forEach((r, idx) => {
-                    o.innerHTML += `<div class="bg-white/10 p-6 rounded-2xl border-2 border-white/10 shadow-lg text-4xl font-bold">${String.fromCharCode(65+idx)}: ${r}</div>`;
+                    o.innerHTML += `<div class="answer-option bg-white/10 p-4 rounded-2xl border-2 border-white/10 shadow-lg font-bold">${String.fromCharCode(65+idx)}: ${r}</div>`;
                 });
                 
                 questionStartTime = d.startTime || Date.now();
@@ -576,6 +617,24 @@
             document.getElementById('sol-text').innerText = d.soluzione;
             document.getElementById('buzzer-overlay').classList.add('hidden');
             document.getElementById('timer-display-container').classList.add('hidden');
+        });
+        
+        // MOSTRA DOMANDA ALL IN (dopo scommesse)
+        socket.on('show_allin_question', (d) => {
+            console.log('📺 Mostro domanda ALL IN dopo scommesse');
+            document.getElementById('q-text').innerText = d.domanda;
+            
+            const o = document.getElementById('opts');
+            o.innerHTML = '';
+            o.classList.remove('hidden');
+            
+            d.risposte.forEach((r, idx) => {
+                o.innerHTML += `<div class="bg-white/10 p-6 rounded-2xl border-2 border-white/10 shadow-lg text-4xl font-bold">${String.fromCharCode(65+idx)}: ${r}</div>`;
+            });
+            
+            questionStartTime = d.startTime;
+            maxTime = 20;
+            startTimer();
         });
 
         // CLASSIFICA

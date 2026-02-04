@@ -26,6 +26,44 @@
         .step-btn { opacity: 0.4; pointer-events: none; }
         .step-btn.active { opacity: 1; pointer-events: auto; }
         .preview-frame { background: #000; border: 2px solid #374151; border-radius: 12px; }
+        .minimized {
+            width: 120px !important;
+            height: 40px !important;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        .minimized .content {
+            display: none;
+        }
+        .minimized .header {
+            height: 40px;
+            padding: 8px;
+            text-align: center;
+            font-size: 12px;
+            cursor: pointer;
+            border-radius: 6px;
+        }
+        .header {
+            background: #374151;
+            padding: 8px;
+            border-radius: 6px 6px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2px;
+        }
+        .minimize-btn {
+            background: #4b5563;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 2px 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .minimize-btn:hover {
+            background: #6b7280;
+        }
     </style>
 </head>
 <body class="h-screen flex flex-col overflow-hidden">
@@ -47,181 +85,180 @@
 
         <!-- COLONNA SINISTRA: MOTORE (20%) -->
         <div class="resizable w-1/5 flex flex-col gap-2">
-            <!-- Selezione -->
-            <div class="bg-gray-900/50 rounded-lg p-2 border border-gray-800">
-                <div class="text-sm font-bold text-blue-400 mb-1 uppercase">📚 Selezione</div>
-                <select id="sel-tipo" class="w-full bg-gray-800 text-white p-2 rounded text-sm font-bold border border-gray-700 mb-1">
-                    <option value="">Tipo</option>
-                    <option value="categoria">📚 Categorie</option>
-                    <option value="stima">🔢 Stima</option>
-                    <option value="anagramma">🔤 Anagramma</option>
-                    <option value="bonus">⭐ Bonus</option>
-                </select>
-                <select id="sel-cat" class="w-full bg-gray-800 text-white p-2 rounded text-sm font-bold border border-gray-700" disabled>
-                    <option value="">Categoria</option>
-                </select>
+            <div class="header">
+                <span class="text-sm font-bold text-blue-400 uppercase">📚 Selezione</span>
+                <button class="minimize-btn">—</button>
             </div>
-
-            <!-- Lista Domande -->
-            <div class="flex-1 bg-gray-900/50 rounded-lg p-2 border border-gray-800 overflow-hidden">
-                <div class="text-sm font-bold text-blue-400 mb-1 uppercase">📋 Domande</div>
-                <div id="questions-container" class="overflow-y-auto h-full text-xs">
-                    <div class="text-gray-500 text-center py-4">Seleziona tipo...</div>
+            <div class="content">
+                <div class="bg-gray-900/50 rounded-lg p-2 border border-gray-800">
+                    <select id="sel-tipo" class="w-full bg-gray-800 text-white p-2 rounded text-sm font-bold border border-gray-700 mb-1">
+                        <option value="">Tipo</option>
+                        <option value="categoria">📚 Categorie</option>
+                        <option value="stima">🔢 Stima</option>
+                        <option value="anagramma">🔤 Anagramma</option>
+                        <option value="bonus">⭐ Bonus</option>
+                    </select>
+                    <select id="sel-cat" class="w-full bg-gray-800 text-white p-2 rounded text-sm font-bold border border-gray-700" disabled>
+                        <option value="">Categoria</option>
+                    </select>
                 </div>
-            </div>
-
-            <!-- Azioni Lancio -->
-            <div class="bg-gray-900/50 rounded-lg p-2 border border-gray-800">
-                <button onclick="lanciaQuiz()" class="w-full btn-primary text-white font-bold py-3 rounded-lg mb-1 text-sm">
-                    🎯 LANCIA QUIZ
-                </button>
-                <button onclick="lanciaBuzzer()" class="w-full btn-danger text-white font-bold py-3 rounded-lg text-sm">
-                    ⚡ LANCIA BUZZER
-                </button>
+                <div class="flex-1 bg-gray-900/50 rounded-lg p-2 border border-gray-800 overflow-hidden">
+                    <div class="text-sm font-bold text-blue-400 mb-1 uppercase">📋 Domande</div>
+                    <div id="questions-container" class="overflow-y-auto h-full text-xs">
+                        <div class="text-gray-500 text-center py-4">Seleziona tipo...</div>
+                    </div>
+                </div>
+                <div class="bg-gray-900/50 rounded-lg p-2 border border-gray-800">
+                    <button onclick="lanciaQuiz()" class="w-full btn-primary text-white font-bold py-3 rounded-lg mb-1 text-sm">
+                        🎯 LANCIA QUIZ
+                    </button>
+                    <button onclick="lanciaBuzzer()" class="w-full btn-danger text-white font-bold py-3 rounded-lg text-sm">
+                        ⚡ LANCIA BUZZER
+                    </button>
+                </div>
             </div>
         </div>
 
         <!-- COLONNA CENTRO: PREVIEW + RISPOSTE + CLASSIFICA (40%) -->
         <div class="resizable w-2/5 flex flex-col gap-2">
-            <!-- Preview Ridotta -->
-            <div class="h-40 bg-gray-900/50 rounded-lg p-2 border border-gray-800 overflow-hidden">
-                <div class="flex justify-between items-center mb-1">
-                    <div class="text-sm font-bold text-purple-400 uppercase">📱 Preview</div>
-                    <button onclick="refreshPreview()" class="text-xs bg-gray-800 px-2 py-0.5 rounded hover:bg-gray-700 font-bold">🔄</button>
-                </div>
-                <div class="preview-frame h-full overflow-hidden">
-                    <iframe id="mobile-preview" src="" class="w-full h-full border-0 pointer-events-none" style="transform: scale(0.32); transform-origin: top left; width: 313%; height: 313%;"></iframe>
-                </div>
+            <div class="header">
+                <span class="text-sm font-bold text-purple-400 uppercase">📱 Preview & Risposte</span>
+                <button class="minimize-btn">—</button>
             </div>
-
-            <!-- Monitor Risposte - PIÙ GRANDE -->
-            <div class="h-56 bg-gray-900/50 rounded-lg p-2 border border-gray-800 overflow-hidden">
-                <div class="flex justify-between items-center mb-1">
-                    <div class="text-sm font-bold text-green-400 uppercase">⚡ Risposte</div>
-                    <span id="answers-count" class="text-xs bg-gray-800 px-2 py-0.5 rounded font-bold">0/10</span>
+            <div class="content">
+                <div class="h-40 bg-gray-900/50 rounded-lg p-2 border border-gray-800 overflow-hidden">
+                    <div class="flex justify-between items-center mb-1">
+                        <div class="text-sm font-bold text-purple-400 uppercase">📱 Preview</div>
+                        <button onclick="refreshPreview()" class="text-xs bg-gray-800 px-2 py-0.5 rounded hover:bg-gray-700 font-bold">🔄</button>
+                    </div>
+                    <div class="preview-frame h-full overflow-hidden">
+                        <iframe id="mobile-preview" src="" class="w-full h-full border-0 pointer-events-none" style="transform: scale(0.32); transform-origin: top left; width: 313%; height: 313%;"></iframe>
+                    </div>
                 </div>
-                <div id="answers-list" class="overflow-y-auto h-48 space-y-1 text-sm"></div>
-                <div id="buzzer-monitor" class="hidden overflow-y-auto h-48 space-y-1 text-sm"></div>
-            </div>
-
-            <!-- Classifica 2 Colonne - RIDOTTA -->
-            <div class="flex-1 bg-gray-900/50 rounded-lg p-2 border border-gray-800 overflow-hidden">
-                <div class="text-sm font-bold text-yellow-400 mb-1 uppercase">📊 Classifica</div>
-                <div id="leaderboard-center" class="grid grid-cols-2 gap-1 text-sm overflow-y-auto max-h-40"></div>
+                <div class="h-56 bg-gray-900/50 rounded-lg p-2 border border-gray-800 overflow-hidden">
+                    <div class="flex justify-between items-center mb-1">
+                        <div class="text-sm font-bold text-green-400 uppercase">⚡ Risposte</div>
+                        <span id="answers-count" class="text-xs bg-gray-800 px-2 py-0.5 rounded font-bold">0/10</span>
+                    </div>
+                    <div id="answers-list" class="overflow-y-auto h-48 space-y-1 text-sm"></div>
+                    <div id="buzzer-monitor" class="hidden overflow-y-auto h-48 space-y-1 text-sm"></div>
+                </div>
+                <div class="flex-1 bg-gray-900/50 rounded-lg p-2 border border-gray-800 overflow-hidden">
+                    <div class="text-sm font-bold text-yellow-400 mb-1 uppercase">📊 Classifica</div>
+                    <div id="leaderboard-center" class="grid grid-cols-2 gap-1 text-sm overflow-y-auto max-h-40"></div>
+                </div>
             </div>
         </div>
 
         <!-- COLONNA DESTRA: MIXER (40%) -->
         <div class="resizable w-2/5 flex flex-col gap-2 overflow-y-auto">
-
-            <!-- Scene/Display -->
-            <div class="bg-gray-900/50 rounded-lg p-2 border border-gray-800">
-                <div class="text-sm font-bold text-blue-400 mb-2 uppercase">📺 Scene</div>
-                <div class="grid grid-cols-4 gap-1 mb-2">
-                    <div onclick="regia('logo')" class="btn-scene text-center text-xs font-bold">
-                        <div class="text-lg">📱</div>
-                        <div>QR</div>
-                    </div>
-                    <div onclick="regia('gioco')" class="btn-scene text-center text-xs font-bold">
-                        <div class="text-lg">🎮</div>
-                        <div>Game</div>
-                    </div>
-                    <div onclick="regia('classifica_round')" class="btn-scene text-center text-xs font-bold">
-                        <div class="text-lg">🏆</div>
-                        <div>Pod</div>
-                    </div>
-                    <div onclick="regia('classifica_gen')" class="btn-scene text-center text-xs font-bold">
-                        <div class="text-lg">📊</div>
-                        <div>Cls</div>
-                    </div>
-                </div>
-                <div class="grid grid-cols-6 gap-1">
-                    <div onclick="regia('benvenuto')" class="btn-scene text-center text-[9px] font-bold py-1">
-                        <div>🎉</div>
-                        <div>Ben</div>
-                    </div>
-                    <div onclick="regia('regole')" class="btn-scene text-center text-[9px] font-bold py-1">
-                        <div>📋</div>
-                        <div>Reg</div>
-                    </div>
-                    <div onclick="regia('punteggi')" class="btn-scene text-center text-[9px] font-bold py-1">
-                        <div>🎯</div>
-                        <div>Pun</div>
-                    </div>
-                    <div onclick="regia('prossima')" class="btn-scene text-center text-[9px] font-bold py-1">
-                        <div>⏰</div>
-                        <div>Pros</div>
-                    </div>
-                    <div onclick="regia('logo_forever')" class="btn-scene text-center text-[9px] font-bold py-1">
-                        <div>🎮</div>
-                        <div>Logo</div>
-                    </div>
-                    <div onclick="showWinnerButton()" class="btn-scene text-center text-[9px] font-bold py-1">
-                        <div>👑</div>
-                        <div>Win</div>
-                    </div>
-                </div>
+            <div class="header">
+                <span class="text-sm font-bold text-red-400 uppercase">🎛️ Mixer</span>
+                <button class="minimize-btn">—</button>
             </div>
-
-            <!-- Azioni Rapide -->
-            <div class="bg-gray-900/50 rounded-lg p-2 border border-gray-800">
-                <div class="text-sm font-bold text-green-400 mb-2 uppercase">⚡ Azioni</div>
-                <div class="grid grid-cols-2 gap-1">
-                    <button onclick="mostraSoluzioneSuDisplay()" class="btn-warning text-white font-bold py-2 rounded text-sm">
-                        📺 Soluzione
-                    </button>
-                    <button onclick="resetDisplays()" class="btn-danger text-white font-bold py-2 rounded text-sm">
-                        🔄 Reset Disp
-                    </button>
-                </div>
-            </div>
-
-            <!-- Buzzer Musicale -->
-            <div class="bg-purple-900/20 rounded-lg p-2 border border-purple-700">
-                <div class="text-sm font-bold text-purple-300 mb-2 uppercase">🎵 Gioco Musicale</div>
-                <div class="grid grid-cols-3 gap-1 mb-2">
-                    <button onclick="openBuzzerStandalone()" class="btn-success text-white font-bold py-2 rounded text-sm">
-                        🔓 Apri
-                    </button>
-                    <button onclick="closeBuzzer()" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 rounded text-sm">
-                        🔒 Blocca
-                    </button>
-                    <button onclick="resetBuzzer()" class="btn-primary text-white font-bold py-2 rounded text-sm">
-                        🔄 Reset
-                    </button>
-                </div>
-                <div id="buzzer-queue-admin" class="hidden space-y-1 text-sm max-h-24 overflow-y-auto"></div>
-            </div>
-
-            <!-- Sfida Finale -->
-            <div class="bg-red-900/20 rounded-lg p-2 border border-red-700">
-                <div class="text-sm font-bold text-red-300 mb-2 uppercase">🔥 Sfida Finale</div>
-                <div class="space-y-1">
-                    <button onclick="showFinaleExplanation()" id="step-1" class="step-btn active w-full btn-primary text-white font-bold py-2 rounded text-sm">
-                        1️⃣ Spiega Regole
-                    </button>
-                    <button onclick="startFinale()" id="step-2" class="step-btn w-full btn-danger text-white font-bold py-2 rounded text-sm">
-                        2️⃣ Attiva Finale
-                    </button>
-                    <button onclick="prepareAllIn()" id="step-3" class="step-btn w-full btn-warning text-white font-bold py-2 rounded text-sm">
-                        3️⃣ Prepara ALL IN
-                    </button>
-                    <div id="allin-bets-status" class="hidden text-xs text-center text-yellow-400 py-1 font-bold"></div>
-                    <button onclick="showAllInQuestion()" id="step-4" class="step-btn w-full btn-warning text-white font-bold py-2 rounded text-sm">
-                        4️⃣ Mostra Domanda
-                    </button>
-                    <div id="step-5" class="step-btn text-xs text-gray-400 text-center py-1">
-                        5️⃣ Lancia domande 2-5 (x2)
+            <div class="content">
+                <div class="bg-gray-900/50 rounded-lg p-2 border border-gray-800">
+                    <div class="text-sm font-bold text-blue-400 mb-2 uppercase">📺 Scene</div>
+                    <div class="grid grid-cols-4 gap-1 mb-2">
+                        <div onclick="regia('logo')" class="btn-scene text-center text-xs font-bold">
+                            <div class="text-lg">📱</div>
+                            <div>QR</div>
+                        </div>
+                        <div onclick="regia('gioco')" class="btn-scene text-center text-xs font-bold">
+                            <div class="text-lg">🎮</div>
+                            <div>Game</div>
+                        </div>
+                        <div onclick="regia('classifica_round')" class="btn-scene text-center text-xs font-bold">
+                            <div class="text-lg">🏆</div>
+                            <div>Pod</div>
+                        </div>
+                        <div onclick="regia('classifica_gen')" class="btn-scene text-center text-xs font-bold">
+                            <div class="text-lg">📊</div>
+                            <div>Cls</div>
+                        </div>
                     </div>
-                    <button onclick="revealWinner()" id="step-6" class="step-btn w-full btn-warning text-white font-bold py-2 rounded text-sm">
-                        6️⃣ RIVELA VINCITORE 👑
-                    </button>
-                    <div id="finale-progress" class="hidden text-center py-1">
-                        <span class="progress-dot"></span>
-                        <span class="progress-dot"></span>
-                        <span class="progress-dot"></span>
-                        <span class="progress-dot"></span>
-                        <span class="progress-dot"></span>
+                    <div class="grid grid-cols-6 gap-1">
+                        <div onclick="regia('benvenuto')" class="btn-scene text-center text-[9px] font-bold py-1">
+                            <div>🎉</div>
+                            <div>Ben</div>
+                        </div>
+                        <div onclick="regia('regole')" class="btn-scene text-center text-[9px] font-bold py-1">
+                            <div>📋</div>
+                            <div>Reg</div>
+                        </div>
+                        <div onclick="regia('punteggi')" class="btn-scene text-center text-[9px] font-bold py-1">
+                            <div>🎯</div>
+                            <div>Pun</div>
+                        </div>
+                        <div onclick="regia('prossima')" class="btn-scene text-center text-[9px] font-bold py-1">
+                            <div>⏰</div>
+                            <div>Pros</div>
+                        </div>
+                        <div onclick="regia('logo_forever')" class="btn-scene text-center text-[9px] font-bold py-1">
+                            <div>🎮</div>
+                            <div>Logo</div>
+                        </div>
+                        <div onclick="showWinnerButton()" class="btn-scene text-center text-[9px] font-bold py-1">
+                            <div>👑</div>
+                            <div>Win</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-900/50 rounded-lg p-2 border border-gray-800">
+                    <div class="text-sm font-bold text-green-400 mb-2 uppercase">⚡ Azioni</div>
+                    <div class="grid grid-cols-2 gap-1">
+                        <button onclick="mostraSoluzioneSuDisplay()" class="btn-warning text-white font-bold py-2 rounded text-sm">
+                            📺 Soluzione
+                        </button>
+                        <button onclick="resetDisplays()" class="btn-danger text-white font-bold py-2 rounded text-sm">
+                            🔄 Reset Disp
+                        </button>
+                    </div>
+                </div>
+                <div class="bg-purple-900/20 rounded-lg p-2 border border-purple-700">
+                    <div class="text-sm font-bold text-purple-300 mb-2 uppercase">🎵 Gioco Musicale</div>
+                    <div class="grid grid-cols-3 gap-1 mb-2">
+                        <button onclick="openBuzzerStandalone()" class="btn-success text-white font-bold py-2 rounded text-sm">
+                            🔓 Apri
+                        </button>
+                        <button onclick="closeBuzzer()" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 rounded text-sm">
+                            🔒 Blocca
+                        </button>
+                        <button onclick="resetBuzzer()" class="btn-primary text-white font-bold py-2 rounded text-sm">
+                            🔄 Reset
+                        </button>
+                    </div>
+                    <div id="buzzer-queue-admin" class="hidden space-y-1 text-sm max-h-24 overflow-y-auto"></div>
+                </div>
+                <div class="bg-red-900/20 rounded-lg p-2 border border-red-700">
+                    <div class="text-sm font-bold text-red-300 mb-2 uppercase">🔥 Sfida Finale</div>
+                    <div class="space-y-1">
+                        <button onclick="showFinaleExplanation()" id="step-1" class="step-btn active w-full btn-primary text-white font-bold py-2 rounded text-sm">
+                            1️⃣ Spiega Regole
+                        </button>
+                        <button onclick="startFinale()" id="step-2" class="step-btn w-full btn-danger text-white font-bold py-2 rounded text-sm">
+                            2️⃣ Attiva Finale
+                        </button>
+                        <button onclick="prepareAllIn()" id="step-3" class="step-btn w-full btn-warning text-white font-bold py-2 rounded text-sm">
+                            3️⃣ Prepara ALL IN
+                        </button>
+                        <div id="allin-bets-status" class="hidden text-xs text-center text-yellow-400 py-1 font-bold"></div>
+                        <button onclick="showAllInQuestion()" id="step-4" class="step-btn w-full btn-warning text-white font-bold py-2 rounded text-sm">
+                            4️⃣ Mostra Domanda
+                        </button>
+                        <div id="step-5" class="step-btn text-xs text-gray-400 text-center py-1">
+                            5️⃣ Lancia domande 2-5 (x2)
+                        </div>
+                        <button onclick="revealWinner()" id="step-6" class="step-btn w-full btn-warning text-white font-bold py-2 rounded text-sm">
+                            6️⃣ RIVELA VINCITORE 👑
+                        </button>
+                        <div id="finale-progress" class="hidden text-center py-1">
+                            <span class="progress-dot"></span>
+                            <span class="progress-dot"></span>
+                            <span class="progress-dot"></span>
+                            <span class="progress-dot"></span>
+                            <span class="progress-dot"></span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -577,6 +614,23 @@
                     }
                 }
             });
+
+        // Script per minimizzare/ripristinare
+        document.querySelectorAll('.minimize-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const resizableDiv = this.closest('.resizable');
+                resizableDiv.classList.toggle('minimized');
+            });
+        });
+
+        document.querySelectorAll('.header').forEach(header => {
+            header.addEventListener('click', function() {
+                const resizableDiv = this.closest('.resizable');
+                if (resizableDiv.classList.contains('minimized')) {
+                    resizableDiv.classList.remove('minimized');
+                }
+            });
+        });
     </script>
 </body>
 </html>

@@ -2,390 +2,566 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Regia del Gioco - Palermo 2024</title>
+    <title>Control Center - Siponto</title>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        :root {
-            --bg-dark: #0a0e1a;
-            --panel-bg: #1a1a1a;
-            --border-color: #333;
-            --text-primary: #ddd;
-            --text-secondary: #aaa;
-            --btn-primary: #3b82f6;
-            --btn-secondary: #10b981;
-            --btn-warning: #f59e0b;
-            --btn-danger: #ef4444;
-            --header-bg: #161b22;
-        }
-
-        body {
-            background: var(--bg-dark);
-            color: var(--text-primary);
-            font-family: 'Arial', sans-serif;
-            margin: 0;
-            padding: 0;
-            min-height: 100vh;
-        }
-
-        .header {
-            background: var(--header-bg);
-            padding: 12px;
-            text-align: center;
-            font-weight: bold;
-            font-size: 18px;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .container {
-            display: flex;
-            gap: 12px;
-            padding: 12px;
-            height: calc(100vh - 50px);
-            flex-wrap: wrap;
-        }
-
-        .column {
-            flex: 1;
-            min-width: 300px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .panel {
-            background: var(--panel-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 12px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        }
-
-        .panel-header {
-            font-weight: bold;
-            color: white;
-            margin-bottom: 10px;
-            padding-bottom: 6px;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .panel-content {
-            color: var(--text-primary);
-            font-size: 14px;
-        }
-
-        .btn {
-            background: var(--btn-primary);
-            color: white;
-            border: none;
-            padding: 8px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-            margin-right: 6px;
-            margin-bottom: 6px;
-            transition: background 0.2s;
-        }
-
-        .btn:hover {
-            background: #2563eb;
-        }
-
-        .btn-secondary {
-            background: var(--btn-secondary);
-        }
-
-        .btn-secondary:hover {
-            background: #059669;
-        }
-
-        .btn-warning {
-            background: var(--btn-warning);
-        }
-
-        .btn-warning:hover {
-            background: #d97706;
-        }
-
-        .btn-danger {
-            background: var(--btn-danger);
-        }
-
-        .btn-danger:hover {
-            background: #dc2626;
-        }
-
-        select, input {
-            background: #2a2a2a;
-            color: white;
-            border: 1px solid var(--border-color);
-            padding: 6px;
-            border-radius: 4px;
-            width: 100%;
-            margin-bottom: 8px;
-        }
-
-        #questions-container, #answers-list, #leaderboard {
-            height: 180px;
-            overflow-y: auto;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            padding: 8px;
-            background: #2a2a2a;
-        }
-
-        .scene-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 6px;
-        }
-
-        .scene-btn {
-            background: var(--panel-bg);
-            border: 1px solid var(--border-color);
-            padding: 6px;
-            border-radius: 4px;
-            text-align: center;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .scene-btn:hover {
-            background: #2a2a2a;
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                flex-direction: column;
-            }
-            .scene-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
+        body { background: #0a0e1a; color: white; font-family: 'Inter', sans-serif; margin: 0; padding: 0; }
+        .btn-primary { background: #3b82f6; transition: all 0.15s; }
+        .btn-primary:hover { background: #2563eb; transform: scale(1.02); }
+        .btn-primary:active { transform: scale(0.98); }
+        .btn-success { background: #10b981; }
+        .btn-success:hover { background: #059669; }
+        .btn-warning { background: #f59e0b; }
+        .btn-warning:hover { background: #d97706; }
+        .btn-danger { background: #ef4444; }
+        .btn-danger:hover { background: #dc2626; }
+        .btn-scene { background: #1f2937; transition: all 0.15s; padding: 8px; border-radius: 6px; cursor: pointer; }
+        .btn-scene:hover { background: #374151; transform: scale(1.05); }
+        .btn-scene.active { background: #10b981; box-shadow: 0 0 12px #10b981; }
+        .progress-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin: 0 2px; background: #374151; }
+        .progress-dot.active { background: #ef4444; box-shadow: 0 0 8px #ef4444; animation: pulse 1s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+        .step-btn { opacity: 0.4; pointer-events: none; }
+        .step-btn.active { opacity: 1; pointer-events: auto; }
+        .preview-frame { background: #000; border: 2px solid #374151; border-radius: 12px; }
     </style>
 </head>
-<body>
-    <!-- Header -->
-    <div class="header">
-        REGIA DEL GIOCO - PALERMO 2024
-    </div>
+<body class="h-screen flex flex-col overflow-hidden">
 
-    <!-- Contenitore principale -->
-    <div class="container">
-        <!-- Colonna 1: Selezione e Domande -->
-        <div class="column">
-            <div class="panel">
-                <div class="panel-header">
-                    <span>📚 Selezione</span>
-                </div>
-                <div class="panel-content">
-                    <select id="sel-tipo">
-                        <option value="">Tipo</option>
-                        <option value="categoria">Categorie</option>
-                        <option value="stima">Stima</option>
-                        <option value="anagramma">Anagramma</option>
-                        <option value="bonus">Bonus</option>
-                    </select>
-                    <select id="sel-cat" disabled>
-                        <option value="">Categoria</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="panel">
-                <div class="panel-header">
-                    <span>📋 Domande</span>
-                </div>
-                <div class="panel-content">
-                    <div id="questions-container">
-                        Seleziona una categoria per vedere le domande.
-                    </div>
-                </div>
-            </div>
-
-            <div class="panel">
-                <div class="panel-header">
-                    <span>🎯 Azioni</span>
-                </div>
-                <div class="panel-content">
-                    <button class="btn" onclick="lanciaQuiz()">Lancia Quiz</button>
-                    <button class="btn btn-secondary" onclick="lanciaBuzzer()">Lancia Buzzer</button>
-                </div>
-            </div>
+    <!-- HEADER MINIMAL -->
+    <div class="bg-gradient-to-r from-gray-900 to-gray-800 px-4 py-2 border-b border-gray-700 flex justify-between items-center">
+        <div class="flex items-center gap-4">
+            <h1 class="font-black text-xl text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-red-600">CONTROL CENTER</h1>
+            <span id="question-counter" class="text-lg font-bold text-gray-400">Q: 0</span>
         </div>
-
-        <!-- Colonna 2: Preview e Risposte -->
-        <div class="column">
-            <div class="panel">
-                <div class="panel-header">
-                    <span>📱 Preview</span>
-                </div>
-                <div class="panel-content">
-                    <div style="height: 150px; background: #000; border-radius: 4px; overflow: hidden; margin-bottom: 8px;">
-                        <iframe id="mobile-preview" src="" style="width: 100%; height: 100%; border: none;"></iframe>
-                    </div>
-                    <button class="btn btn-warning" onclick="refreshPreview()">Aggiorna Preview</button>
-                </div>
-            </div>
-
-            <div class="panel">
-                <div class="panel-header">
-                    <span>⚡ Risposte</span>
-                </div>
-                <div class="panel-content">
-                    <div id="answers-list">
-                        Nessuna risposta ancora.
-                    </div>
-                </div>
-            </div>
-
-            <div class="panel">
-                <div class="panel-header">
-                    <span>📊 Classifica</span>
-                </div>
-                <div class="panel-content">
-                    <div id="leaderboard">
-                        Classifica vuota.
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Colonna 3: Scene e Mixer -->
-        <div class="column">
-            <div class="panel">
-                <div class="panel-header">
-                    <span>📺 Scene</span>
-                </div>
-                <div class="panel-content">
-                    <div class="scene-grid">
-                        <div class="scene-btn" onclick="regia('logo')">QR</div>
-                        <div class="scene-btn" onclick="regia('gioco')">Game</div>
-                        <div class="scene-btn" onclick="regia('classifica')">Classifica</div>
-                        <div class="scene-btn" onclick="regia('benvenuto')">Benvenuto</div>
-                        <div class="scene-btn" onclick="regia('regole')">Regole</div>
-                        <div class="scene-btn" onclick="regia('punteggi')">Punteggi</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="panel">
-                <div class="panel-header">
-                    <span>🎵 Gioco Musicale</span>
-                </div>
-                <div class="panel-content">
-                    <button class="btn btn-secondary" onclick="openBuzzer()">Apri Buzzer</button>
-                    <button class="btn btn-danger" onclick="closeBuzzer()">Chiudi Buzzer</button>
-                    <button class="btn" onclick="resetBuzzer()">Reset Buzzer</button>
-                </div>
-            </div>
-
-            <div class="panel">
-                <div class="panel-header">
-                    <span>🔥 Sfida Finale</span>
-                </div>
-                <div class="panel-content">
-                    <button class="btn btn-warning" onclick="startFinale()">Attiva Finale</button>
-                    <button class="btn btn-secondary" onclick="showWinner()">Mostra Vincitore</button>
-                </div>
-            </div>
+        <div class="flex gap-2">
+            <button onclick="togglePause()" id="pause-btn" class="px-4 py-2 bg-orange-600 hover:bg-orange-500 rounded-lg font-bold text-sm">â¸ï¸ PAUSA</button>
+            <button onclick="resetGame()" class="px-3 py-2 bg-red-900 hover:bg-red-800 rounded-lg font-bold text-xs opacity-60">Reset</button>
         </div>
     </div>
 
-    <!-- Script per la logica del gioco -->
+    <!-- LAYOUT: 20-40-40 -->
+    <div class="flex-1 flex gap-2 p-2 overflow-hidden">
+        
+        <!-- COLONNA SINISTRA: MOTORE (20%) -->
+        <div class="w-1/5 flex flex-col gap-2">
+            <!-- Selezione -->
+            <div class="bg-gray-900/50 rounded-lg p-2 border border-gray-800">
+                <div class="text-sm font-bold text-blue-400 mb-1 uppercase">ð Selezione</div>
+                <select id="sel-tipo" class="w-full bg-gray-800 text-white p-2 rounded text-sm font-bold border border-gray-700 mb-1">
+                    <option value="">Tipo</option>
+                    <option value="categoria">ð Categorie</option>
+                    <option value="stima">ð¢ Stima</option>
+                    <option value="anagramma">ð¤ Anagramma</option>
+                    <option value="bonus">â­ Bonus</option>
+                </select>
+                <select id="sel-cat" class="w-full bg-gray-800 text-white p-2 rounded text-sm font-bold border border-gray-700" disabled>
+                    <option value="">Categoria</option>
+                </select>
+            </div>
+
+            <!-- Lista Domande -->
+            <div class="flex-1 bg-gray-900/50 rounded-lg p-2 border border-gray-800 overflow-hidden">
+                <div class="text-sm font-bold text-blue-400 mb-1 uppercase">ð Domande</div>
+                <div id="questions-container" class="overflow-y-auto h-full text-xs">
+                    <div class="text-gray-500 text-center py-4">Seleziona tipo...</div>
+                </div>
+            </div>
+
+            <!-- Azioni Lancio -->
+            <div class="bg-gray-900/50 rounded-lg p-2 border border-gray-800">
+                <button onclick="lanciaQuiz()" class="w-full btn-primary text-white font-bold py-3 rounded-lg mb-1 text-sm">
+                    ð¯ LANCIA QUIZ
+                </button>
+                <button onclick="lanciaBuzzer()" class="w-full btn-danger text-white font-bold py-3 rounded-lg text-sm">
+                    â¡ LANCIA BUZZER
+                </button>
+            </div>
+        </div>
+
+        <!-- COLONNA CENTRO: PREVIEW + RISPOSTE + CLASSIFICA (40%) -->
+        <div class="w-2/5 flex flex-col gap-2">
+            <!-- Preview Ridotta -->
+            <div class="h-40 bg-gray-900/50 rounded-lg p-2 border border-gray-800 overflow-hidden">
+                <div class="flex justify-between items-center mb-1">
+                    <div class="text-sm font-bold text-purple-400 uppercase">ð± Preview</div>
+                    <button onclick="refreshPreview()" class="text-xs bg-gray-800 px-2 py-0.5 rounded hover:bg-gray-700 font-bold">ð</button>
+                </div>
+                <div class="preview-frame h-full overflow-hidden">
+                    <iframe id="mobile-preview" src="" class="w-full h-full border-0 pointer-events-none" style="transform: scale(0.32); transform-origin: top left; width: 313%; height: 313%;"></iframe>
+                </div>
+            </div>
+
+            <!-- Monitor Risposte - PIÃ GRANDE -->
+            <div class="h-56 bg-gray-900/50 rounded-lg p-2 border border-gray-800 overflow-hidden">
+                <div class="flex justify-between items-center mb-1">
+                    <div class="text-sm font-bold text-green-400 uppercase">â¡ Risposte</div>
+                    <span id="answers-count" class="text-xs bg-gray-800 px-2 py-0.5 rounded font-bold">0/10</span>
+                </div>
+                <div id="answers-list" class="overflow-y-auto h-48 space-y-1 text-sm"></div>
+                <div id="buzzer-monitor" class="hidden overflow-y-auto h-48 space-y-1 text-sm"></div>
+            </div>
+
+            <!-- Classifica 2 Colonne - RIDOTTA -->
+            <div class="flex-1 bg-gray-900/50 rounded-lg p-2 border border-gray-800 overflow-hidden">
+                <div class="text-sm font-bold text-yellow-400 mb-1 uppercase">ð Classifica</div>
+                <div id="leaderboard-center" class="grid grid-cols-2 gap-1 text-sm overflow-y-auto max-h-40"></div>
+            </div>
+        </div>
+
+        <!-- COLONNA DESTRA: MIXER (40%) -->
+        <div class="w-2/5 flex flex-col gap-2 overflow-y-auto">
+            
+            <!-- Scene/Display -->
+            <div class="bg-gray-900/50 rounded-lg p-2 border border-gray-800">
+                <div class="text-sm font-bold text-blue-400 mb-2 uppercase">ðº Scene</div>
+                <div class="grid grid-cols-4 gap-1 mb-2">
+                    <div onclick="regia('logo')" class="btn-scene text-center text-xs font-bold">
+                        <div class="text-lg">ð±</div>
+                        <div>QR</div>
+                    </div>
+                    <div onclick="regia('gioco')" class="btn-scene text-center text-xs font-bold">
+                        <div class="text-lg">ð®</div>
+                        <div>Game</div>
+                    </div>
+                    <div onclick="regia('classifica_round')" class="btn-scene text-center text-xs font-bold">
+                        <div class="text-lg">ð</div>
+                        <div>Pod</div>
+                    </div>
+                    <div onclick="regia('classifica_gen')" class="btn-scene text-center text-xs font-bold">
+                        <div class="text-lg">ð</div>
+                        <div>Cls</div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-6 gap-1">
+                    <div onclick="regia('benvenuto')" class="btn-scene text-center text-[9px] font-bold py-1">
+                        <div>ð</div>
+                        <div>Ben</div>
+                    </div>
+                    <div onclick="regia('regole')" class="btn-scene text-center text-[9px] font-bold py-1">
+                        <div>ð</div>
+                        <div>Reg</div>
+                    </div>
+                    <div onclick="regia('punteggi')" class="btn-scene text-center text-[9px] font-bold py-1">
+                        <div>ð¯</div>
+                        <div>Pun</div>
+                    </div>
+                    <div onclick="regia('prossima')" class="btn-scene text-center text-[9px] font-bold py-1">
+                        <div>â°</div>
+                        <div>Pros</div>
+                    </div>
+                    <div onclick="regia('logo_forever')" class="btn-scene text-center text-[9px] font-bold py-1">
+                        <div>ð®</div>
+                        <div>Logo</div>
+                    </div>
+                    <div onclick="showWinnerButton()" class="btn-scene text-center text-[9px] font-bold py-1">
+                        <div>ð</div>
+                        <div>Win</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Azioni Rapide -->
+            <div class="bg-gray-900/50 rounded-lg p-2 border border-gray-800">
+                <div class="text-sm font-bold text-green-400 mb-2 uppercase">â¡ Azioni</div>
+                <div class="grid grid-cols-2 gap-1">
+                    <button onclick="mostraSoluzioneSuDisplay()" class="btn-warning text-white font-bold py-2 rounded text-sm">
+                        ðº Soluzione
+                    </button>
+                    <button onclick="resetDisplays()" class="btn-danger text-white font-bold py-2 rounded text-sm">
+                        ð Reset Disp
+                    </button>
+                </div>
+            </div>
+
+            <!-- Buzzer Musicale -->
+            <div class="bg-purple-900/20 rounded-lg p-2 border border-purple-700">
+                <div class="text-sm font-bold text-purple-300 mb-2 uppercase">ðµ Gioco Musicale</div>
+                <div class="grid grid-cols-3 gap-1 mb-2">
+                    <button onclick="openBuzzerStandalone()" class="btn-success text-white font-bold py-2 rounded text-sm">
+                        ð Apri
+                    </button>
+                    <button onclick="closeBuzzer()" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 rounded text-sm">
+                        ð Blocca
+                    </button>
+                    <button onclick="resetBuzzer()" class="btn-primary text-white font-bold py-2 rounded text-sm">
+                        ð Reset
+                    </button>
+                </div>
+                <div id="buzzer-queue-admin" class="hidden space-y-1 text-sm max-h-24 overflow-y-auto"></div>
+            </div>
+
+            <!-- Sfida Finale -->
+            <div class="bg-red-900/20 rounded-lg p-2 border border-red-700">
+                <div class="text-sm font-bold text-red-300 mb-2 uppercase">ð¥ Sfida Finale</div>
+                <div class="space-y-1">
+                    <button onclick="showFinaleExplanation()" id="step-1" class="step-btn active w-full btn-primary text-white font-bold py-2 rounded text-sm">
+                        1ï¸â£ Spiega Regole
+                    </button>
+                    <button onclick="startFinale()" id="step-2" class="step-btn w-full btn-danger text-white font-bold py-2 rounded text-sm">
+                        2ï¸â£ Attiva Finale
+                    </button>
+                    <button onclick="prepareAllIn()" id="step-3" class="step-btn w-full btn-warning text-white font-bold py-2 rounded text-sm">
+                        3ï¸â£ Prepara ALL IN
+                    </button>
+                    <div id="allin-bets-status" class="hidden text-xs text-center text-yellow-400 py-1 font-bold"></div>
+                    <button onclick="showAllInQuestion()" id="step-4" class="step-btn w-full btn-warning text-white font-bold py-2 rounded text-sm">
+                        4ï¸â£ Mostra Domanda
+                    </button>
+                    <div id="step-5" class="step-btn text-xs text-gray-400 text-center py-1">
+                        5ï¸â£ Lancia domande 2-5 (x2)
+                    </div>
+                    <button onclick="revealWinner()" id="step-6" class="step-btn w-full btn-warning text-white font-bold py-2 rounded text-sm">
+                        6ï¸â£ RIVELA VINCITORE ð
+                    </button>
+                    <div id="finale-progress" class="hidden text-center py-1">
+                        <span class="progress-dot"></span>
+                        <span class="progress-dot"></span>
+                        <span class="progress-dot"></span>
+                        <span class="progress-dot"></span>
+                        <span class="progress-dot"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         const socket = io();
-        let currentQuestions = [];
-        let selectedQ = null;
+        let currentQuestions = [], selectedQ = null, dbStructure = {};
+        let isPaused = false, finaleActive = false, finaleQuestionCount = 0;
+        let totalQuestionsAsked = 0, allInPrepared = false, totalTeams = 0;
 
-        // Funzione per aggiornare le domande
+        socket.on('connect', () => { socket.emit('admin_connect'); });
+        
+        socket.on('init_data', (d) => { 
+            dbStructure = d; 
+            totalTeams = d.teams.length;
+            updateTeams(d.teams); 
+            populateCategories();
+        });
+
+        function populateCategories() {
+            const sc = document.getElementById('sel-cat');
+            sc.innerHTML = '<option value="">Categoria</option>';
+            if(dbStructure.categories) {
+                dbStructure.categories.forEach(c => {
+                    sc.innerHTML += `<option value="${c}">${c.replace(/_/g,' ')}</option>`;
+                });
+            }
+        }
+
+        document.getElementById('sel-tipo').addEventListener('change', (e) => {
+            const t = e.target.value;
+            const sc = document.getElementById('sel-cat');
+            if(t === 'categoria') {
+                sc.disabled = false;
+            } else {
+                sc.disabled = true;
+                if(t) socket.emit('get_questions', {type: t});
+            }
+        });
+
+        document.getElementById('sel-cat').addEventListener('change', (e) => {
+            if(e.target.value) socket.emit('get_questions', {type: 'categoria', key: e.target.value});
+        });
+
+        socket.on('receive_questions', (q) => {
+            currentQuestions = q;
+            showQuestionsList(q);
+        });
+
         function showQuestionsList(questions) {
             const container = document.getElementById('questions-container');
             container.innerHTML = '';
+            
             questions.forEach((item, i) => {
                 const div = document.createElement('div');
-                div.style.padding = '6px';
-                div.style.marginBottom = '6px';
-                div.style.background = '#2a2a2a';
-                div.style.borderRadius = '4px';
-                div.style.cursor = 'pointer';
-                div.textContent = `Q${i+1}: ${item.domanda.substring(0, 40)}...`;
+                div.className = 'p-2 bg-gray-800 rounded mb-1 cursor-pointer hover:bg-gray-700 border border-gray-700';
+                div.innerHTML = `
+                    <div class="font-bold text-blue-400">Q${i+1}</div>
+                    <div class="leading-tight mt-0.5">${item.domanda.substring(0,50)}...</div>
+                `;
                 div.onclick = () => selectQuestion(i);
                 container.appendChild(div);
             });
         }
 
-        // Funzione per selezionare una domanda
         function selectQuestion(index) {
             selectedQ = currentQuestions[index];
-            alert(`Domanda selezionata: ${selectedQ.domanda}`);
+            document.querySelectorAll('#questions-container > div').forEach((el, i) => {
+                el.className = i === index ? 
+                    'p-2 bg-blue-600 rounded mb-1 cursor-pointer border-2 border-blue-400' : 
+                    'p-2 bg-gray-800 rounded mb-1 cursor-pointer hover:bg-gray-700 border border-gray-700';
+            });
         }
 
-        // Funzione per lanciare un quiz
-        function lanciaQuiz() {
-            if (selectedQ) {
-                alert(`Quiz lanciato: ${selectedQ.domanda}`);
+        function lanciaQuiz() { if(selectedQ) lancia('quiz'); else alert('â Seleziona domanda!'); }
+        function lanciaBuzzer() { if(selectedQ) lancia('buzzer'); else alert('â Seleziona domanda!'); }
+
+        function lancia(m) {
+            totalQuestionsAsked++;
+            document.getElementById('question-counter').textContent = `Q: ${totalQuestionsAsked}`;
+            
+            if(finaleActive) {
+                finaleQuestionCount++;
+                updateFinaleProgress();
+                socket.emit('invia_domanda_finale', {...selectedQ, modalita: m});
+                if(finaleQuestionCount >= 5) activateStep(6);
             } else {
-                alert('Seleziona una domanda!');
+                socket.emit('invia_domanda', {...selectedQ, modalita: m});
             }
         }
 
-        // Funzione per lanciare il buzzer
-        function lanciaBuzzer() {
-            if (selectedQ) {
-                alert(`Buzzer lanciato per: ${selectedQ.domanda}`);
+        socket.on('update_round_monitor', (data) => {
+            document.getElementById('answers-count').textContent = `${data.length}/${totalTeams}`;
+            const list = document.getElementById('answers-list');
+            list.innerHTML = '';
+            
+            data.forEach((res) => {
+                const div = document.createElement('div');
+                div.className = `p-2 rounded ${res.corretta ? 'bg-green-900/30 text-green-400' : 'bg-red-900/30 text-red-400'}`;
+                div.innerHTML = `
+                    <span class="font-bold">${res.teamName}</span>
+                    <span class="float-right font-bold">${res.corretta ? '+' : ''}${res.punti || 0}</span>
+                `;
+                list.appendChild(div);
+            });
+        });
+
+        socket.on('reset_round_monitor', () => {
+            document.getElementById('answers-list').innerHTML = '';
+            document.getElementById('answers-list').classList.remove('hidden');
+            document.getElementById('buzzer-monitor').classList.add('hidden');
+            document.getElementById('buzzer-monitor').innerHTML = '';
+        });
+
+        socket.on('buzzer_queue_full', (d) => {
+            const isMusicBuzzer = d.standalone || false;
+            
+            if(isMusicBuzzer) {
+                const queueDiv = document.getElementById('buzzer-queue-admin');
+                queueDiv.classList.remove('hidden');
+                queueDiv.innerHTML = '';
+                
+                if(d.queue && d.queue.length > 0) {
+                    d.queue.forEach((player, idx) => {
+                        const medals = ['ð¥', 'ð¥', 'ð¥'];
+                        const div = document.createElement('div');
+                        div.className = 'bg-black/30 rounded p-2 mb-1';
+                        div.innerHTML = `
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="font-bold">${medals[idx] || (idx+1)+'.'} ${player.name}</span>
+                                <span class="text-yellow-400 text-xs">${player.time}s</span>
+                            </div>
+                            <div class="grid grid-cols-3 gap-1">
+                                <button onclick="assignPoints('${player.id}', 100)" class="bg-green-600 hover:bg-green-500 text-white text-xs py-1 rounded font-bold">+100</button>
+                                <button onclick="assignPoints('${player.id}', 50)" class="bg-blue-600 hover:bg-blue-500 text-white text-xs py-1 rounded font-bold">+50</button>
+                                <button onclick="assignPoints('${player.id}', -50)" class="bg-red-600 hover:bg-red-500 text-white text-xs py-1 rounded font-bold">-50</button>
+                            </div>
+                        `;
+                        queueDiv.appendChild(div);
+                    });
+                }
             } else {
-                alert('Seleziona una domanda!');
+                const monitorDiv = document.getElementById('buzzer-monitor');
+                const answersList = document.getElementById('answers-list');
+                
+                monitorDiv.classList.remove('hidden');
+                answersList.classList.add('hidden');
+                monitorDiv.innerHTML = '';
+                
+                document.getElementById('answers-count').textContent = `${d.queue.length}/10`;
+                
+                if(d.queue && d.queue.length > 0) {
+                    d.queue.forEach((player, idx) => {
+                        const medals = ['ð¥', 'ð¥', 'ð¥'];
+                        const div = document.createElement('div');
+                        div.className = 'bg-black/30 rounded p-2 mb-1';
+                        div.innerHTML = `
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="font-bold">${medals[idx] || (idx+1)+'.'} ${player.name}</span>
+                                <span class="text-yellow-400 text-xs">${player.time}s</span>
+                            </div>
+                            <div class="grid grid-cols-3 gap-1">
+                                <button onclick="assignPoints('${player.id}', 100)" class="bg-green-600 hover:bg-green-500 text-white text-xs py-1 rounded font-bold">+100</button>
+                                <button onclick="assignPoints('${player.id}', 50)" class="bg-blue-600 hover:bg-blue-500 text-white text-xs py-1 rounded font-bold">+50</button>
+                                <button onclick="assignPoints('${player.id}', -50)" class="bg-red-600 hover:bg-red-500 text-white text-xs py-1 rounded font-bold">-50</button>
+                            </div>
+                        `;
+                        monitorDiv.appendChild(div);
+                    });
+                }
+            }
+        });
+
+        socket.on('reset_buzzer_admin', () => {
+            document.getElementById('buzzer-queue-admin').classList.add('hidden');
+            document.getElementById('buzzer-queue-admin').innerHTML = '';
+        });
+
+        function resetBuzzer() { 
+            socket.emit('buzzer_reset'); 
+        }
+        
+        function openBuzzerStandalone() { 
+            socket.emit('open_buzzer_standalone'); 
+        }
+        
+        function closeBuzzer() { 
+            socket.emit('buzzer_close');
+            document.getElementById('buzzer-queue-admin').classList.add('hidden');
+            document.getElementById('buzzer-queue-admin').innerHTML = '';
+        }
+
+        function assignPoints(teamId, points) {
+            socket.emit('admin_punti_manuali', { id: teamId, punti: points });
+            console.log(`Assegnati ${points} punti a ${teamId}`);
+        }
+
+        socket.on('update_teams', (t) => {
+            totalTeams = t.length;
+            updateTeams(t);
+        });
+        
+        function updateTeams(t) {
+            t.sort((a,b) => b.score - a.score);
+            
+            // Filtra preview
+            const realTeams = t.filter(x => !x.isPreview);
+            
+            const lb = document.getElementById('leaderboard-center');
+            lb.innerHTML = '';
+            
+            realTeams.forEach((x, i) => {
+                const medals = ['ð¥', 'ð¥', 'ð¥'];
+                const medal = medals[i] || `${i+1}Â°`;
+                
+                const div = document.createElement('div');
+                div.className = 'bg-gray-800/50 rounded px-1.5 py-1 flex items-center justify-between gap-1';
+                div.innerHTML = `
+                    <span class="text-[10px] flex-shrink-0">${medal}</span>
+                    <span class="font-bold text-xs truncate flex-1">${x.name}</span>
+                    <span class="font-black text-yellow-400 text-xs flex-shrink-0">${x.score}</span>
+                    <button onclick="adjustPoints('${x.id}', 50)" class="bg-green-600 hover:bg-green-500 text-white text-[9px] px-2 py-1 rounded font-bold flex-shrink-0">+</button>
+                    <button onclick="adjustPoints('${x.id}', -50)" class="bg-red-600 hover:bg-red-500 text-white text-[9px] px-2 py-1 rounded font-bold flex-shrink-0">-</button>
+                `;
+                lb.appendChild(div);
+            });
+        }
+        
+        function adjustPoints(teamId, points) {
+            socket.emit('admin_punti_manuali', { id: teamId, punti: points });
+            console.log(`Punti ${points > 0 ? '+' : ''}${points} assegnati a ${teamId}`);
+        }
+
+        function regia(v) { socket.emit('regia_cmd', v); }
+        function resetDisplays() { if(confirm("Reset?")) socket.emit('reset_displays'); }
+        function resetGame() { if(confirm("â ï¸ RESET TOTALE?")) socket.emit('reset_game'); }
+        function showWinnerButton() { socket.emit('show_winner'); }
+        
+        function mostraSoluzioneSuDisplay() {
+            if(selectedQ && selectedQ.corretta !== undefined) {
+                let soluzione = selectedQ.corretta;
+                if(typeof selectedQ.corretta === 'number' && selectedQ.risposte) {
+                    soluzione = selectedQ.risposte[selectedQ.corretta];
+                }
+                socket.emit('mostra_soluzione', { soluzione: soluzione });
+            } else {
+                alert('â Seleziona domanda!');
             }
         }
 
-        // Funzione per aggiornare la preview
-        function refreshPreview() {
-            document.getElementById('mobile-preview').src = 'https://esempio.com/preview';
-            alert('Preview aggiornata!');
+        function togglePause() {
+            const btn = document.getElementById('pause-btn');
+            if(isPaused) {
+                socket.emit('resume_game');
+                btn.innerHTML = 'â¸ï¸ PAUSA';
+                btn.className = 'px-4 py-2 bg-orange-600 hover:bg-orange-500 rounded-lg font-bold text-sm';
+                isPaused = false;
+            } else {
+                socket.emit('pause_game');
+                btn.innerHTML = 'â¶ï¸ RIPRENDI';
+                btn.className = 'px-4 py-2 bg-green-600 hover:bg-green-500 rounded-lg font-bold text-sm';
+                isPaused = true;
+            }
         }
 
-        // Funzioni per le scene
-        function regia(scene) {
-            alert(`Scene attivata: ${scene}`);
+        function activateStep(stepNum) {
+            for(let i = 1; i <= 6; i++) {
+                const step = document.getElementById(`step-${i}`);
+                if(step) {
+                    step.className = step.className.replace(' active', '');
+                    if(i === stepNum) step.className += ' active';
+                }
+            }
         }
 
-        // Funzioni per il gioco musicale
-        function openBuzzer() {
-            alert('Buzzer aperto!');
+        function showFinaleExplanation() {
+            socket.emit('show_finale_explanation');
+            setTimeout(() => activateStep(2), 20000);
         }
 
-        function closeBuzzer() {
-            alert('Buzzer chiuso!');
-        }
-
-        function resetBuzzer() {
-            alert('Buzzer resettato!');
-        }
-
-        // Funzioni per la sfida finale
         function startFinale() {
-            alert('Finale attivato!');
+            if(confirm('ð¥ Iniziare FINALE?')) {
+                socket.emit('start_finale');
+                finaleActive = true;
+                finaleQuestionCount = 0;
+                document.getElementById('finale-progress').classList.remove('hidden');
+                activateStep(3);
+            }
         }
 
-        function showWinner() {
-            alert('Vincitore mostrato!');
+        function prepareAllIn() {
+            if(!selectedQ) return alert('â Seleziona domanda 1!');
+            allInPrepared = true;
+            socket.emit('invia_domanda_finale', {...selectedQ, modalita: 'quiz'});
+            document.getElementById('allin-bets-status').classList.remove('hidden');
+            document.getElementById('allin-bets-status').textContent = `ð° 0/${totalTeams}`;
+            activateStep(4);
         }
 
-        // Simulazione di dati iniziali
-        document.addEventListener('DOMContentLoaded', () => {
-            currentQuestions = [
-                { domanda: "Qual è la capitale della Sicilia?", risposta: "Palermo" },
-                { domanda: "Quanti abitanti ha Palermo?", risposta: "670.000" },
-                { domanda: "Qual è il piatto tipico palermitano?", risposta: "Arancina" },
-                { domanda: "Qual è il nome del teatro famoso di Palermo?", risposta: "Teatro Massimo" },
-                { domanda: "Qual è il nome del mercato storico di Palermo?", risposta: "Ballarò" }
-            ];
-            showQuestionsList(currentQuestions);
+        function showAllInQuestion() {
+            socket.emit('admin_force_show_allin');
+            allInPrepared = false;
+            activateStep(5);
+        }
+
+        socket.on('allin_bet_placed', (data) => {
+            document.getElementById('allin-bets-status').textContent = `ð° ${data.betsCount}/${data.totalTeams}`;
+            if(data.betsCount >= data.totalTeams) {
+                document.getElementById('allin-bets-status').textContent = `â Tutti!`;
+            }
+        });
+
+        function revealWinner() {
+            socket.emit('reveal_winner');
+            finaleActive = false;
+            document.getElementById('finale-progress').classList.add('hidden');
+            activateStep(1);
+        }
+
+        function updateFinaleProgress() {
+            const dots = document.querySelectorAll('#finale-progress .progress-dot');
+            dots.forEach((dot, i) => {
+                dot.className = i < finaleQuestionCount ? 'progress-dot active' : 'progress-dot';
+            });
+        }
+
+        function refreshPreview() {
+            document.getElementById('mobile-preview').src = window.location.origin + '/preview';
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('mobile-preview').src = window.location.origin + '/preview';
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if(e.target.tagName === 'SELECT' || e.target.tagName === 'INPUT') return;
+            if(e.code === 'Space') { e.preventDefault(); lanciaQuiz(); }
+            if(e.code === 'KeyB') { e.preventDefault(); lanciaBuzzer(); }
+            if(e.code === 'KeyP') { e.preventDefault(); togglePause(); }
         });
     </script>
 </body>

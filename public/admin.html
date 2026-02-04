@@ -72,7 +72,7 @@
         </div>
 
         <div class="w-[40%] flex flex-col gap-2 shrink-0">
-            <div class="h-48 bg-gray-900/50 rounded-lg p-2 border border-gray-800 overflow-hidden shrink-0 flex flex-col">
+            <div class="h-54 bg-gray-900/50 rounded-lg p-2 border border-gray-800 overflow-hidden shrink-0 flex flex-col">
                 <div class="flex justify-between items-center mb-1">
                     <div class="text-[10px] font-bold text-purple-400 uppercase">📱 Preview Live</div>
                     <button onclick="refreshPreview()" class="text-[10px] bg-gray-800 px-2 py-1 rounded">🔄</button>
@@ -93,7 +93,8 @@
 
             <div class="flex-1 bg-gray-900/50 rounded-lg p-2 border border-gray-800 overflow-hidden flex flex-col">
                 <div class="text-[10px] font-bold text-yellow-400 uppercase mb-2">🏆 Classifica Live</div>
-                <div id="leaderboard" class="grid grid-cols-2 gap-2 overflow-y-auto flex-1 content-start"></div>
+                <div id="leaderboard" class="grid grid-cols-2 gap-2 overflow-y-auto flex-1 content-start text-xs font-bold uppercase">
+                    </div>
             </div>
         </div>
 
@@ -221,8 +222,8 @@
             teams.sort((a,b) => b.score - a.score).forEach(t => {
                 lb.innerHTML += `
                     <div class="bg-gray-800/80 p-2 rounded border border-gray-700 flex justify-between items-center">
-                        <span class="text-xs font-bold truncate pr-1">${t.name}</span>
-                        <span class="text-yellow-500 font-black text-xs">${t.score}</span>
+                        <span class="truncate pr-1">${t.name}</span>
+                        <span class="text-yellow-500 font-black">${t.score}</span>
                     </div>
                 `;
             });
@@ -241,7 +242,6 @@
             });
         });
 
-        // FINALE LOGIC
         function activateStep(step) {
             currentFinaleStep = step;
             finaleActive = true;

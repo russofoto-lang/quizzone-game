@@ -236,6 +236,62 @@
             </div>
         </div>
 
+        <!-- VISTA SPIEGAZIONE FINALE -->
+        <div id="view-finale_explanation" class="view-section hidden absolute inset-0 bg-gradient-to-br from-red-900 via-orange-900 to-yellow-900 z-50 flex flex-col items-center justify-center overflow-hidden">
+            <!-- Fiamme animate -->
+            <div class="absolute top-0 left-10 text-8xl animate-pulse">🔥</div>
+            <div class="absolute top-20 right-10 text-8xl animate-pulse" style="animation-delay: 0.3s;">🔥</div>
+            <div class="absolute bottom-20 left-20 text-8xl animate-pulse" style="animation-delay: 0.6s;">🔥</div>
+            <div class="absolute bottom-10 right-20 text-8xl animate-pulse" style="animation-delay: 0.9s;">🔥</div>
+            
+            <div class="relative z-10 max-w-4xl text-center animate__animated animate__zoomIn">
+                <div class="text-9xl mb-4">🔥🔥🔥🔥🔥</div>
+                
+                <h1 class="text-8xl font-black text-white mb-4 uppercase tracking-tight animate__animated animate__fadeInDown">
+                    SFIDA FINALE
+                </h1>
+                <p class="text-6xl font-bold text-yellow-300 mb-8 animate__animated animate__fadeInUp" style="animation-delay: 0.2s;">
+                    5 PROVE
+                </p>
+                
+                <div class="bg-black/40 rounded-3xl p-8 mb-6 text-left space-y-6">
+                    <!-- ALL IN -->
+                    <div class="border-b-2 border-yellow-500/30 pb-6 animate__animated animate__fadeInLeft" style="animation-delay: 0.4s;">
+                        <h2 class="text-5xl font-black text-yellow-300 mb-3">💰 PROVA 1: ALL IN</h2>
+                        <p class="text-3xl text-white mb-2">Scommetti i tuoi punti: 0 - 50 - 100 - 200</p>
+                        <div class="ml-6 space-y-1">
+                            <p class="text-2xl text-green-400">✅ Risposta corretta → Vinci il DOPPIO</p>
+                            <p class="text-2xl text-red-400">❌ Risposta sbagliata → PERDI la scommessa</p>
+                        </div>
+                    </div>
+                    
+                    <!-- PUNTI X2 -->
+                    <div class="border-b-2 border-orange-500/30 pb-6 animate__animated animate__fadeInLeft" style="animation-delay: 0.6s;">
+                        <h2 class="text-5xl font-black text-orange-300 mb-3">🔥 PROVE 2-5: PUNTI x2</h2>
+                        <p class="text-3xl text-white">Ogni risposta corretta vale il DOPPIO!</p>
+                    </div>
+                    
+                    <!-- CLASSIFICA NASCOSTA -->
+                    <div class="animate__animated animate__fadeInLeft" style="animation-delay: 0.8s;">
+                        <h2 class="text-5xl font-black text-red-300 mb-3">⚠️ CLASSIFICA NASCOSTA ⚠️</h2>
+                        <p class="text-3xl text-white">Non vedrete i punteggi fino alla fine!</p>
+                    </div>
+                </div>
+                
+                <p class="text-4xl text-white font-bold mb-6 animate__animated animate__fadeIn" style="animation-delay: 1s;">
+                    Tutto può cambiare!
+                </p>
+                
+                <div class="text-7xl mb-4 animate__animated animate__bounceIn" style="animation-delay: 1.2s;">
+                    🏆🏆🏆🏆🏆
+                </div>
+                
+                <div id="finale-countdown" class="text-8xl font-black text-yellow-300 animate-pulse">
+                    PRONTI?
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <script>
@@ -301,6 +357,25 @@
                 document.getElementById('winner-name').textContent = data.data.winnerName || 'Campione';
                 document.getElementById('winner-score').textContent = data.data.winnerScore || 0;
                 createConfetti();
+            }
+            
+            // SPIEGAZIONE FINALE con countdown
+            if(data.view === 'finale_explanation') {
+                setTimeout(() => {
+                    const countdownEl = document.getElementById('finale-countdown');
+                    let count = 3;
+                    countdownEl.textContent = count;
+                    
+                    const countInterval = setInterval(() => {
+                        count--;
+                        if(count > 0) {
+                            countdownEl.textContent = count;
+                        } else {
+                            countdownEl.textContent = 'VIA!';
+                            clearInterval(countInterval);
+                        }
+                    }, 1000);
+                }, 17000); // Dopo 17 secondi inizia countdown 3-2-1
             }
         });
 
@@ -459,7 +534,14 @@
             const queueDiv = document.getElementById('buzzer-queue-display');
             if(!queueDiv) return;
             
+            // Mostra vista gioco con overlay buzzer
+            showView('gioco');
             document.getElementById('buzzer-overlay').classList.remove('hidden');
+            document.getElementById('q-text').innerText = "🎵 GIOCO MUSICALE";
+            document.getElementById('cat').innerText = "IN ATTESA";
+            document.getElementById('opts').classList.add('hidden');
+            document.getElementById('timer-display-container').classList.add('hidden');
+            
             queueDiv.innerHTML = '';
             
             if(d.queue && d.queue.length > 0) {
@@ -477,6 +559,8 @@
                         </div>
                     `;
                 });
+            } else {
+                queueDiv.innerHTML = '<p class="text-white/60 text-3xl">In attesa di prenotazioni...</p>';
             }
         });
 

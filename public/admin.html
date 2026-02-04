@@ -2,147 +2,219 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <title>REGIA MASTER - Siponto Forever Young</title>
+    <title>CONTROL CENTER - Siponto</title>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background-color: #0f172a; color: white; }
-        .glass-panel { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); }
-        .progress-dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; margin: 0 2px; }
-        .progress-dot.active { background: #ef4444; box-shadow: 0 0 8px #ef4444; }
+        body { background: #0f172a; color: white; font-family: 'Inter', sans-serif; }
+        .quadrant { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); }
+        .btn-primary { transition: all 0.2s; }
+        .btn-primary:hover { transform: scale(1.05); }
+        .btn-primary:active { transform: scale(0.95); }
+        .progress-dot { width: 14px; height: 14px; border-radius: 50%; display: inline-block; margin: 0 3px; }
+        .progress-dot.active { background: #ef4444; box-shadow: 0 0 10px #ef4444; animation: pulse 1s infinite; }
         .progress-dot.inactive { background: #374151; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .step-indicator { opacity: 0.5; pointer-events: none; }
+        .step-indicator.active { opacity: 1; pointer-events: auto; }
     </style>
 </head>
 <body class="h-screen flex flex-col overflow-hidden">
 
     <!-- HEADER -->
-    <div class="bg-gradient-to-r from-gray-900 to-gray-800 p-3 flex justify-between items-center border-b border-gray-700 shadow-lg">
-        <div class="flex items-center gap-4">
-            <h1 class="font-black text-2xl text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-red-600 uppercase tracking-tight">Regia Siponto</h1>
-            <span id="question-counter" class="text-lg font-bold text-gray-400">Domanda 0/20</span>
-        </div>
-        <div class="flex gap-2">
-            <button onclick="togglePause()" id="pause-btn" class="px-4 py-2 bg-orange-600 hover:bg-orange-500 text-white rounded-lg font-bold">⏸️ PAUSA</button>
-            <button onclick="resetDisplays()" class="px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg font-bold">🔄 Reset</button>
-            <button onclick="resetGame()" class="px-4 py-2 bg-red-900 hover:bg-red-800 text-white rounded-lg font-bold text-xs opacity-50">Reset Totale</button>
+    <div class="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 p-4 border-b border-gray-700 shadow-xl">
+        <div class="flex justify-between items-center">
+            <div class="flex items-center gap-6">
+                <h1 class="font-black text-3xl text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-orange-500 to-red-600 uppercase">Control Center</h1>
+                <span id="question-counter" class="text-2xl font-bold text-gray-300">Domanda 0</span>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="togglePause()" id="pause-btn" class="px-6 py-3 bg-orange-600 hover:bg-orange-500 text-white rounded-xl font-bold text-lg btn-primary">⏸️ PAUSA</button>
+                <button onclick="resetGame()" class="px-4 py-3 bg-red-900 hover:bg-red-800 text-white rounded-xl font-bold opacity-60 text-sm">Reset Totale</button>
+            </div>
         </div>
     </div>
 
-    <!-- MAIN CONTENT -->
-    <div class="flex-1 flex gap-3 p-3 overflow-hidden">
+    <!-- QUADRANTI 2x2 -->
+    <div class="flex-1 grid grid-cols-2 grid-rows-2 gap-3 p-3 overflow-hidden">
         
-        <!-- LEFT PANEL - LANCIO DOMANDA -->
-        <div class="w-1/2 flex flex-col gap-3">
-            
-            <!-- SELEZIONE DOMANDA -->
-            <div class="glass-panel rounded-xl p-4 flex-1 flex flex-col">
-                <div class="flex justify-between items-center mb-3">
-                    <h2 class="font-black text-lg uppercase tracking-wider text-blue-400">🎮 Lancia Domanda</h2>
-                    <div class="flex gap-2">
-                        <button onclick="lanciaQuiz()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg font-bold text-sm">QUIZ</button>
-                        <button onclick="lanciaBuzzer()" class="px-4 py-2 bg-red-600 hover:bg-red-500 rounded-lg font-bold text-sm">BUZZER</button>
-                    </div>
-                </div>
-                
-                <div class="space-y-2 mb-3">
-                    <select id="sel-tipo" class="w-full bg-gray-800 text-white p-2 rounded-lg font-bold text-sm">
-                        <option value="">-- TIPO GIOCO --</option>
-                        <option value="categoria">📚 CATEGORIE</option>
-                        <option value="stima">🔢 STIMA</option>
-                        <option value="anagramma">🔤 ANAGRAMMA</option>
-                        <option value="bonus">⭐ BONUS</option>
-                    </select>
-
-                    <select id="sel-cat" class="w-full bg-gray-800 text-white p-2 rounded-lg font-bold text-sm" disabled>
-                        <option value="">-- SCEGLI CATEGORIA --</option>
-                    </select>
-                </div>
-
-                <div class="flex-1 bg-gray-900 rounded-lg p-3 overflow-y-auto border border-gray-700">
-                    <div id="question-preview" class="text-sm text-gray-400">
-                        Seleziona tipo e categoria per vedere le domande...
-                    </div>
+        <!-- Q1: LANCIA DOMANDA (Top-Left) -->
+        <div class="quadrant rounded-2xl p-4 flex flex-col overflow-hidden">
+            <div class="flex justify-between items-center mb-3">
+                <h2 class="font-black text-xl uppercase tracking-wide text-blue-400">🎮 Lancia Domanda</h2>
+                <div class="flex gap-2">
+                    <button onclick="lanciaQuiz()" class="px-6 py-3 bg-blue-600 hover:bg-blue-500 rounded-xl font-bold text-lg btn-primary">🎯 QUIZ</button>
+                    <button onclick="lanciaBuzzer()" class="px-6 py-3 bg-red-600 hover:bg-red-500 rounded-xl font-bold text-lg btn-primary">⚡ BUZZER</button>
                 </div>
             </div>
+            
+            <div class="space-y-2 mb-3">
+                <select id="sel-tipo" class="w-full bg-gray-800 text-white p-3 rounded-xl font-bold border border-gray-700">
+                    <option value="">-- TIPO GIOCO --</option>
+                    <option value="categoria">📚 CATEGORIE</option>
+                    <option value="stima">🔢 STIMA</option>
+                    <option value="anagramma">🔤 ANAGRAMMA</option>
+                    <option value="bonus">⭐ BONUS</option>
+                </select>
 
-            <!-- MONITOR RISPOSTE -->
-            <div class="glass-panel rounded-xl p-4 h-64">
-                <div class="flex justify-between items-center mb-2">
-                    <h3 class="font-black text-sm uppercase tracking-wider text-green-400">⚡ Monitor Risposte</h3>
-                    <span id="answers-count" class="text-xs bg-gray-800 px-2 py-1 rounded">0/10</span>
-                </div>
-                
-                <!-- BUZZER ALERT -->
-                <div id="buzzer-alert" class="hidden">
-                    <div class="bg-red-600/20 border border-red-600 rounded-lg p-3 mb-2">
-                        <div class="text-xs font-bold mb-1">⚡ BUZZER ATTIVO</div>
-                        <div id="buzzer-queue-compact" class="space-y-1 text-xs"></div>
-                    </div>
-                    <button onclick="resetBuzzer()" class="w-full bg-blue-600 hover:bg-blue-500 py-1 rounded text-xs font-bold">🔄 Reset Buzzer</button>
-                </div>
-                
-                <!-- RISPOSTE NORMALI -->
-                <div id="answers-list" class="overflow-y-auto max-h-48 space-y-1"></div>
-                
-                <button id="show-solution-btn" onclick="mostraSoluzioneSuDisplay()" class="hidden w-full bg-yellow-600 hover:bg-yellow-500 py-2 rounded font-bold text-sm mt-2">📺 Mostra Soluzione</button>
+                <select id="sel-cat" class="w-full bg-gray-800 text-white p-3 rounded-xl font-bold border border-gray-700" disabled>
+                    <option value="">-- SCEGLI CATEGORIA --</option>
+                </select>
+            </div>
+
+            <div id="questions-container" class="flex-1 bg-gray-900 rounded-xl p-3 overflow-y-auto border border-gray-700">
+                <div class="text-sm text-gray-500 text-center py-4">Seleziona tipo e categoria...</div>
             </div>
         </div>
 
-        <!-- RIGHT PANEL - CLASSIFICA + PREVIEW -->
-        <div class="w-1/2 flex flex-col gap-3">
+        <!-- Q2: CONTROLLI DISPLAY (Top-Right) -->
+        <div class="quadrant rounded-2xl p-4 flex flex-col overflow-hidden">
+            <h2 class="font-black text-xl uppercase tracking-wide text-green-400 mb-4">📺 Controlli Display</h2>
             
-            <!-- CLASSIFICA -->
-            <div class="glass-panel rounded-xl p-4 flex-1">
-                <h2 class="font-black text-lg uppercase tracking-wider text-yellow-400 mb-3">📊 Classifica Live</h2>
-                <div class="space-y-2" id="leaderboard"></div>
-            </div>
-
-            <!-- PREVIEW CELLULARE -->
-            <div class="glass-panel rounded-xl p-4 h-64">
-                <div class="flex justify-between items-center mb-2">
-                    <h3 class="font-black text-sm uppercase tracking-wider text-purple-400">📱 Preview Cellulare</h3>
-                    <button onclick="refreshPreview()" class="text-xs bg-gray-800 px-2 py-1 rounded hover:bg-gray-700">🔄</button>
+            <div class="space-y-2 overflow-y-auto flex-1">
+                <!-- Viste Principali -->
+                <div class="bg-gray-900 rounded-xl p-3 border border-gray-700">
+                    <div class="text-xs font-bold text-gray-400 mb-2 uppercase">Viste Principali</div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="regia('logo')" class="px-4 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg font-bold text-sm btn-primary">📱 QR Code</button>
+                        <button onclick="regia('gioco')" class="px-4 py-3 bg-blue-600 hover:bg-blue-500 rounded-lg font-bold text-sm btn-primary">🎮 Gioco</button>
+                        <button onclick="regia('classifica_round')" class="px-4 py-3 bg-purple-600 hover:bg-purple-500 rounded-lg font-bold text-sm btn-primary">🏆 Podio Round</button>
+                        <button onclick="regia('classifica_gen')" class="px-4 py-3 bg-yellow-600 hover:bg-yellow-500 rounded-lg font-bold text-sm btn-primary">📊 Classifica Gen</button>
+                    </div>
                 </div>
-                <div class="bg-black rounded-lg overflow-hidden h-48 border border-gray-700">
-                    <iframe id="mobile-preview" src="" class="w-full h-full border-0 pointer-events-none" style="transform: scale(0.4); transform-origin: top left; width: 250%; height: 250%;"></iframe>
+
+                <!-- Schermate Speciali -->
+                <div class="bg-gray-900 rounded-xl p-3 border border-gray-700">
+                    <div class="text-xs font-bold text-gray-400 mb-2 uppercase">Schermate Speciali</div>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button onclick="regia('benvenuto')" class="px-3 py-2 bg-pink-600 hover:bg-pink-500 rounded-lg font-bold text-xs btn-primary">🎉 Benvenuto</button>
+                        <button onclick="regia('regole')" class="px-3 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg font-bold text-xs btn-primary">📋 Regole</button>
+                        <button onclick="regia('punteggi')" class="px-3 py-2 bg-green-600 hover:bg-green-500 rounded-lg font-bold text-xs btn-primary">🎯 Punteggi</button>
+                        <button onclick="regia('prossima')" class="px-3 py-2 bg-yellow-600 hover:bg-yellow-500 rounded-lg font-bold text-xs btn-primary">⏰ Prossima</button>
+                        <button onclick="regia('logo_forever')" class="px-3 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg font-bold text-xs btn-primary">🎮 Logo FY</button>
+                        <button onclick="showWinnerButton()" class="px-3 py-2 bg-yellow-600 hover:bg-yellow-500 rounded-lg font-bold text-xs btn-primary">👑 Vincitore</button>
+                    </div>
+                </div>
+
+                <!-- Azioni -->
+                <div class="bg-gray-900 rounded-xl p-3 border border-gray-700">
+                    <div class="text-xs font-bold text-gray-400 mb-2 uppercase">Azioni</div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="mostraSoluzioneSuDisplay()" class="px-4 py-3 bg-yellow-600 hover:bg-yellow-500 rounded-lg font-bold text-sm btn-primary">📺 Mostra Soluzione</button>
+                        <button onclick="resetDisplays()" class="px-4 py-3 bg-red-600 hover:bg-red-500 rounded-lg font-bold text-sm btn-primary">🔄 Reset Display</button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- BOTTOM BAR - CONTROLLI SECONDARI -->
-    <div class="bg-gradient-to-r from-gray-900 to-gray-800 p-3 border-t border-gray-700">
-        <div class="flex gap-2 justify-between items-center">
+        <!-- Q3: MONITOR GIOCO (Bottom-Left) -->
+        <div class="quadrant rounded-2xl p-4 flex flex-col overflow-hidden">
+            <h2 class="font-black text-xl uppercase tracking-wide text-orange-400 mb-3">⚡ Monitor & Controlli</h2>
             
-            <!-- SCHERMATE SPECIALI -->
-            <div class="flex gap-1">
-                <button onclick="regia('benvenuto')" class="px-3 py-1 bg-pink-600 hover:bg-pink-500 rounded text-xs font-bold">🎉</button>
-                <button onclick="regia('regole')" class="px-3 py-1 bg-blue-600 hover:bg-blue-500 rounded text-xs font-bold">📋</button>
-                <button onclick="regia('punteggi')" class="px-3 py-1 bg-green-600 hover:bg-green-500 rounded text-xs font-bold">🎯</button>
-                <button onclick="regia('prossima')" class="px-3 py-1 bg-yellow-600 hover:bg-yellow-500 rounded text-xs font-bold">⏰</button>
-                <button onclick="regia('logo_forever')" class="px-3 py-1 bg-indigo-600 hover:bg-indigo-500 rounded text-xs font-bold">🎮</button>
-                <button onclick="regia('logo')" class="px-3 py-1 bg-gray-600 hover:bg-gray-500 rounded text-xs font-bold">QR</button>
-            </div>
+            <div class="flex-1 overflow-y-auto space-y-3">
+                <!-- Monitor Risposte Normale -->
+                <div id="normal-monitor" class="bg-gray-900 rounded-xl p-3 border border-gray-700">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-sm font-bold text-gray-400 uppercase">Risposte Live</span>
+                        <span id="answers-count" class="text-xs bg-gray-800 px-2 py-1 rounded">0/10</span>
+                    </div>
+                    <div id="answers-list" class="space-y-1 max-h-32 overflow-y-auto"></div>
+                </div>
 
-            <!-- BUZZER MUSICALE -->
-            <div class="flex gap-1">
-                <span class="text-xs text-gray-400 self-center mr-1">🎵</span>
-                <button onclick="openBuzzerStandalone()" class="px-3 py-1 bg-green-600 hover:bg-green-500 rounded text-xs font-bold">Apri</button>
-                <button onclick="resetBuzzer()" class="px-3 py-1 bg-blue-600 hover:bg-blue-500 rounded text-xs font-bold">Reset</button>
-            </div>
+                <!-- Buzzer Musicale -->
+                <div class="bg-purple-900/30 rounded-xl p-3 border border-purple-700">
+                    <div class="text-sm font-bold text-purple-300 mb-2 uppercase">🎵 Gioco Musicale</div>
+                    <div class="grid grid-cols-2 gap-2 mb-2">
+                        <button onclick="openBuzzerStandalone()" class="px-3 py-2 bg-green-600 hover:bg-green-500 rounded-lg font-bold text-sm btn-primary">🔓 Apri Buzzer</button>
+                        <button onclick="resetBuzzer()" class="px-3 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg font-bold text-sm btn-primary">🔄 Reset</button>
+                    </div>
+                    <div id="buzzer-queue-admin" class="hidden space-y-1 max-h-24 overflow-y-auto"></div>
+                </div>
 
-            <!-- SFIDA FINALE -->
-            <div class="flex gap-1 items-center">
-                <span class="text-xs text-gray-400 mr-1">🔥 FINALE:</span>
-                <button onclick="showFinaleExplanation()" class="px-3 py-1 bg-blue-600 hover:bg-blue-500 rounded text-xs font-bold">Spiega</button>
-                <button onclick="startFinale()" id="start-finale-btn" class="px-3 py-1 bg-red-600 hover:bg-red-500 rounded text-xs font-bold">Inizia</button>
-                <button onclick="revealWinner()" id="reveal-winner-btn" class="px-3 py-1 bg-yellow-600 hover:bg-yellow-500 rounded text-xs font-bold opacity-50" disabled>Rivela</button>
-                <div id="finale-progress" class="hidden flex gap-1 ml-2">
-                    <span class="progress-dot inactive"></span>
-                    <span class="progress-dot inactive"></span>
-                    <span class="progress-dot inactive"></span>
-                    <span class="progress-dot inactive"></span>
-                    <span class="progress-dot inactive"></span>
+                <!-- Sfida Finale -->
+                <div class="bg-red-900/30 rounded-xl p-3 border border-red-700">
+                    <div class="text-sm font-bold text-red-300 mb-2 uppercase">🔥 Sfida Finale</div>
+                    
+                    <div class="space-y-2 text-sm">
+                        <!-- Step 1 -->
+                        <div class="step-indicator active" id="step-1">
+                            <button onclick="showFinaleExplanation()" class="w-full px-3 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg font-bold text-xs btn-primary">
+                                1️⃣ Mostra Spiegazione
+                            </button>
+                        </div>
+
+                        <!-- Step 2 -->
+                        <div class="step-indicator" id="step-2">
+                            <button onclick="startFinale()" id="start-finale-btn" class="w-full px-3 py-2 bg-red-600 hover:bg-red-500 rounded-lg font-bold text-xs btn-primary">
+                                2️⃣ Attiva Modalità Finale
+                            </button>
+                        </div>
+
+                        <!-- Step 3 -->
+                        <div class="step-indicator" id="step-3">
+                            <button onclick="prepareAllIn()" id="prepare-allin-btn" class="w-full px-3 py-2 bg-orange-600 hover:bg-orange-500 rounded-lg font-bold text-xs btn-primary">
+                                3️⃣ Prepara ALL IN
+                            </button>
+                            <div id="allin-bets-status" class="hidden text-xs text-center mt-1 text-yellow-400"></div>
+                        </div>
+
+                        <!-- Step 4 -->
+                        <div class="step-indicator" id="step-4">
+                            <button onclick="showAllInQuestion()" id="show-allin-btn" class="w-full px-3 py-2 bg-yellow-600 hover:bg-yellow-500 rounded-lg font-bold text-xs btn-primary">
+                                4️⃣ Mostra Domanda ALL IN
+                            </button>
+                        </div>
+
+                        <!-- Step 5 -->
+                        <div class="step-indicator" id="step-5">
+                            <div class="text-xs text-gray-400 text-center mb-1">
+                                5️⃣ Lancia domande 2-5 (punti x2)
+                            </div>
+                        </div>
+
+                        <!-- Step 6 -->
+                        <div class="step-indicator" id="step-6">
+                            <button onclick="revealWinner()" id="reveal-winner-btn" class="w-full px-3 py-2 bg-yellow-600 hover:bg-yellow-500 rounded-lg font-bold text-xs btn-primary">
+                                6️⃣ RIVELA VINCITORE 👑
+                            </button>
+                        </div>
+
+                        <!-- Progress -->
+                        <div id="finale-progress" class="hidden text-center py-2">
+                            <div class="text-xs text-gray-400 mb-1">Domande Finale:</div>
+                            <div>
+                                <span class="progress-dot inactive"></span>
+                                <span class="progress-dot inactive"></span>
+                                <span class="progress-dot inactive"></span>
+                                <span class="progress-dot inactive"></span>
+                                <span class="progress-dot inactive"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Q4: CLASSIFICA + PREVIEW (Bottom-Right) -->
+        <div class="quadrant rounded-2xl p-4 flex flex-col overflow-hidden">
+            <h2 class="font-black text-xl uppercase tracking-wide text-yellow-400 mb-3">📊 Classifica & Preview</h2>
+            
+            <div class="flex-1 overflow-y-auto space-y-3">
+                <!-- Classifica -->
+                <div class="bg-gray-900 rounded-xl p-3 border border-gray-700">
+                    <div class="text-sm font-bold text-gray-400 mb-2 uppercase">Top Squadre</div>
+                    <div id="leaderboard" class="space-y-2"></div>
+                </div>
+
+                <!-- Preview Cellulare -->
+                <div class="bg-gray-900 rounded-xl p-3 border border-gray-700">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-sm font-bold text-gray-400 uppercase">📱 Preview</span>
+                        <button onclick="refreshPreview()" class="text-xs bg-gray-800 px-2 py-1 rounded hover:bg-gray-700 btn-primary">🔄</button>
+                    </div>
+                    <div class="bg-black rounded-lg overflow-hidden h-40 border border-gray-700">
+                        <iframe id="mobile-preview" src="" class="w-full h-full border-0 pointer-events-none" style="transform: scale(0.35); transform-origin: top left; width: 286%; height: 286%;"></iframe>
+                    </div>
                 </div>
             </div>
         </div>
@@ -153,11 +225,13 @@
         let currentQuestions = [], selectedQ = null, dbStructure = {};
         let isPaused = false, finaleActive = false, finaleQuestionCount = 0;
         let totalQuestionsAsked = 0;
+        let allInPrepared = false, allInBetsReceived = 0, totalTeams = 0;
 
         socket.on('connect', () => { socket.emit('admin_connect'); });
         
         socket.on('init_data', (d) => { 
             dbStructure = d; 
+            totalTeams = d.teams.length;
             updateTeams(d.teams); 
             populateCategories();
         });
@@ -195,27 +269,27 @@
         });
 
         function showQuestionsList(questions) {
-            const preview = document.getElementById('question-preview');
-            preview.innerHTML = '';
+            const container = document.getElementById('questions-container');
+            container.innerHTML = '';
             
             questions.forEach((item, i) => {
                 const div = document.createElement('div');
-                div.className = 'p-2 bg-gray-800 rounded mb-2 cursor-pointer hover:bg-gray-700 transition';
+                div.className = 'p-3 bg-gray-800 rounded-lg mb-2 cursor-pointer hover:bg-gray-700 transition border border-gray-700';
                 div.innerHTML = `
                     <div class="font-bold text-xs text-blue-400">Q${i+1}</div>
-                    <div class="text-sm">${item.domanda.substring(0,80)}...</div>
+                    <div class="text-sm mt-1">${item.domanda.substring(0,70)}...</div>
                 `;
                 div.onclick = () => selectQuestion(i);
-                preview.appendChild(div);
+                container.appendChild(div);
             });
         }
 
         function selectQuestion(index) {
             selectedQ = currentQuestions[index];
-            document.querySelectorAll('#question-preview > div').forEach((el, i) => {
+            document.querySelectorAll('#questions-container > div').forEach((el, i) => {
                 el.className = i === index ? 
-                    'p-2 bg-blue-600 rounded mb-2 cursor-pointer' : 
-                    'p-2 bg-gray-800 rounded mb-2 cursor-pointer hover:bg-gray-700 transition';
+                    'p-3 bg-blue-600 rounded-lg mb-2 cursor-pointer border-2 border-blue-400' : 
+                    'p-3 bg-gray-800 rounded-lg mb-2 cursor-pointer hover:bg-gray-700 transition border border-gray-700';
             });
         }
 
@@ -223,19 +297,20 @@
         function lanciaBuzzer() { if(selectedQ) lancia('buzzer'); }
 
         function lancia(m) {
-            if(!selectedQ) return alert('Seleziona una domanda!');
+            if(!selectedQ) return alert('❌ Seleziona una domanda prima!');
             
             totalQuestionsAsked++;
-            document.getElementById('question-counter').textContent = `Domanda ${totalQuestionsAsked}/20`;
+            document.getElementById('question-counter').textContent = `Domanda ${totalQuestionsAsked}`;
             
             if(finaleActive) {
                 finaleQuestionCount++;
                 updateFinaleProgress();
                 socket.emit('invia_domanda_finale', {...selectedQ, modalita: m});
                 
-                if(finaleQuestionCount >= 5) {
-                    document.getElementById('reveal-winner-btn').disabled = false;
-                    document.getElementById('reveal-winner-btn').className = 'px-3 py-1 bg-yellow-600 hover:bg-yellow-500 rounded text-xs font-bold animate-pulse';
+                if(finaleQuestionCount === 1 && allInPrepared) {
+                    // ALL IN già preparato, non fare nulla
+                } else if(finaleQuestionCount >= 5) {
+                    activateStep(6);
                 }
             } else {
                 socket.emit('invia_domanda', {...selectedQ, modalita: m});
@@ -244,7 +319,7 @@
 
         // Monitor risposte
         socket.on('update_round_monitor', (data) => {
-            document.getElementById('answers-count').textContent = `${data.length}/10`;
+            document.getElementById('answers-count').textContent = `${data.length}/${totalTeams}`;
             const list = document.getElementById('answers-list');
             list.innerHTML = '';
             
@@ -253,37 +328,29 @@
                 div.className = `p-2 rounded text-xs ${res.corretta ? 'bg-green-900/30 text-green-400' : 'bg-red-900/30 text-red-400'}`;
                 div.innerHTML = `
                     <span class="font-bold">${res.teamName}</span>
-                    <span class="ml-2">${res.corretta ? '✅' : '❌'} ${res.risposta}</span>
+                    <span class="ml-2">${res.corretta ? '✅' : '❌'}</span>
                     <span class="float-right font-bold">${res.corretta ? '+' : ''}${res.punti || 0}</span>
                 `;
                 list.appendChild(div);
             });
-            
-            if(data.length > 0) {
-                document.getElementById('show-solution-btn').classList.remove('hidden');
-            }
         });
 
         socket.on('reset_round_monitor', () => {
             document.getElementById('answers-list').innerHTML = '';
-            document.getElementById('answers-count').textContent = "0/10";
-            document.getElementById('buzzer-alert').classList.add('hidden');
-            document.getElementById('show-solution-btn').classList.add('hidden');
+            document.getElementById('answers-count').textContent = "0/" + totalTeams;
         });
 
         // Buzzer
         socket.on('buzzer_queue_full', (d) => {
-            document.getElementById('buzzer-alert').classList.remove('hidden');
-            const queueDiv = document.getElementById('buzzer-queue-compact');
+            const queueDiv = document.getElementById('buzzer-queue-admin');
+            queueDiv.classList.remove('hidden');
             queueDiv.innerHTML = '';
             
             if(d.queue && d.queue.length > 0) {
                 d.queue.forEach((player, idx) => {
-                    const medals = ['🥇', '🥈', '🥉'];
-                    const medal = medals[idx] || `${idx + 1}.`;
                     queueDiv.innerHTML += `
-                        <div class="flex justify-between items-center bg-black/30 rounded p-1">
-                            <span>${medal} <span class="font-bold">${player.name}</span></span>
+                        <div class="bg-black/30 rounded p-1 text-xs flex justify-between">
+                            <span>${idx+1}. ${player.name}</span>
                             <span class="text-yellow-400">${player.time}s</span>
                         </div>
                     `;
@@ -292,37 +359,35 @@
         });
 
         socket.on('reset_buzzer_admin', () => {
-            document.getElementById('buzzer-alert').classList.add('hidden');
+            document.getElementById('buzzer-queue-admin').classList.add('hidden');
         });
 
-        function resetBuzzer() {
-            socket.emit('buzzer_reset');
-        }
-
-        function openBuzzerStandalone() {
-            socket.emit('open_buzzer_standalone');
-        }
+        function resetBuzzer() { socket.emit('buzzer_reset'); }
+        function openBuzzerStandalone() { socket.emit('open_buzzer_standalone'); }
 
         // Classifica
-        socket.on('update_teams', updateTeams);
+        socket.on('update_teams', (t) => {
+            totalTeams = t.length;
+            updateTeams(t);
+        });
         
         function updateTeams(t) {
             t.sort((a,b) => b.score - a.score);
             const lb = document.getElementById('leaderboard');
             lb.innerHTML = '';
             
-            t.slice(0, 10).forEach((x, i) => {
+            t.slice(0, 8).forEach((x, i) => {
                 const medals = ['🥇', '🥈', '🥉'];
                 const medal = medals[i] || `${i + 1}°`;
                 
                 const div = document.createElement('div');
-                div.className = 'flex justify-between items-center p-2 bg-gray-800/50 rounded';
+                div.className = 'flex justify-between items-center p-2 bg-gray-800/50 rounded text-sm';
                 div.innerHTML = `
                     <div class="flex items-center gap-2">
-                        <span class="text-xl">${medal}</span>
+                        <span class="text-lg">${medal}</span>
                         <span class="font-bold">${x.name}</span>
                     </div>
-                    <span class="font-black text-lg text-yellow-400">${x.score}</span>
+                    <span class="font-black text-yellow-400">${x.score}</span>
                 `;
                 lb.appendChild(div);
             });
@@ -331,7 +396,9 @@
         // Controlli
         function regia(v) { socket.emit('regia_cmd', v); }
         function resetDisplays() { if(confirm("Reset display?")) socket.emit('reset_displays'); }
-        function resetGame() { if(confirm("Reset TOTALE?")) socket.emit('reset_game'); }
+        function resetGame() { if(confirm("⚠️ RESET TOTALE della sessione?")) socket.emit('reset_game'); }
+        function showWinnerButton() { socket.emit('show_winner'); }
+        
         function mostraSoluzioneSuDisplay() {
             if(selectedQ && selectedQ.corretta !== undefined) {
                 let soluzione = selectedQ.corretta;
@@ -339,6 +406,8 @@
                     soluzione = selectedQ.risposte[selectedQ.corretta];
                 }
                 socket.emit('mostra_soluzione', { soluzione: soluzione, risultati: [] });
+            } else {
+                alert('❌ Seleziona una domanda prima!');
             }
         }
 
@@ -347,31 +416,76 @@
             if(isPaused) {
                 socket.emit('resume_game');
                 btn.innerHTML = '⏸️ PAUSA';
-                btn.className = 'px-4 py-2 bg-orange-600 hover:bg-orange-500 text-white rounded-lg font-bold';
+                btn.className = 'px-6 py-3 bg-orange-600 hover:bg-orange-500 text-white rounded-xl font-bold text-lg btn-primary';
                 isPaused = false;
             } else {
                 socket.emit('pause_game');
                 btn.innerHTML = '▶️ RIPRENDI';
-                btn.className = 'px-4 py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg font-bold';
+                btn.className = 'px-6 py-3 bg-green-600 hover:bg-green-500 text-white rounded-xl font-bold text-lg btn-primary';
                 isPaused = true;
             }
         }
 
-        // Finale
+        // FINALE - Step by step
+        function activateStep(stepNum) {
+            for(let i = 1; i <= 6; i++) {
+                const step = document.getElementById(`step-${i}`);
+                if(step) {
+                    step.className = i === stepNum ? 'step-indicator active' : 'step-indicator';
+                }
+            }
+        }
+
         function showFinaleExplanation() {
             socket.emit('show_finale_explanation');
+            setTimeout(() => activateStep(2), 20000); // Dopo 20s attiva step 2
         }
 
         function startFinale() {
-            if(confirm('Iniziare la SFIDA FINALE (5 domande)?')) {
+            if(confirm('🔥 Iniziare la SFIDA FINALE (5 domande)?')) {
                 socket.emit('start_finale');
                 finaleActive = true;
                 finaleQuestionCount = 0;
-                document.getElementById('start-finale-btn').disabled = true;
-                document.getElementById('start-finale-btn').className = 'px-3 py-1 bg-gray-600 rounded text-xs font-bold opacity-50';
                 document.getElementById('finale-progress').classList.remove('hidden');
-                updateFinaleProgress();
+                activateStep(3);
             }
+        }
+
+        function prepareAllIn() {
+            if(!selectedQ) return alert('❌ Seleziona prima la domanda 1 per ALL IN!');
+            
+            allInPrepared = true;
+            allInBetsReceived = 0;
+            
+            // Invia domanda ma blocca display
+            socket.emit('invia_domanda_finale', {...selectedQ, modalita: 'quiz'});
+            
+            document.getElementById('allin-bets-status').classList.remove('hidden');
+            document.getElementById('allin-bets-status').textContent = `💰 Scommesse: 0/${totalTeams}`;
+            
+            activateStep(4);
+        }
+
+        function showAllInQuestion() {
+            socket.emit('admin_force_show_allin');
+            allInPrepared = false;
+            activateStep(5);
+        }
+
+        socket.on('allin_bet_placed', (data) => {
+            allInBetsReceived = data.betsCount;
+            document.getElementById('allin-bets-status').textContent = `💰 Scommesse: ${data.betsCount}/${data.totalTeams}`;
+            
+            if(data.betsCount >= data.totalTeams) {
+                document.getElementById('allin-bets-status').textContent = `✅ Tutti hanno scommesso!`;
+            }
+        });
+
+        function revealWinner() {
+            socket.emit('reveal_winner');
+            finaleActive = false;
+            document.getElementById('finale-progress').classList.add('hidden');
+            activateStep(1); // Reset
         }
 
         function updateFinaleProgress() {
@@ -379,13 +493,6 @@
             dots.forEach((dot, i) => {
                 dot.className = i < finaleQuestionCount ? 'progress-dot active' : 'progress-dot inactive';
             });
-        }
-
-        function revealWinner() {
-            socket.emit('reveal_winner');
-            finaleActive = false;
-            document.getElementById('reveal-winner-btn').disabled = true;
-            document.getElementById('finale-progress').classList.add('hidden');
         }
 
         // Preview

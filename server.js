@@ -92,7 +92,8 @@ io.on('connection', (socket) => {
     gameState.roundAnswers = [];
     gameState.buzzerQueue = [];
     
-    gameState.buzzerLocked = (d.modalita === 'buzzer'); 
+    // Se è buzzer, SBLOCCA (false = sbloccato)
+    gameState.buzzerLocked = (d.modalita !== 'buzzer'); 
 
     let datiPerClient = {
         id: d.id,

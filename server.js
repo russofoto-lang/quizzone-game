@@ -52,6 +52,17 @@ let gameState = {
     totalQuestions: 5,       // Totale domande finale
     allInBets: {},           // Scommesse ALL IN {teamId: amount}
     hideLeaderboard: false   // Nascondi classifica
+  },
+  duelloMode: {
+    active: false,           // Se il duello è attivo
+    attaccante: null,        // {id, name, score}
+    difensore: null,         // {id, name, score}
+    categoria: null,         // Categoria scelta
+    currentQuestion: 0,      // Domanda corrente (1-3)
+    scoreAttaccante: 0,      // Punti duello attaccante
+    scoreDifensore: 0,       // Punti duello difensore
+    currentBuzzer: null,     // Chi ha premuto il buzzer {teamId, name}
+    waitingAnswer: false     // In attesa risposta vocale
   }
 };
 
@@ -229,6 +240,17 @@ io.on('connection', (socket) => {
     gameState.buzzerLocked = true;
     gameState.buzzerStandalone = false;
     gameState.ruotaWinner = null;
+    gameState.duelloMode = {
+      active: false,
+      attaccante: null,
+      difensore: null,
+      categoria: null,
+      currentQuestion: 0,
+      scoreAttaccante: 0,
+      scoreDifensore: 0,
+      currentBuzzer: null,
+      waitingAnswer: false
+    };
     
     io.emit('cambia_vista', { view: 'logo' });
     io.emit('reset_client_ui');
@@ -472,9 +494,9 @@ io.on('connection', (socket) => {
       
       let punti = 0;
       if(isCorrect) {
-          // RUOTA DELLA FORTUNA: 150 punti fissi
+          // RUOTA DELLA FORTUNA: 250 punti fissi
           if(q.isRuotaChallenge) {
-              punti = 150;
+              punti = 250;
               team.score += punti;
           } else {
               const puntiBase = q.punti || 100;
@@ -501,6 +523,12 @@ io.on('connection', (socket) => {
           }
           
       } else {
+          // RUOTA DELLA FORTUNA: -100 punti penalità
+          if(q.isRuotaChallenge) {
+              punti = -100;
+              team.score = Math.max(0, team.score - 100); // Non andare sotto zero
+          }
+          
           // Reset streak se sbagliata
           if(team.streak) team.streak = 0;
           
@@ -598,7 +626,7 @@ io.on('connection', (socket) => {
       io.to(data.teamId).emit('ruota_choice', {
         options: [
           { type: 'safe', points: 50, label: '💰 50 PUNTI GRATIS' },
-          { type: 'challenge', points: 150, label: '🎯 150 PUNTI (Domanda)' }
+          { type: 'challenge', points: 250, label: '🎯 +250pt / -100pt (Domanda)' }
         ]
       });
     }
@@ -607,7 +635,7 @@ io.on('connection', (socket) => {
       console.log('🎰 Lancia domanda sfida');
       // Lancia domanda normale ma solo alla squadra estratta
       gameState.currentQuestion = data.question;
-      gameState.currentQuestion.isRuotaChallenge = true; // Flag per 150 punti
+      gameState.currentQuestion.isRuotaChallenge = true; // Flag per 250 punti o -100
       gameState.questionStartTime = Date.now();
       
       // Prepara i dati della domanda
@@ -617,7 +645,7 @@ io.on('connection', (socket) => {
         risposte: data.question.risposte,
         modalita: 'quiz',
         startTime: gameState.questionStartTime,
-        bonusPoints: 150
+        bonusPoints: 250
       };
       
       // Invia SOLO al telefono della squadra estratta
@@ -647,6 +675,303 @@ io.on('connection', (socket) => {
     }
     // Se sceglie challenge, admin lancerà domanda con step 4
   });
+
+  // ════════════════════════════════════════════════════════════════
+  // 🔥 DUELLO RUBA-PUNTI
+  // ════════════════════════════════════════════════════════════════
+  
+  socket.on('duello_start', () => {
+    console.log('🔥 Inizio duello ruba-punti');
+    
+    // Estrae attaccante casuale
+    const realTeams = Object.values(gameState.teams).filter(t => !t.isPreview);
+    if(realTeams.length < 2) {
+      io.to('admin').emit('duello_error', { message: 'Servono almeno 2 squadre!' });
+      return;
+    }
+    
+    const attaccante = realTeams[Math.floor(Math.random() * realTeams.length)];
+    
+    gameState.duelloMode = {
+      active: true,
+      attaccante: { id: attaccante.id, name: attaccante.name, score: attaccante.score },
+      difensore: null,
+      categoria: null,
+      currentQuestion: 0,
+      scoreAttaccante: 0,
+      scoreDifensore: 0,
+      currentBuzzer: null,
+      waitingAnswer: false
+    };
+    
+    io.to('admin').emit('duello_attaccante', { 
+      attaccante: { id: attaccante.id, name: attaccante.name } 
+    });
+    
+    // Mostra spiegazione duello sul display
+    io.emit('duello_explain');
+    
+    console.log('🔥 Estratto attaccante:', attaccante.name);
+  });
+  
+  socket.on('duello_show_opponent_choice', () => {
+    if(!gameState.duelloMode.active || !gameState.duelloMode.attaccante) return;
+    
+    // Trova ultimo in classifica
+    const realTeams = Object.values(gameState.teams).filter(t => !t.isPreview);
+    const sorted = realTeams.sort((a, b) => a.score - b.score);
+    const lastTeam = sorted[0];
+    
+    // Lista avversari disponibili (escluso attaccante e ultimo)
+    const availableOpponents = realTeams.filter(t => 
+      t.id !== gameState.duelloMode.attaccante.id && 
+      t.id !== lastTeam.id
+    );
+    
+    io.to(gameState.duelloMode.attaccante.id).emit('duello_choose_opponent', {
+      opponents: availableOpponents.map(t => ({ id: t.id, name: t.name, score: t.score }))
+    });
+    
+    console.log('🔥 Mostra scelta avversario a:', gameState.duelloMode.attaccante.name);
+  });
+  
+  socket.on('duello_opponent_chosen', (data) => {
+    if(!gameState.duelloMode.active) return;
+    
+    const difensore = gameState.teams[data.opponentId];
+    if(!difensore) return;
+    
+    gameState.duelloMode.difensore = {
+      id: difensore.id,
+      name: difensore.name,
+      score: difensore.score
+    };
+    
+    io.to('admin').emit('duello_difensore_scelto', {
+      difensore: { id: difensore.id, name: difensore.name }
+    });
+    
+    console.log('🔥 Difensore scelto:', difensore.name);
+  });
+  
+  socket.on('duello_show_category_choice', () => {
+    if(!gameState.duelloMode.active || !gameState.duelloMode.attaccante) return;
+    
+    const categories = Object.keys(fullDb.categorie);
+    
+    io.to(gameState.duelloMode.attaccante.id).emit('duello_choose_category', {
+      categories: categories
+    });
+    
+    console.log('🔥 Mostra scelta categoria');
+  });
+  
+  socket.on('duello_category_chosen', (data) => {
+    if(!gameState.duelloMode.active) return;
+    
+    gameState.duelloMode.categoria = data.category;
+    
+    io.to('admin').emit('duello_categoria_scelta', {
+      category: data.category
+    });
+    
+    console.log('🔥 Categoria scelta:', data.category);
+  });
+  
+  socket.on('duello_launch_question', (data) => {
+    if(!gameState.duelloMode.active) return;
+    
+    gameState.duelloMode.currentQuestion++;
+    gameState.currentQuestion = data.question;
+    gameState.questionStartTime = Date.now();
+    gameState.buzzerQueue = [];
+    gameState.buzzerLocked = false;
+    gameState.duelloMode.currentBuzzer = null;
+    gameState.duelloMode.waitingAnswer = false;
+    
+    const questionData = {
+      id: data.question.id,
+      domanda: data.question.domanda,
+      modalita: 'duello_buzzer',
+      categoria: gameState.duelloMode.categoria,
+      startTime: gameState.questionStartTime
+    };
+    
+    // Invia ai duellanti
+    io.to(gameState.duelloMode.attaccante.id).emit('duello_question', questionData);
+    io.to(gameState.duelloMode.difensore.id).emit('duello_question', questionData);
+    
+    // Invia a preview
+    Object.values(gameState.teams).forEach(team => {
+      if(team.isPreview) {
+        io.to(team.id).emit('duello_question', questionData);
+      }
+    });
+    
+    // Display mostra domanda con scoreboard
+    io.emit('duello_question_display', {
+      question: questionData,
+      attaccante: gameState.duelloMode.attaccante,
+      difensore: gameState.duelloMode.difensore,
+      scoreAttaccante: gameState.duelloMode.scoreAttaccante,
+      scoreDifensore: gameState.duelloMode.scoreDifensore,
+      questionNumber: gameState.duelloMode.currentQuestion
+    });
+    
+    io.emit('cambia_vista', { view: 'duello' });
+    
+    console.log('🔥 Domanda duello', gameState.duelloMode.currentQuestion, '/', 3);
+  });
+  
+  socket.on('duello_buzzer_press', (data) => {
+    if(!gameState.duelloMode.active || gameState.duelloMode.waitingAnswer) return;
+    
+    const teamId = data.teamId;
+    
+    // Solo attaccante o difensore possono premere
+    if(teamId !== gameState.duelloMode.attaccante.id && 
+       teamId !== gameState.duelloMode.difensore.id) {
+      return;
+    }
+    
+    // Primo che preme
+    if(!gameState.duelloMode.currentBuzzer) {
+      const team = gameState.teams[teamId];
+      gameState.duelloMode.currentBuzzer = { id: teamId, name: team.name };
+      gameState.duelloMode.waitingAnswer = true;
+      gameState.buzzerLocked = true;
+      
+      const reactionTime = ((Date.now() - gameState.questionStartTime) / 1000).toFixed(2);
+      
+      // Notifica chi ha premuto
+      io.emit('duello_buzzer_pressed', {
+        teamId: teamId,
+        teamName: team.name,
+        time: reactionTime
+      });
+      
+      io.to('admin').emit('duello_waiting_answer', {
+        teamId: teamId,
+        teamName: team.name,
+        correctAnswer: gameState.currentQuestion.corretta
+      });
+      
+      console.log('🔥 Buzzer premuto da:', team.name, 'in', reactionTime, 's');
+    }
+  });
+  
+  socket.on('duello_answer_result', (data) => {
+    if(!gameState.duelloMode.active) return;
+    
+    const isCorrect = data.correct;
+    const answeredBy = gameState.duelloMode.currentBuzzer;
+    
+    if(!answeredBy) return;
+    
+    if(isCorrect) {
+      // Risposta corretta: +1 punto
+      if(answeredBy.id === gameState.duelloMode.attaccante.id) {
+        gameState.duelloMode.scoreAttaccante++;
+      } else {
+        gameState.duelloMode.scoreDifensore++;
+      }
+      
+      io.emit('duello_point_scored', {
+        teamId: answeredBy.id,
+        teamName: answeredBy.name,
+        scoreAttaccante: gameState.duelloMode.scoreAttaccante,
+        scoreDifensore: gameState.duelloMode.scoreDifensore
+      });
+      
+      console.log('🔥 Punto a:', answeredBy.name, '| Score:', 
+        gameState.duelloMode.scoreAttaccante, '-', gameState.duelloMode.scoreDifensore);
+      
+      // Controlla se qualcuno ha vinto (primo a 2)
+      if(gameState.duelloMode.scoreAttaccante >= 2 || gameState.duelloMode.scoreDifensore >= 2) {
+        // Fine duello
+        setTimeout(() => {
+          finalizeDuello();
+        }, 2000);
+      } else {
+        // Prossima domanda
+        io.to('admin').emit('duello_next_question');
+      }
+      
+    } else {
+      // Risposta sbagliata: l'altro può rispondere
+      const otherId = answeredBy.id === gameState.duelloMode.attaccante.id 
+        ? gameState.duelloMode.difensore.id 
+        : gameState.duelloMode.attaccante.id;
+      
+      const otherTeam = gameState.teams[otherId];
+      
+      io.emit('duello_wrong_answer', {
+        wrongTeamId: answeredBy.id,
+        wrongTeamName: answeredBy.name
+      });
+      
+      // L'altro può rispondere
+      gameState.duelloMode.currentBuzzer = { id: otherId, name: otherTeam.name };
+      
+      io.to('admin').emit('duello_other_can_answer', {
+        teamId: otherId,
+        teamName: otherTeam.name,
+        correctAnswer: gameState.currentQuestion.corretta
+      });
+      
+      console.log('🔥 Sbagliato da:', answeredBy.name, '| Può rispondere:', otherTeam.name);
+    }
+  });
+  
+  function finalizeDuello() {
+    const attaccanteWins = gameState.duelloMode.scoreAttaccante >= 2;
+    const winner = attaccanteWins ? gameState.duelloMode.attaccante : gameState.duelloMode.difensore;
+    const loser = attaccanteWins ? gameState.duelloMode.difensore : gameState.duelloMode.attaccante;
+    
+    if(attaccanteWins) {
+      // Attaccante vince: +250 a lui, -250 al difensore
+      gameState.teams[gameState.duelloMode.attaccante.id].score += 250;
+      gameState.teams[gameState.duelloMode.difensore.id].score = Math.max(0, 
+        gameState.teams[gameState.duelloMode.difensore.id].score - 250);
+      
+      console.log('🔥 ATTACCANTE VINCE! +250 a', winner.name, '| -250 a', loser.name);
+    } else {
+      // Difensore vince: +100 bonus difesa
+      gameState.teams[gameState.duelloMode.difensore.id].score += 100;
+      
+      console.log('🔥 DIFENSORE VINCE! +100 bonus a', winner.name);
+    }
+    
+    const realTeams = Object.values(gameState.teams).filter(t => !t.isPreview);
+    io.emit('update_teams', realTeams);
+    
+    io.emit('duello_end', {
+      winner: winner,
+      loser: loser,
+      attaccanteWins: attaccanteWins,
+      finalScore: {
+        attaccante: gameState.duelloMode.scoreAttaccante,
+        difensore: gameState.duelloMode.scoreDifensore
+      },
+      pointsChange: attaccanteWins ? '+250/-250' : '+100 bonus'
+    });
+    
+    // Reset duello
+    gameState.duelloMode = {
+      active: false,
+      attaccante: null,
+      difensore: null,
+      categoria: null,
+      currentQuestion: 0,
+      scoreAttaccante: 0,
+      scoreDifensore: 0,
+      currentBuzzer: null,
+      waitingAnswer: false
+    };
+    
+    gameState.buzzerLocked = true;
+    gameState.currentQuestion = null;
+  }
 
   socket.on('login', (n) => {
     let existingTeam = Object.values(gameState.teams).find(t => t.name === n);

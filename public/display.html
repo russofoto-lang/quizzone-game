@@ -143,55 +143,82 @@
         </div>
 
         <!-- VISTA REGOLE -->
-        <div id="view-regole" class="view-section hidden absolute inset-0 bg-gradient-to-br from-blue-900 to-indigo-900 z-40 flex flex-col items-center justify-center">
-            <div class="glass rounded-[3rem] p-12 max-w-5xl animate__animated animate__zoomIn">
-                <h1 class="text-7xl font-black text-white mb-8 text-center">📋 REGOLAMENTO</h1>
-                <div class="text-3xl text-white space-y-6">
-                    <div class="flex items-start gap-4">
-                        <span class="text-5xl">✅</span>
-                        <div>
-                            <p class="font-bold text-yellow-300">Quiz ABCD</p>
-                            <p class="text-2xl">Rispondi veloce per bonus punti!</p>
+        <div id="view-regole" class="view-section hidden absolute inset-0 bg-gradient-to-br from-blue-900 to-indigo-900 z-40 flex flex-col items-center justify-center p-6">
+            <div class="glass rounded-3xl p-6 max-w-6xl w-full animate__animated animate__zoomIn">
+                <h1 class="text-4xl font-black text-white mb-4 text-center">📋 REGOLAMENTO</h1>
+                
+                <!-- Grid 2 colonne per compattare -->
+                <div class="grid grid-cols-2 gap-4 text-white">
+                    
+                    <!-- Quiz ABCD -->
+                    <div class="bg-white/10 rounded-2xl p-4">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="text-3xl">✅</span>
+                            <p class="font-black text-yellow-300 text-xl">Quiz ABCD</p>
                         </div>
+                        <p class="text-sm leading-tight">Rispondi veloce per bonus punti! Fino a +50 punti extra.</p>
                     </div>
-                    <div class="flex items-start gap-4">
-                        <span class="text-5xl">⚡</span>
-                        <div>
-                            <p class="font-bold text-yellow-300">Buzzer</p>
-                            <p class="text-2xl">Primo che preme risponde!</p>
+                    
+                    <!-- Buzzer -->
+                    <div class="bg-white/10 rounded-2xl p-4">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="text-3xl">⚡</span>
+                            <p class="font-black text-yellow-300 text-xl">Buzzer</p>
                         </div>
+                        <p class="text-sm leading-tight">Primo che preme risponde! 100 punti se corretto.</p>
                     </div>
-                    <div class="flex items-start gap-4">
-                        <span class="text-5xl">🎯</span>
-                        <div>
-                            <p class="font-bold text-yellow-300">Bonus Velocità</p>
-                            <p class="text-2xl">Più veloce = Più punti!</p>
+                    
+                    <!-- Bonus Velocità -->
+                    <div class="bg-white/10 rounded-2xl p-4">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="text-3xl">🎯</span>
+                            <p class="font-black text-yellow-300 text-xl">Bonus Velocità</p>
                         </div>
+                        <p class="text-sm leading-tight">2 sec = +145pt 🔥 | 10 sec = +125pt ⚡ | 20 sec = +100pt</p>
                     </div>
+                    
+                    <!-- Ruota della Fortuna -->
+                    <div class="bg-gradient-to-br from-yellow-600/30 to-red-600/30 rounded-2xl p-4 border-2 border-yellow-400">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="text-3xl">🎰</span>
+                            <p class="font-black text-yellow-300 text-xl">Ruota Fortuna</p>
+                        </div>
+                        <p class="text-sm leading-tight font-bold">💰 50pt sicuri | 🎯 +250pt/-100pt sfida</p>
+                    </div>
+                    
+                    <!-- Duello Ruba-Punti -->
+                    <div class="col-span-2 bg-gradient-to-r from-red-600/30 to-orange-600/30 rounded-2xl p-4 border-2 border-red-400">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="text-3xl">🔥</span>
+                            <p class="font-black text-red-300 text-xl">Duello Ruba-Punti</p>
+                        </div>
+                        <p class="text-sm leading-tight font-bold">Sfida 1vs1 su 3 domande buzzer | Vinci: RUBI 250pt | Perdi: difensore +100pt</p>
+                    </div>
+                    
                 </div>
             </div>
         </div>
 
         <!-- VISTA PUNTEGGI -->
         <div id="view-punteggi" class="view-section hidden absolute inset-0 bg-gradient-to-br from-green-900 to-emerald-900 z-40 flex flex-col items-center justify-center">
-            <div class="glass rounded-[3rem] p-12 max-w-5xl animate__animated animate__flipInX">
-                <h1 class="text-7xl font-black text-white mb-8 text-center">💰 SISTEMA PUNTEGGI</h1>
-                <div class="text-3xl text-white space-y-4">
-                    <div class="bg-white/10 rounded-2xl p-6 flex justify-between items-center">
+            <div class="glass rounded-[3rem] p-8 max-w-4xl animate__animated animate__flipInX">
+                <h1 class="text-5xl font-black text-white mb-6 text-center">💰 SISTEMA PUNTEGGI</h1>
+                <div class="text-2xl text-white space-y-3">
+                    <div class="bg-white/10 rounded-2xl p-4 flex justify-between items-center">
                         <span>Risposta in 2s:</span>
-                        <span class="text-5xl font-black text-green-400">145 pt 🔥</span>
+                        <span class="text-4xl font-black text-green-400">145 pt 🔥</span>
                     </div>
-                    <div class="bg-white/10 rounded-2xl p-6 flex justify-between items-center">
+                    <div class="bg-white/10 rounded-2xl p-4 flex justify-between items-center">
                         <span>Risposta in 10s:</span>
-                        <span class="text-5xl font-black text-yellow-400">125 pt ⚡</span>
+                        <span class="text-4xl font-black text-yellow-400">125 pt ⚡</span>
                     </div>
-                    <div class="bg-white/10 rounded-2xl p-6 flex justify-between items-center">
+                    <div class="bg-white/10 rounded-2xl p-4 flex justify-between items-center">
                         <span>Risposta in 20s:</span>
-                        <span class="text-5xl font-black text-white">100 pt ✓</span>
+                        <span class="text-4xl font-black text-white">100 pt ✓</span>
                     </div>
-                    <div class="bg-white/10 rounded-2xl p-6 flex justify-between items-center">
+                    <div class="bg-white/10 rounded-2xl p-4 flex justify-between items-center">
                         <span>Buzzer corretto:</span>
-                        <span class="text-5xl font-black text-blue-400">100 pt</span>
+                        <span class="text-4xl font-black text-blue-400">100 pt</span>
                     </div>
                 </div>
             </div>
@@ -238,6 +265,41 @@
                 <p id="custom-text-display" class="text-6xl font-bold text-white leading-tight whitespace-pre-wrap">
                     Messaggio personalizzato
                 </p>
+            </div>
+        </div>
+
+        <!-- VISTA DUELLO RUBA-PUNTI -->
+        <div id="view-duello" class="view-section hidden absolute inset-0 bg-gradient-to-br from-red-900 via-orange-900 to-yellow-900 z-40 flex flex-col items-center justify-center p-6">
+            
+            <!-- Scoreboard -->
+            <div class="bg-black/50 rounded-3xl p-6 mb-8 flex items-center justify-center gap-12 glass animate__animated animate__fadeInDown">
+                <div class="text-center">
+                    <div id="duello-attaccante-name" class="text-3xl font-black text-yellow-400 mb-2">ATTACCANTE</div>
+                    <div id="duello-attaccante-score" class="text-8xl font-black text-white">0</div>
+                </div>
+                
+                <div class="text-6xl font-black text-white">-</div>
+                
+                <div class="text-center">
+                    <div id="duello-difensore-name" class="text-3xl font-black text-blue-400 mb-2">DIFENSORE</div>
+                    <div id="duello-difensore-score" class="text-8xl font-black text-white">0</div>
+                </div>
+            </div>
+            
+            <!-- Area Domanda -->
+            <div class="bg-gray-900/90 rounded-3xl p-8 max-w-6xl w-full glass animate__animated animate__fadeInUp">
+                <div class="flex items-center justify-between mb-6">
+                    <div id="duello-categoria" class="text-2xl font-bold text-orange-400">CATEGORIA</div>
+                    <div id="duello-question-number" class="text-2xl font-bold text-white">DOMANDA 1/3</div>
+                </div>
+                
+                <div id="duello-question-text" class="text-4xl font-black text-white mb-8 leading-tight">
+                    Domanda del duello...
+                </div>
+                
+                <div id="duello-status" class="text-3xl font-bold text-center">
+                    <span class="text-yellow-400 animate-pulse">⚡ In attesa di buzzer...</span>
+                </div>
             </div>
         </div>
 
@@ -789,6 +851,126 @@
                     showView('ruota-winner');
                     document.getElementById('winner-team-name').textContent = data.winner.name;
                 }, 1000);
+            }, 5000);
+        });
+
+        // DISPLAY_QUESTION - Per ruota della fortuna (visualizza solo sul display, no interazione)
+        socket.on('display_question', (d) => {
+            console.log('Display question (solo visualizzazione):', d.domanda);
+            showView('gioco');
+            stopTimer();
+            
+            document.getElementById('buzzer-overlay').classList.add('hidden');
+            document.getElementById('solution').classList.add('hidden');
+            document.getElementById('cat').innerText = (d.categoria || "RUOTA DELLA FORTUNA").toUpperCase();
+            document.getElementById('q-text').innerText = d.domanda;
+            
+            const o = document.getElementById('opts'); 
+            o.innerHTML = '';
+            
+            if(d.risposte) { 
+                o.classList.remove('hidden'); 
+                d.risposte.forEach((r, idx) => {
+                    o.innerHTML += `<div class="answer-option bg-white/10 p-4 rounded-2xl border-2 border-white/10 shadow-lg font-bold">${String.fromCharCode(65+idx)}: ${r}</div>`;
+                });
+            }
+            
+            document.getElementById('timer-display-container').classList.add('hidden');
+        });
+
+        // RESET CLIENT UI - Reset completo display
+        socket.on('reset_client_ui', () => {
+            console.log('🔄 Reset client UI');
+            stopTimer();
+            document.getElementById('buzzer-overlay').classList.add('hidden');
+            document.getElementById('solution').classList.add('hidden');
+            document.getElementById('opts').classList.add('hidden');
+            document.getElementById('timer-display-container').classList.add('hidden');
+            document.getElementById('q-text').innerText = 'Caricamento domanda...';
+            document.getElementById('cat').innerText = 'CATEGORIA';
+        });
+
+        // ════════════════════════════════════════════════════════════════
+        // 🔥 DUELLO RUBA-PUNTI
+        // ════════════════════════════════════════════════════════════════
+        
+        socket.on('duello_explain', () => {
+            showView('custom');
+            document.getElementById('custom-text-display').innerHTML = `
+                <div class="text-6xl mb-6">🔥</div>
+                <div class="text-5xl font-black mb-4">DUELLO RUBA-PUNTI!</div>
+                <div class="text-3xl">Una squadra sarà estratta per sfidare un avversario</div>
+                <div class="text-2xl mt-4 text-yellow-400">+250pt se vince | +100pt bonus difesa</div>
+            `;
+        });
+        
+        socket.on('duello_question_display', (data) => {
+            showView('duello');
+            
+            document.getElementById('duello-attaccante-name').textContent = data.attaccante.name.toUpperCase();
+            document.getElementById('duello-difensore-name').textContent = data.difensore.name.toUpperCase();
+            document.getElementById('duello-attaccante-score').textContent = data.scoreAttaccante;
+            document.getElementById('duello-difensore-score').textContent = data.scoreDifensore;
+            
+            document.getElementById('duello-categoria').textContent = (data.question.categoria || 'DUELLO').toUpperCase();
+            document.getElementById('duello-question-number').textContent = `DOMANDA ${data.questionNumber}/3`;
+            document.getElementById('duello-question-text').textContent = data.question.domanda;
+            document.getElementById('duello-status').innerHTML = '<span class="text-yellow-400 animate-pulse">⚡ In attesa di buzzer...</span>';
+        });
+        
+        socket.on('duello_buzzer_pressed', (data) => {
+            document.getElementById('duello-status').innerHTML = `
+                <div class="bg-yellow-500 text-black p-4 rounded-2xl inline-block animate__animated animate__bounceIn">
+                    <span class="text-4xl">🎤 ${data.teamName.toUpperCase()}</span><br>
+                    <span class="text-xl">sta rispondendo... (${data.time}s)</span>
+                </div>
+            `;
+        });
+        
+        socket.on('duello_point_scored', (data) => {
+            document.getElementById('duello-attaccante-score').textContent = data.scoreAttaccante;
+            document.getElementById('duello-difensore-score').textContent = data.scoreDifensore;
+            
+            document.getElementById('duello-status').innerHTML = `
+                <div class="bg-green-600 p-6 rounded-2xl inline-block animate__animated animate__bounceIn">
+                    <span class="text-5xl">✅ ${data.teamName.toUpperCase()} SEGNA!</span><br>
+                    <span class="text-2xl">${data.scoreAttaccante} - ${data.scoreDifensore}</span>
+                </div>
+            `;
+        });
+        
+        socket.on('duello_wrong_answer', (data) => {
+            document.getElementById('duello-status').innerHTML = `
+                <div class="bg-red-600 p-6 rounded-2xl inline-block animate__animated animate__shakeX">
+                    <span class="text-4xl">❌ ${data.wrongTeamName.toUpperCase()} HA SBAGLIATO!</span>
+                </div>
+            `;
+        });
+        
+        socket.on('duello_end', (data) => {
+            showView('custom');
+            
+            const winnerEmoji = data.attaccanteWins ? '🔥' : '🛡️';
+            const winnerColor = data.attaccanteWins ? 'text-orange-400' : 'text-blue-400';
+            const pointsMsg = data.attaccanteWins ? 
+                `${data.winner.name} ruba 250 punti a ${data.loser.name}!` :
+                `${data.winner.name} difende e guadagna 100 punti bonus!`;
+            
+            document.getElementById('custom-text-display').innerHTML = `
+                <div class="text-9xl mb-6">${winnerEmoji}</div>
+                <div class="text-6xl font-black ${winnerColor} mb-6">
+                    ${data.winner.name.toUpperCase()} VINCE!
+                </div>
+                <div class="text-4xl font-bold mb-4">
+                    ${data.finalScore.attaccante} - ${data.finalScore.difensore}
+                </div>
+                <div class="text-3xl text-yellow-300">
+                    ${pointsMsg}
+                </div>
+            `;
+            
+            setTimeout(() => {
+                showView('classifica_gen');
             }, 5000);
         });
 

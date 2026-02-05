@@ -250,6 +250,33 @@
                 </div>
             </div>
 
+            <!-- Ruota della Fortuna - COLLAPSIBLE -->
+            <div class="bg-yellow-900/20 rounded-lg border border-yellow-700">
+                <button onclick="toggleSection('ruota')" class="w-full flex justify-between items-center p-2 hover:bg-yellow-900/30 transition rounded-lg">
+                    <div class="text-sm font-bold text-yellow-300 uppercase">🎰 Ruota Fortuna</div>
+                    <span id="icon-ruota" class="text-yellow-300 font-bold text-lg">▼</span>
+                </button>
+                <div id="content-ruota" class="hidden p-2 pt-0">
+                    <div class="space-y-1">
+                        <button onclick="ruotaStep(1)" class="w-full btn-primary text-white font-bold py-2 rounded text-sm">
+                            1️⃣ Spiega Regole
+                        </button>
+                        <button onclick="ruotaStep(2)" class="w-full btn-warning text-white font-bold py-2 rounded text-sm">
+                            2️⃣ Gira Ruota
+                        </button>
+                        <button onclick="ruotaStep(3)" class="w-full btn-success text-white font-bold py-2 rounded text-sm">
+                            3️⃣ Mostra Scelta
+                        </button>
+                        <div id="ruota-winner-display" class="hidden text-xs text-center py-2 bg-yellow-900/30 rounded font-bold">
+                            Estratto: <span id="ruota-winner-name">---</span>
+                        </div>
+                        <button onclick="ruotaStep(4)" class="w-full bg-orange-600 hover:bg-orange-500 text-white font-bold py-2 rounded text-sm">
+                            4️⃣ Lancia Domanda Sfida
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             <!-- Sfida Finale - COLLAPSIBLE -->
             <div class="bg-red-900/20 rounded-lg border border-red-700">
                 <button onclick="toggleSection('finale')" class="w-full flex justify-between items-center p-2 hover:bg-red-900/30 transition rounded-lg">
@@ -540,6 +567,50 @@
             socket.emit('stop_karaoke');
             console.log('⏹️ Karaoke fermato');
         }
+
+        // Ruota della Fortuna Functions
+        let ruotaWinner = null;
+
+        function ruotaStep(step) {
+            switch(step) {
+                case 1:
+                    // Spiega regole
+                    socket.emit('ruota_step', { step: 'explain' });
+                    console.log('🎰 Spiegazione Ruota');
+                    break;
+                case 2:
+                    // Gira ruota e estrae squadra
+                    socket.emit('ruota_step', { step: 'spin' });
+                    console.log('🎰 Ruota gira...');
+                    break;
+                case 3:
+                    // Mostra scelta al telefono
+                    if(!ruotaWinner) {
+                        alert('⚠️ Prima gira la ruota!');
+                        return;
+                    }
+                    socket.emit('ruota_step', { step: 'choice', teamId: ruotaWinner.id });
+                    console.log('🎰 Mostra scelta a:', ruotaWinner.name);
+                    break;
+                case 4:
+                    // Lancia domanda sfida
+                    if(!selectedQ) {
+                        alert('⚠️ Seleziona una domanda prima!');
+                        return;
+                    }
+                    socket.emit('ruota_step', { step: 'challenge', question: selectedQ });
+                    console.log('🎰 Domanda sfida lanciata');
+                    break;
+            }
+        }
+
+        // Riceve squadra estratta dalla ruota
+        socket.on('ruota_winner', (data) => {
+            ruotaWinner = data;
+            document.getElementById('ruota-winner-display').classList.remove('hidden');
+            document.getElementById('ruota-winner-name').textContent = data.name;
+            console.log('🎰 Estratto:', data.name);
+        });
 
         // Accordion/Collapse Toggle
         function toggleSection(section) {

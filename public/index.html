@@ -346,10 +346,10 @@
         socket.on('duello_choose_opponent', (data) => {
             resetUI();
             document.getElementById('msg-box').innerHTML = `
-                <div class="bg-red-600 p-6 rounded-xl">
-                    <div class="text-5xl mb-4">🔥</div>
-                    <div class="text-2xl font-black mb-4">SCEGLI IL TUO AVVERSARIO</div>
-                    <div class="text-sm mb-4">Chi vuoi sfidare nel duello?</div>
+                <div class="bg-red-600 p-4 rounded-xl">
+                    <div class="text-4xl mb-2">🔥</div>
+                    <div class="text-xl font-black mb-2">SCEGLI IL TUO AVVERSARIO</div>
+                    <div class="text-xs">Chi vuoi sfidare?</div>
                 </div>
             `;
             
@@ -358,7 +358,7 @@
             if(!opponentsDiv) {
                 opponentsDiv = document.createElement('div');
                 opponentsDiv.id = 'duello-opponents-container';
-                opponentsDiv.className = 'w-full max-w-md space-y-3 mt-6';
+                opponentsDiv.className = 'w-full max-w-md space-y-2 mt-4';
                 document.querySelector('.flex-1.flex.flex-col.p-4').appendChild(opponentsDiv);
             }
             opponentsDiv.innerHTML = '';
@@ -366,8 +366,8 @@
             
             data.opponents.forEach(opp => {
                 const btn = document.createElement('button');
-                btn.className = 'w-full bg-gradient-to-r from-orange-500 to-red-600 p-4 rounded-xl font-black text-2xl hover:scale-105 transition shadow-xl active:scale-95';
-                btn.innerHTML = `${opp.name}<br><span class="text-sm font-normal">${opp.score} punti</span>`;
+                btn.className = 'w-full bg-gradient-to-r from-orange-500 to-red-600 p-3 rounded-xl font-black text-lg hover:scale-105 transition shadow-xl active:scale-95';
+                btn.innerHTML = `${opp.name} <span class="text-xs font-normal">(${opp.score}pt)</span>`;
                 btn.onclick = () => {
                     socket.emit('duello_opponent_chosen', { opponentId: opp.id });
                     opponentsDiv.innerHTML = '';

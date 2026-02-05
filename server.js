@@ -227,6 +227,8 @@ io.on('connection', (socket) => {
     gameState.roundAnswers = [];
     gameState.buzzerQueue = [];
     gameState.buzzerLocked = true;
+    gameState.buzzerStandalone = false;
+    gameState.ruotaWinner = null;
     
     io.emit('cambia_vista', { view: 'logo' });
     io.emit('reset_client_ui');
@@ -470,27 +472,33 @@ io.on('connection', (socket) => {
       
       let punti = 0;
       if(isCorrect) {
-          const puntiBase = q.punti || 100;
-          const bonusVelocita = Math.max(0, 50 - (tempoSecondi * 2.5));
-          punti = puntiBase + Math.round(bonusVelocita);
-          
-          // FINALE MODE: Raddoppia punti
-          if(gameState.finaleMode.active) {
-              punti = punti * 2;
+          // RUOTA DELLA FORTUNA: 150 punti fissi
+          if(q.isRuotaChallenge) {
+              punti = 150;
+              team.score += punti;
+          } else {
+              const puntiBase = q.punti || 100;
+              const bonusVelocita = Math.max(0, 50 - (tempoSecondi * 2.5));
+              punti = puntiBase + Math.round(bonusVelocita);
+              
+              // FINALE MODE: Raddoppia punti
+              if(gameState.finaleMode.active) {
+                  punti = punti * 2;
+              }
+              
+              // STREAK BONUS
+              if(!team.streak) team.streak = 0;
+              team.streak++;
+              
+              let streakBonus = 0;
+              if(team.streak >= 2) streakBonus = 10;
+              if(team.streak >= 3) streakBonus = 25;
+              if(team.streak >= 4) streakBonus = 50;
+              if(team.streak >= 5) streakBonus = 100;
+              
+              punti += streakBonus;
+              team.score += punti;
           }
-          
-          // STREAK BONUS
-          if(!team.streak) team.streak = 0;
-          team.streak++;
-          
-          let streakBonus = 0;
-          if(team.streak >= 2) streakBonus = 10;
-          if(team.streak >= 3) streakBonus = 25;
-          if(team.streak >= 4) streakBonus = 50;
-          if(team.streak >= 5) streakBonus = 100;
-          
-          punti += streakBonus;
-          team.score += punti;
           
       } else {
           // Reset streak se sbagliata
@@ -599,6 +607,7 @@ io.on('connection', (socket) => {
       console.log('🎰 Lancia domanda sfida');
       // Lancia domanda normale ma solo alla squadra estratta
       gameState.currentQuestion = data.question;
+      gameState.currentQuestion.isRuotaChallenge = true; // Flag per 150 punti
       gameState.questionStartTime = Date.now();
       
       // Prepara i dati della domanda
@@ -611,12 +620,18 @@ io.on('connection', (socket) => {
         bonusPoints: 150
       };
       
-      // Invia al telefono della squadra estratta
+      // Invia SOLO al telefono della squadra estratta
       io.to(gameState.ruotaWinner.id).emit('nuova_domanda', questionData);
       
-      // Invia anche al display e preview
-      io.emit('nuova_domanda', questionData);
+      // Invia al display e preview per visualizzazione
+      Object.values(gameState.teams).forEach(team => {
+        if(team.isPreview) {
+          io.to(team.id).emit('nuova_domanda', questionData);
+        }
+      });
       
+      // Mostra domanda sul display broadcast
+      io.emit('display_question', questionData);
       io.emit('cambia_vista', { view: 'gioco' });
     }
   });

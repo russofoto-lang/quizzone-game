@@ -193,60 +193,73 @@
             </div>
         </div>
 
-        <!-- Buzzer Musicale -->
-        <div class="bg-purple-900/20 rounded-lg p-2 border border-purple-700">
-            <div class="text-sm font-bold text-purple-300 mb-2 uppercase">🎵 Gioco Musicale</div>
-            <div class="grid grid-cols-3 gap-1 mb-2">
-                <button onclick="openBuzzerStandalone()" class="btn-success text-white font-bold py-2 rounded text-sm">
-                    🔓 Apri
-                </button>
-                <button onclick="closeBuzzer()" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 rounded text-sm">
-                    🔒 Blocca
-                </button>
-                <button onclick="resetBuzzer()" class="btn-primary text-white font-bold py-2 rounded text-sm">
-                    🔄 Reset
-                </button>
+        <!-- Buzzer Musicale - COLLAPSIBLE -->
+        <div class="bg-purple-900/20 rounded-lg border border-purple-700">
+            <button onclick="toggleSection('musicale')" class="w-full flex justify-between items-center p-2 hover:bg-purple-900/30 transition rounded-lg">
+                <div class="text-sm font-bold text-purple-300 uppercase">🎵 Gioco Musicale</div>
+                <span id="icon-musicale" class="text-purple-300 font-bold text-lg">▼</span>
+            </button>
+            <div id="content-musicale" class="hidden p-2 pt-0">
+                <div class="grid grid-cols-3 gap-1 mb-2">
+                    <button onclick="openBuzzerStandalone()" class="btn-success text-white font-bold py-2 rounded text-sm">
+                        🔓 Apri
+                    </button>
+                    <button onclick="closeBuzzer()" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 rounded text-sm">
+                        🔒 Blocca
+                    </button>
+                    <button onclick="resetBuzzer()" class="btn-primary text-white font-bold py-2 rounded text-sm">
+                        🔄 Reset
+                    </button>
+                </div>
+                <div id="buzzer-queue-admin" class="hidden space-y-1 text-sm max-h-24 overflow-y-auto"></div>
             </div>
-            <div id="buzzer-queue-admin" class="hidden space-y-1 text-sm max-h-24 overflow-y-auto"></div>
         </div>
 
-        <!-- Karaoke YouTube -->
-        <div class="bg-pink-900/20 rounded-lg p-2 border border-pink-700">
-            <div class="text-sm font-bold text-pink-300 mb-2 uppercase">🎤 Karaoke YouTube</div>
-            
-            <!-- Input Libero -->
-            <div class="mb-2">
-                <input type="text" id="youtube-id-input" placeholder="ID Video (es: dQw4w9WgXcQ)" 
-                       class="w-full bg-gray-800 text-white text-xs p-2 rounded border border-gray-700 mb-1">
-                <div class="grid grid-cols-2 gap-1">
-                    <button onclick="playYoutubeKaraoke()" class="btn-success text-white font-bold py-2 rounded text-sm">
-                        ▶️ Play
+        <!-- Karaoke YouTube - COLLAPSIBLE -->
+        <div class="bg-pink-900/20 rounded-lg border border-pink-700">
+            <button onclick="toggleSection('karaoke')" class="w-full flex justify-between items-center p-2 hover:bg-pink-900/30 transition rounded-lg">
+                <div class="text-sm font-bold text-pink-300 uppercase">🎤 Karaoke YouTube</div>
+                <span id="icon-karaoke" class="text-pink-300 font-bold text-lg">▼</span>
+            </button>
+            <div id="content-karaoke" class="hidden p-2 pt-0">
+                <!-- Input Libero -->
+                <div class="mb-2">
+                    <input type="text" id="youtube-id-input" placeholder="ID Video (es: dQw4w9WgXcQ)" 
+                           class="w-full bg-gray-800 text-white text-xs p-2 rounded border border-gray-700 mb-1">
+                    <div class="grid grid-cols-2 gap-1">
+                        <button onclick="playYoutubeKaraoke()" class="btn-success text-white font-bold py-2 rounded text-sm">
+                            ▶️ Play
+                        </button>
+                        <button onclick="stopKaraoke()" class="btn-danger text-white font-bold py-2 rounded text-sm">
+                            ⏹️ Stop
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Preset Videos -->
+                <div class="text-xs text-gray-400 mb-1">Preset:</div>
+                <div class="space-y-1">
+                    <button onclick="playYoutubePreset('M8gH4hVR8_w')" class="w-full bg-pink-800 hover:bg-pink-700 text-white font-bold py-1.5 rounded text-xs">
+                        🎵 Volare - Modugno
                     </button>
-                    <button onclick="stopKaraoke()" class="btn-danger text-white font-bold py-2 rounded text-sm">
-                        ⏹️ Stop
+                    <button onclick="playYoutubePreset('aVli1cR51sM')" class="w-full bg-pink-800 hover:bg-pink-700 text-white font-bold py-1.5 rounded text-xs">
+                        🎵 Felicità - Albano
+                    </button>
+                    <button onclick="playYoutubePreset('kxopViU98Xo')" class="w-full bg-pink-800 hover:bg-pink-700 text-white font-bold py-1.5 rounded text-xs">
+                        🎵 Laura non c'è
                     </button>
                 </div>
             </div>
-            
-            <!-- Preset Videos -->
-            <div class="text-xs text-gray-400 mb-1">Preset:</div>
-            <div class="space-y-1">
-                <button onclick="playYoutubePreset('M8gH4hVR8_w')" class="w-full bg-pink-800 hover:bg-pink-700 text-white font-bold py-1.5 rounded text-xs">
-                    🎵 Volare - Modugno
-                </button>
-                <button onclick="playYoutubePreset('aVli1cR51sM')" class="w-full bg-pink-800 hover:bg-pink-700 text-white font-bold py-1.5 rounded text-xs">
-                    🎵 Felicità - Albano
-                </button>
-                <button onclick="playYoutubePreset('kxopViU98Xo')" class="w-full bg-pink-800 hover:bg-pink-700 text-white font-bold py-1.5 rounded text-xs">
-                    🎵 Laura non c'è
-                </button>
-            </div>
         </div>
 
-        <!-- Sfida Finale -->
-        <div class="bg-red-900/20 rounded-lg p-2 border border-red-700">
-            <div class="text-sm font-bold text-red-300 mb-2 uppercase">🔥 Sfida Finale</div>
-            <div class="space-y-1">
+        <!-- Sfida Finale - COLLAPSIBLE -->
+        <div class="bg-red-900/20 rounded-lg border border-red-700">
+            <button onclick="toggleSection('finale')" class="w-full flex justify-between items-center p-2 hover:bg-red-900/30 transition rounded-lg">
+                <div class="text-sm font-bold text-red-300 uppercase">🔥 Sfida Finale</div>
+                <span id="icon-finale" class="text-red-300 font-bold text-lg">▼</span>
+            </button>
+            <div id="content-finale" class="hidden p-2 pt-0">
+                <div class="space-y-1">
                 <button onclick="showFinaleExplanation()" id="step-1" class="step-btn active w-full btn-primary text-white font-bold py-2 rounded text-sm">
                     1️⃣ Spiega Regole
                 </button>
@@ -273,6 +286,7 @@
                     <span class="progress-dot"></span>
                     <span class="progress-dot"></span>
                 </div>
+            </div>
             </div>
         </div>
     </div>
@@ -527,6 +541,20 @@
     function stopKaraoke() {
         socket.emit('stop_karaoke');
         console.log('⏹️ Karaoke fermato');
+    }
+
+    // Accordion/Collapse Toggle
+    function toggleSection(section) {
+        const content = document.getElementById(`content-${section}`);
+        const icon = document.getElementById(`icon-${section}`);
+        
+        if(content.classList.contains('hidden')) {
+            content.classList.remove('hidden');
+            icon.textContent = '▲';
+        } else {
+            content.classList.add('hidden');
+            icon.textContent = '▼';
+        }
     }
 
     function regia(v) { socket.emit('regia_cmd', v); }

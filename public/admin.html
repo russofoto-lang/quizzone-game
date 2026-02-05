@@ -277,6 +277,66 @@
                 </div>
             </div>
 
+            <!-- DUELLO RUBA-PUNTI - COLLAPSIBLE -->
+            <div class="bg-red-900/20 rounded-lg border border-red-700">
+                <button onclick="toggleSection('duello')" class="w-full flex justify-between items-center p-2 hover:bg-red-900/30 transition rounded-lg">
+                    <div class="text-sm font-bold text-red-300 uppercase">🔥 Duello Ruba-Punti</div>
+                    <span id="icon-duello" class="text-red-300 font-bold text-lg">▼</span>
+                </button>
+                <div id="content-duello" class="hidden p-2 pt-0">
+                    <div class="space-y-1">
+                        <button onclick="duelloStep(1)" id="duello-step-1" class="w-full btn-primary text-white font-bold py-2 rounded text-sm">
+                            1️⃣ Avvia Duello
+                        </button>
+                        <div id="duello-attaccante-display" class="hidden text-xs text-center py-2 bg-red-900/40 rounded font-bold border border-red-700">
+                            <div class="text-yellow-400">ATTACCANTE:</div>
+                            <div id="duello-attaccante-name" class="text-white text-sm">---</div>
+                        </div>
+                        <button onclick="duelloStep(2)" id="duello-step-2" class="w-full btn-warning text-white font-bold py-2 rounded text-sm opacity-40 pointer-events-none">
+                            2️⃣ Scelta Avversario
+                        </button>
+                        <div id="duello-difensore-display" class="hidden text-xs text-center py-2 bg-blue-900/40 rounded font-bold border border-blue-700">
+                            <div class="text-blue-400">DIFENSORE:</div>
+                            <div id="duello-difensore-name" class="text-white text-sm">---</div>
+                        </div>
+                        <button onclick="duelloStep(3)" id="duello-step-3" class="w-full btn-success text-white font-bold py-2 rounded text-sm opacity-40 pointer-events-none">
+                            3️⃣ Scelta Categoria
+                        </button>
+                        <div id="duello-categoria-display" class="hidden text-xs text-center py-2 bg-purple-900/40 rounded font-bold border border-purple-700">
+                            <div class="text-purple-400">CATEGORIA:</div>
+                            <div id="duello-categoria-name" class="text-white text-sm">---</div>
+                        </div>
+                        <div class="border-t border-red-700 my-2 pt-2">
+                            <div class="text-xs text-center text-gray-400 mb-1">DOMANDE DUELLO</div>
+                            <button onclick="duelloStep(4)" id="duello-step-4" class="w-full bg-orange-600 hover:bg-orange-500 text-white font-bold py-2 rounded text-sm opacity-40 pointer-events-none">
+                                🎯 Lancia Domanda
+                            </button>
+                        </div>
+                        <div id="duello-scoreboard" class="hidden text-center py-2 bg-black/40 rounded border border-gray-700">
+                            <div class="flex justify-center items-center gap-3 text-2xl font-black">
+                                <span id="duello-score-att" class="text-yellow-400">0</span>
+                                <span class="text-white">-</span>
+                                <span id="duello-score-dif" class="text-blue-400">0</span>
+                            </div>
+                            <div class="text-xs text-gray-400 mt-1">Primo a 2 vince</div>
+                        </div>
+                        <div id="duello-answer-buttons" class="hidden space-y-1 border-t border-red-700 pt-2">
+                            <div class="text-xs text-center text-yellow-400 mb-1">
+                                Risponde: <span id="duello-current-answerer">---</span>
+                            </div>
+                            <div class="grid grid-cols-2 gap-1">
+                                <button onclick="duelloAnswerResult(true)" class="btn-success text-white font-bold py-2 rounded text-sm">
+                                    ✅ CORRETTO
+                                </button>
+                                <button onclick="duelloAnswerResult(false)" class="btn-danger text-white font-bold py-2 rounded text-sm">
+                                    ❌ SBAGLIATO
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Sfida Finale - COLLAPSIBLE -->
             <div class="bg-red-900/20 rounded-lg border border-red-700">
                 <button onclick="toggleSection('finale')" class="w-full flex justify-between items-center p-2 hover:bg-red-900/30 transition rounded-lg">
@@ -610,6 +670,149 @@
             document.getElementById('ruota-winner-display').classList.remove('hidden');
             document.getElementById('ruota-winner-name').textContent = data.name;
             console.log('🎰 Estratto:', data.name);
+        });
+
+        // ════════════════════════════════════════════════════════════════
+        // 🔥 DUELLO RUBA-PUNTI Functions
+        // ════════════════════════════════════════════════════════════════
+        
+        let duelloAttaccante = null;
+        let duelloDifensore = null;
+        let duelloCategoria = null;
+
+        function duelloStep(step) {
+            switch(step) {
+                case 1:
+                    // Avvia duello - estrae attaccante
+                    socket.emit('duello_start');
+                    console.log('🔥 Duello avviato');
+                    break;
+                case 2:
+                    // Mostra scelta avversario
+                    if(!duelloAttaccante) {
+                        alert('⚠️ Prima avvia il duello!');
+                        return;
+                    }
+                    socket.emit('duello_show_opponent_choice');
+                    console.log('🔥 Mostra scelta avversario');
+                    break;
+                case 3:
+                    // Mostra scelta categoria
+                    if(!duelloDifensore) {
+                        alert('⚠️ Prima scegli l\'avversario!');
+                        return;
+                    }
+                    socket.emit('duello_show_category_choice');
+                    console.log('🔥 Mostra scelta categoria');
+                    break;
+                case 4:
+                    // Lancia domanda duello
+                    if(!duelloCategoria) {
+                        alert('⚠️ Prima scegli la categoria!');
+                        return;
+                    }
+                    if(!selectedQ) {
+                        alert('⚠️ Seleziona una domanda dalla categoria ' + duelloCategoria + '!');
+                        return;
+                    }
+                    socket.emit('duello_launch_question', { question: selectedQ });
+                    console.log('🔥 Domanda duello lanciata');
+                    break;
+            }
+        }
+
+        function duelloAnswerResult(correct) {
+            socket.emit('duello_answer_result', { correct: correct });
+            console.log('🔥 Risposta:', correct ? 'CORRETTA' : 'SBAGLIATA');
+        }
+
+        // Riceve attaccante estratto
+        socket.on('duello_attaccante', (data) => {
+            duelloAttaccante = data.attaccante;
+            document.getElementById('duello-attaccante-display').classList.remove('hidden');
+            document.getElementById('duello-attaccante-name').textContent = data.attaccante.name;
+            
+            // Abilita step 2
+            document.getElementById('duello-step-2').classList.remove('opacity-40', 'pointer-events-none');
+            
+            console.log('🔥 Attaccante:', data.attaccante.name);
+        });
+
+        // Riceve difensore scelto
+        socket.on('duello_difensore_scelto', (data) => {
+            duelloDifensore = data.difensore;
+            document.getElementById('duello-difensore-display').classList.remove('hidden');
+            document.getElementById('duello-difensore-name').textContent = data.difensore.name;
+            
+            // Abilita step 3
+            document.getElementById('duello-step-3').classList.remove('opacity-40', 'pointer-events-none');
+            
+            console.log('🔥 Difensore:', data.difensore.name);
+        });
+
+        // Riceve categoria scelta
+        socket.on('duello_categoria_scelta', (data) => {
+            duelloCategoria = data.category;
+            document.getElementById('duello-categoria-display').classList.remove('hidden');
+            document.getElementById('duello-categoria-name').textContent = data.category.toUpperCase();
+            
+            // Abilita step 4 e mostra scoreboard
+            document.getElementById('duello-step-4').classList.remove('opacity-40', 'pointer-events-none');
+            document.getElementById('duello-scoreboard').classList.remove('hidden');
+            
+            console.log('🔥 Categoria:', data.category);
+        });
+
+        // In attesa risposta (chi ha premuto buzzer)
+        socket.on('duello_waiting_answer', (data) => {
+            document.getElementById('duello-answer-buttons').classList.remove('hidden');
+            document.getElementById('duello-current-answerer').textContent = data.teamName;
+            console.log('🔥 Risponde:', data.teamName, '| Risposta corretta:', data.correctAnswer);
+        });
+
+        // L'altro può rispondere (dopo sbagliata)
+        socket.on('duello_other_can_answer', (data) => {
+            document.getElementById('duello-current-answerer').textContent = data.teamName;
+            console.log('🔥 Ora risponde:', data.teamName, '| Risposta corretta:', data.correctAnswer);
+        });
+
+        // Punto segnato
+        socket.on('duello_point_scored', (data) => {
+            document.getElementById('duello-score-att').textContent = data.scoreAttaccante;
+            document.getElementById('duello-score-dif').textContent = data.scoreDifensore;
+            document.getElementById('duello-answer-buttons').classList.add('hidden');
+            console.log('🔥 Score:', data.scoreAttaccante, '-', data.scoreDifensore);
+        });
+
+        // Prossima domanda
+        socket.on('duello_next_question', () => {
+            alert('✅ Punto segnato! Lancia la prossima domanda (2 o 3)');
+            console.log('🔥 Pronto per prossima domanda');
+        });
+
+        // Fine duello
+        socket.on('duello_end', (data) => {
+            alert(`🏆 ${data.winner.name} VINCE IL DUELLO!\n\n${data.pointsChange}`);
+            
+            // Reset UI duello
+            duelloAttaccante = null;
+            duelloDifensore = null;
+            duelloCategoria = null;
+            
+            document.getElementById('duello-attaccante-display').classList.add('hidden');
+            document.getElementById('duello-difensore-display').classList.add('hidden');
+            document.getElementById('duello-categoria-display').classList.add('hidden');
+            document.getElementById('duello-scoreboard').classList.add('hidden');
+            document.getElementById('duello-answer-buttons').classList.add('hidden');
+            
+            document.getElementById('duello-step-2').classList.add('opacity-40', 'pointer-events-none');
+            document.getElementById('duello-step-3').classList.add('opacity-40', 'pointer-events-none');
+            document.getElementById('duello-step-4').classList.add('opacity-40', 'pointer-events-none');
+            
+            document.getElementById('duello-score-att').textContent = '0';
+            document.getElementById('duello-score-dif').textContent = '0';
+            
+            console.log('🔥 Duello terminato');
         });
 
         // Accordion/Collapse Toggle

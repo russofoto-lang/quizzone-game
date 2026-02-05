@@ -601,14 +601,21 @@ io.on('connection', (socket) => {
       gameState.currentQuestion = data.question;
       gameState.questionStartTime = Date.now();
       
-      io.to(gameState.ruotaWinner.id).emit('nuova_domanda', {
+      // Prepara i dati della domanda
+      const questionData = {
         id: data.question.id,
         domanda: data.question.domanda,
         risposte: data.question.risposte,
         modalita: 'quiz',
         startTime: gameState.questionStartTime,
         bonusPoints: 150
-      });
+      };
+      
+      // Invia al telefono della squadra estratta
+      io.to(gameState.ruotaWinner.id).emit('nuova_domanda', questionData);
+      
+      // Invia anche al display e preview
+      io.emit('nuova_domanda', questionData);
       
       io.emit('cambia_vista', { view: 'gioco' });
     }

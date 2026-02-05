@@ -548,6 +548,17 @@ io.on('connection', (socket) => {
     });
   });
 
+  // YouTube Karaoke Events
+  socket.on('play_youtube_karaoke', (data) => {
+    console.log('🎤 Play karaoke YouTube:', data.videoId);
+    io.emit('play_youtube_karaoke', { videoId: data.videoId });
+  });
+
+  socket.on('stop_karaoke', () => {
+    console.log('⏹️ Stop karaoke');
+    io.emit('stop_karaoke');
+  });
+
   socket.on('login', (n) => {
     let existingTeam = Object.values(gameState.teams).find(t => t.name === n);
     

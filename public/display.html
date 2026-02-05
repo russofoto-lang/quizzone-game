@@ -241,6 +241,33 @@
             </div>
         </div>
 
+        <!-- VISTA KARAOKE YOUTUBE -->
+        <div id="view-karaoke" class="view-section hidden absolute inset-0 bg-black z-50 flex flex-col">
+            <!-- Header Forever Young (resta sempre) -->
+            <div class="h-[10%] flex justify-center items-center bg-gradient-to-r from-yellow-600 to-red-600 border-b-4 border-yellow-400">
+                <h1 class="text-5xl font-black text-white tracking-wider drop-shadow-lg">
+                    🎮 SIPONTO FOREVER YOUNG 🎮
+                </h1>
+            </div>
+            
+            <!-- YouTube Player -->
+            <div class="flex-1 relative bg-black flex items-center justify-center">
+                <iframe id="youtube-player" 
+                        class="w-full h-full" 
+                        frameborder="0" 
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                        allowfullscreen>
+                </iframe>
+            </div>
+            
+            <!-- Banner Karaoke -->
+            <div class="h-[8%] bg-gradient-to-r from-pink-600 via-purple-600 to-pink-600 flex items-center justify-center border-t-4 border-pink-400">
+                <div class="text-4xl font-black text-white tracking-widest animate-pulse">
+                    🎤 KARAOKE TIME! 🎤
+                </div>
+            </div>
+        </div>
+
         <!-- VISTA SPIEGAZIONE FINALE -->
         <div id="view-finale_explanation" class="view-section hidden absolute inset-0 bg-gradient-to-br from-red-900 via-orange-900 to-yellow-900 z-50 flex flex-col items-center justify-center overflow-hidden">
             <!-- Fiamme animate -->
@@ -655,6 +682,21 @@
             
             const mini = document.getElementById('mini-leaderboard');
             mini.innerText = t.slice(0,3).map(x => `${x.name}: ${x.score}`).join(' | ');
+        });
+
+        // YouTube Karaoke Events
+        socket.on('play_youtube_karaoke', (data) => {
+            console.log('🎤 Avvio karaoke YouTube:', data.videoId);
+            const player = document.getElementById('youtube-player');
+            player.src = `https://www.youtube.com/embed/${data.videoId}?autoplay=1&controls=1&rel=0`;
+            showView('karaoke');
+        });
+
+        socket.on('stop_karaoke', () => {
+            console.log('⏹️ Stop karaoke');
+            const player = document.getElementById('youtube-player');
+            player.src = '';
+            showView('logo_forever');
         });
 
         socket.on('force_reload', () => window.location.reload());

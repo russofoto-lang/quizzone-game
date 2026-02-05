@@ -392,6 +392,44 @@
             </div>
         </div>
 
+        <!-- VISTA DUELLO - ESTRAZIONE ATTACCANTE -->
+        <div id="view-duello-extraction" class="view-section hidden absolute inset-0 bg-gradient-to-br from-red-900 via-orange-900 to-yellow-900 z-50 flex flex-col items-center justify-center">
+            <div class="text-center animate__animated animate__fadeIn">
+                <h1 class="text-7xl font-black text-white mb-12 tracking-wider animate__animated animate__pulse animate__infinite">
+                    🔥 DUELLO RUBA-PUNTI! 🔥
+                </h1>
+                <div id="duello-extraction-container" class="relative w-96 h-96 mx-auto">
+                    <div id="duello-wheel" class="absolute inset-0 rounded-full border-8 border-red-400 bg-gradient-to-br from-red-500 to-orange-600 flex items-center justify-center text-5xl font-black text-white shadow-2xl animate-spin">
+                        <span id="duello-wheel-name">?</span>
+                    </div>
+                    <div class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-8 text-9xl">
+                        ⚔️
+                    </div>
+                </div>
+                <div class="text-3xl text-yellow-300 font-bold mt-8 animate-pulse">
+                    Chi sarà l'ATTACCANTE?
+                </div>
+            </div>
+        </div>
+
+        <!-- VISTA DUELLO - ATTACCANTE ESTRATTO -->
+        <div id="view-duello-attaccante" class="view-section hidden absolute inset-0 bg-gradient-to-br from-orange-900 via-red-900 to-pink-900 z-50 flex flex-col items-center justify-center">
+            <div class="text-center animate__animated animate__bounceIn">
+                <div class="text-9xl mb-8">⚔️</div>
+                <h1 class="text-6xl font-black text-red-400 mb-8 tracking-wider">
+                    ATTACCANTE ESTRATTO!
+                </h1>
+                <div class="bg-white/10 backdrop-blur-lg rounded-[3rem] p-16 border-8 border-red-400">
+                    <div class="text-9xl font-black text-white mb-8">
+                        🔥 <span id="duello-attaccante-name-display">TEAM</span> 🔥
+                    </div>
+                    <div class="text-4xl text-yellow-300 font-bold">
+                        Scegli chi sfidare!
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- VISTA SPIEGAZIONE FINALE -->
         <div id="view-finale_explanation" class="view-section hidden absolute inset-0 bg-gradient-to-br from-red-900 via-orange-900 to-yellow-900 z-50 flex flex-col items-center justify-center overflow-hidden">
             <!-- Fiamme animate -->
@@ -897,11 +935,42 @@
         socket.on('duello_explain', () => {
             showView('custom');
             document.getElementById('custom-text-display').innerHTML = `
-                <div class="text-6xl mb-6">🔥</div>
+                <div class="text-6xl mb-6">⚔️</div>
                 <div class="text-5xl font-black mb-4">DUELLO RUBA-PUNTI!</div>
-                <div class="text-3xl">Una squadra sarà estratta per sfidare un avversario</div>
-                <div class="text-2xl mt-4 text-yellow-400">+250pt se vince | +100pt bonus difesa</div>
+                <div class="text-3xl mb-4">Una squadra sarà estratta per sfidare un avversario</div>
+                <div class="text-2xl text-red-400 font-bold mb-2">🔥 Vinci: RUBI 250 punti!</div>
+                <div class="text-2xl text-blue-400 font-bold">🛡️ Perdi: +100pt bonus difesa</div>
             `;
+        });
+        
+        // Animazione estrazione attaccante duello
+        socket.on('duello_extraction_animation', (data) => {
+            showView('duello-extraction');
+            
+            const wheel = document.getElementById('duello-wheel');
+            const wheelName = document.getElementById('duello-wheel-name');
+            
+            let currentIndex = 0;
+            const teams = data.teams;
+            
+            // Cambia nome rapidamente per effetto spinning
+            const spinInterval = setInterval(() => {
+                wheelName.textContent = teams[currentIndex];
+                currentIndex = (currentIndex + 1) % teams.length;
+            }, 150);
+            
+            // Dopo 3 secondi mostra il vincitore
+            setTimeout(() => {
+                clearInterval(spinInterval);
+                wheel.style.animation = 'none';
+                wheelName.textContent = data.winner.name;
+                
+                // Dopo 1 secondo mostra schermata vincitore
+                setTimeout(() => {
+                    showView('duello-attaccante');
+                    document.getElementById('duello-attaccante-name-display').textContent = data.winner.name;
+                }, 1000);
+            }, 3000);
         });
         
         socket.on('duello_question_display', (data) => {

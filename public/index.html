@@ -306,6 +306,14 @@
             document.getElementById('opts-grid').classList.remove('opacity-40','pointer-events-none');
             document.getElementById('timer-container').classList.add('hidden');
             document.getElementById('allin-buttons').classList.add('hidden');
+            
+            // Nascondi container duello
+            const opponentsDiv = document.getElementById('duello-opponents-container');
+            if(opponentsDiv) opponentsDiv.classList.add('hidden');
+            const categoriesDiv = document.getElementById('duello-categories-container');
+            if(categoriesDiv) categoriesDiv.classList.add('hidden');
+            const questionDiv = document.getElementById('duello-question-container');
+            if(questionDiv) questionDiv.classList.add('hidden');
         }
         
         socket.on('game_paused', () => {
@@ -345,16 +353,25 @@
                 </div>
             `;
             
-            const opponentsDiv = document.createElement('div');
-            opponentsDiv.className = 'space-y-3 mt-4';
+            // Crea container per i pulsanti se non esiste
+            let opponentsDiv = document.getElementById('duello-opponents-container');
+            if(!opponentsDiv) {
+                opponentsDiv = document.createElement('div');
+                opponentsDiv.id = 'duello-opponents-container';
+                opponentsDiv.className = 'w-full max-w-md space-y-3 mt-6';
+                document.querySelector('.flex-1.flex.flex-col.p-4').appendChild(opponentsDiv);
+            }
+            opponentsDiv.innerHTML = '';
+            opponentsDiv.classList.remove('hidden');
             
             data.opponents.forEach(opp => {
                 const btn = document.createElement('button');
-                btn.className = 'w-full bg-gradient-to-r from-orange-500 to-red-600 p-4 rounded-xl font-black text-2xl hover:scale-105 transition';
+                btn.className = 'w-full bg-gradient-to-r from-orange-500 to-red-600 p-4 rounded-xl font-black text-2xl hover:scale-105 transition shadow-xl active:scale-95';
                 btn.innerHTML = `${opp.name}<br><span class="text-sm font-normal">${opp.score} punti</span>`;
                 btn.onclick = () => {
                     socket.emit('duello_opponent_chosen', { opponentId: opp.id });
-                    opponentsDiv.remove();
+                    opponentsDiv.innerHTML = '';
+                    opponentsDiv.classList.add('hidden');
                     document.getElementById('msg-box').innerHTML = `
                         <div class="bg-green-600 p-6 rounded-xl">
                             <div class="text-5xl mb-4">✅</div>
@@ -365,8 +382,6 @@
                 };
                 opponentsDiv.appendChild(btn);
             });
-            
-            document.getElementById('game-area').appendChild(opponentsDiv);
         });
         
         socket.on('duello_choose_category', (data) => {
@@ -379,16 +394,25 @@
                 </div>
             `;
             
-            const categoriesDiv = document.createElement('div');
-            categoriesDiv.className = 'grid grid-cols-2 gap-3 mt-4';
+            // Crea container per le categorie se non esiste
+            let categoriesDiv = document.getElementById('duello-categories-container');
+            if(!categoriesDiv) {
+                categoriesDiv = document.createElement('div');
+                categoriesDiv.id = 'duello-categories-container';
+                categoriesDiv.className = 'w-full max-w-md grid grid-cols-2 gap-3 mt-6';
+                document.querySelector('.flex-1.flex.flex-col.p-4').appendChild(categoriesDiv);
+            }
+            categoriesDiv.innerHTML = '';
+            categoriesDiv.classList.remove('hidden');
             
             data.categories.forEach(cat => {
                 const btn = document.createElement('button');
-                btn.className = 'bg-gradient-to-r from-indigo-500 to-purple-600 p-4 rounded-xl font-black text-lg hover:scale-105 transition';
+                btn.className = 'bg-gradient-to-r from-indigo-500 to-purple-600 p-4 rounded-xl font-black text-lg hover:scale-105 transition shadow-xl active:scale-95';
                 btn.textContent = cat.toUpperCase();
                 btn.onclick = () => {
                     socket.emit('duello_category_chosen', { category: cat });
-                    categoriesDiv.remove();
+                    categoriesDiv.innerHTML = '';
+                    categoriesDiv.classList.add('hidden');
                     document.getElementById('msg-box').innerHTML = `
                         <div class="bg-green-600 p-6 rounded-xl animate-pulse">
                             <div class="text-5xl mb-4">✅</div>
@@ -399,8 +423,6 @@
                 };
                 categoriesDiv.appendChild(btn);
             });
-            
-            document.getElementById('game-area').appendChild(categoriesDiv);
         });
         
         socket.on('duello_question', (d) => {
@@ -413,9 +435,18 @@
                 </div>
             `;
             
-            document.getElementById('q-area').innerHTML = `
-                <div class="text-2xl font-black mb-6 leading-tight">${d.domanda}</div>
-                <button onclick="pressDuelloBuzzer()" class="w-full bg-gradient-to-r from-yellow-400 to-red-600 p-8 rounded-2xl font-black text-4xl hover:scale-105 transition shadow-2xl animate-pulse">
+            // Crea container per domanda e buzzer
+            let duelloQuestionDiv = document.getElementById('duello-question-container');
+            if(!duelloQuestionDiv) {
+                duelloQuestionDiv = document.createElement('div');
+                duelloQuestionDiv.id = 'duello-question-container';
+                duelloQuestionDiv.className = 'w-full max-w-md mt-6';
+                document.querySelector('.flex-1.flex.flex-col.p-4').appendChild(duelloQuestionDiv);
+            }
+            duelloQuestionDiv.classList.remove('hidden');
+            duelloQuestionDiv.innerHTML = `
+                <div class="text-2xl font-black mb-6 leading-tight text-center">${d.domanda}</div>
+                <button onclick="pressDuelloBuzzer()" class="w-full bg-gradient-to-r from-yellow-400 to-red-600 p-8 rounded-2xl font-black text-4xl hover:scale-105 transition shadow-2xl animate-pulse active:scale-95">
                     ⚡ BUZZER ⚡
                 </button>
             `;
@@ -423,13 +454,16 @@
         
         function pressDuelloBuzzer() {
             socket.emit('duello_buzzer_press', { teamId: socket.id });
-            document.getElementById('q-area').innerHTML = `
-                <div class="bg-blue-600 p-8 rounded-xl">
-                    <div class="text-5xl mb-4">⚡</div>
-                    <div class="text-3xl font-black">HAI PREMUTO!</div>
-                    <div class="text-lg mt-2">Rispondi vocalmente alla domanda</div>
-                </div>
-            `;
+            const duelloQuestionDiv = document.getElementById('duello-question-container');
+            if(duelloQuestionDiv) {
+                duelloQuestionDiv.innerHTML = `
+                    <div class="bg-blue-600 p-8 rounded-xl text-center">
+                        <div class="text-5xl mb-4">⚡</div>
+                        <div class="text-3xl font-black">HAI PREMUTO!</div>
+                        <div class="text-lg mt-2">Rispondi vocalmente alla domanda</div>
+                    </div>
+                `;
+            }
         }
         
         socket.on('duello_buzzer_pressed', (data) => {
@@ -447,7 +481,8 @@
                         ⏳ ${data.teamName} sta rispondendo...
                     </div>
                 `;
-                document.getElementById('q-area').innerHTML = '';
+                const duelloQuestionDiv = document.getElementById('duello-question-container');
+                if(duelloQuestionDiv) duelloQuestionDiv.innerHTML = '';
             }
         });
         
@@ -459,7 +494,8 @@
                     <div class="text-4xl mt-4">${data.scoreAttaccante} - ${data.scoreDifensore}</div>
                 </div>
             `;
-            document.getElementById('q-area').innerHTML = '';
+            const duelloQuestionDiv = document.getElementById('duello-question-container');
+            if(duelloQuestionDiv) duelloQuestionDiv.innerHTML = '';
         });
         
         socket.on('duello_wrong_answer', (data) => {

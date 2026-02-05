@@ -708,8 +708,11 @@ io.on('connection', (socket) => {
       attaccante: { id: attaccante.id, name: attaccante.name } 
     });
     
-    // Mostra spiegazione duello sul display
-    io.emit('duello_explain');
+    // Mostra animazione estrazione sul display
+    io.emit('duello_extraction_animation', {
+      teams: realTeams.map(t => t.name),
+      winner: { id: attaccante.id, name: attaccante.name }
+    });
     
     console.log('🔥 Estratto attaccante:', attaccante.name);
   });

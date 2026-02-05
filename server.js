@@ -43,6 +43,7 @@ let gameState = {
   buzzerQueue: [],      
   buzzerLocked: true,
   buzzerStandalone: false,  // Flag per distinguere buzzer musicale da buzzer con domanda
+  ruotaWinner: null,  // Squadra estratta dalla ruota fortuna
   isPaused: false,
   customScreen: { text: "Messaggio personalizzato" },
   finaleMode: {
@@ -557,6 +558,72 @@ io.on('connection', (socket) => {
   socket.on('stop_karaoke', () => {
     console.log('⏹️ Stop karaoke');
     io.emit('stop_karaoke');
+  });
+
+  // Ruota della Fortuna Events
+  socket.on('ruota_step', (data) => {
+    if(data.step === 'explain') {
+      console.log('🎰 Spiegazione Ruota');
+      io.emit('ruota_explain');
+    }
+    
+    if(data.step === 'spin') {
+      console.log('🎰 Gira ruota');
+      const teams = Object.values(gameState.teams);
+      if(teams.length === 0) return;
+      
+      // Estrae squadra casuale
+      const winner = teams[Math.floor(Math.random() * teams.length)];
+      gameState.ruotaWinner = winner;
+      
+      io.emit('ruota_spin', {
+        teams: teams.map(t => t.name),
+        winner: { id: winner.id, name: winner.name }
+      });
+      
+      io.to('admin').emit('ruota_winner', { id: winner.id, name: winner.name });
+      console.log('🎰 Estratto:', winner.name);
+    }
+    
+    if(data.step === 'choice') {
+      console.log('🎰 Mostra scelta a:', data.teamId);
+      io.to(data.teamId).emit('ruota_choice', {
+        options: [
+          { type: 'safe', points: 50, label: '💰 50 PUNTI GRATIS' },
+          { type: 'challenge', points: 150, label: '🎯 150 PUNTI (Domanda)' }
+        ]
+      });
+    }
+    
+    if(data.step === 'challenge') {
+      console.log('🎰 Lancia domanda sfida');
+      // Lancia domanda normale ma solo alla squadra estratta
+      gameState.currentQuestion = data.question;
+      gameState.questionStartTime = Date.now();
+      
+      io.to(gameState.ruotaWinner.id).emit('nuova_domanda', {
+        id: data.question.id,
+        domanda: data.question.domanda,
+        risposte: data.question.risposte,
+        modalita: 'quiz',
+        startTime: gameState.questionStartTime,
+        bonusPoints: 150
+      });
+      
+      io.emit('cambia_vista', { view: 'gioco' });
+    }
+  });
+
+  // Scelta Ruota (dal telefono)
+  socket.on('ruota_choice_made', (data) => {
+    if(data.choice === 'safe') {
+      // 50 punti gratis
+      gameState.teams[data.teamId].score += 50;
+      io.emit('update_teams', Object.values(gameState.teams));
+      io.emit('cambia_vista', { view: 'classifica_gen' });
+      console.log('🎰', data.teamId, 'sceglie 50 punti sicuri');
+    }
+    // Se sceglie challenge, admin lancerà domanda con step 4
   });
 
   socket.on('login', (n) => {

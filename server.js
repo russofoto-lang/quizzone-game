@@ -107,23 +107,6 @@ standalone: gameState.buzzerStandalone || false
 }
 }
 
-// ════════════════════════════════════════════════════════════════
-// 🧠 MEMORY SNAPSHOT - COSTANTI GLOBALI
-// ════════════════════════════════════════════════════════════════
-
-// Set di emoji per i vari livelli
-const memoryEmojis = {
-level1: [“🍎”, “🐶”, “⚽”, “🌸”],  // 4 coppie = 8 carte
-level2: [“🍎”, “🐶”, “⚽”, “🌸”, “🚗”, “🎸”],  // 6 coppie = 12 carte
-level3: [“🍎”, “🐶”, “⚽”, “🌸”, “🚗”, “🎸”, “🍕”, “⭐”]  // 8 coppie = 16 carte
-};
-
-const memoryTimings = {
-1: { memorize: 5, answer: 15, points: 100, grid: ‘2x4’ },
-2: { memorize: 7, answer: 15, points: 150, grid: ‘3x4’ },
-3: { memorize: 9, answer: 15, points: 200, grid: ‘4x4’ }
-};
-
 io.on(‘connection’, (socket) => {
 socket.on(‘admin_connect’, () => {
 socket.join(‘admin’);
@@ -1320,6 +1303,19 @@ gameState.buzzerLocked = true;
 // ════════════════════════════════════════════════════════════════
 // 🧠 MEMORY SNAPSHOT
 // ════════════════════════════════════════════════════════════════
+
+// Set di emoji per i vari livelli
+const memoryEmojis = {
+level1: [“🍎”, “🐶”, “⚽”, “🌸”],  // 4 coppie = 8 carte
+level2: [“🍎”, “🐶”, “⚽”, “🌸”, “🚗”, “🎸”],  // 6 coppie = 12 carte
+level3: [“🍎”, “🐶”, “⚽”, “🌸”, “🚗”, “🎸”, “🍕”, “⭐”]  // 8 coppie = 16 carte
+};
+
+const memoryTimings = {
+1: { memorize: 5, answer: 15, points: 100, grid: ‘2x4’ },
+2: { memorize: 7, answer: 15, points: 150, grid: ‘3x4’ },
+3: { memorize: 9, answer: 15, points: 200, grid: ‘4x4’ }
+};
 
 socket.on(‘memory_start’, (data) => {
 const level = data.level; // 1, 2, o 3

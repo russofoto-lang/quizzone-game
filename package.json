@@ -8,7 +8,7 @@
 “dev”: “nodemon server.js”
 },
 “keywords”: [“quiz”, “game”, “socket.io”, “multiplayer”],
-“author”: “Mariano - Russo”,
+“author”: “Mariano - Bella Vita Eventi”,
 “license”: “MIT”,
 “dependencies”: {
 “express”: “^4.18.2”,

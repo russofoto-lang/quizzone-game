@@ -336,27 +336,26 @@
     </div>
 
     <!-- VISTA RUOTA FORTUNA - SPIEGAZIONE -->
-    <div id="view-ruota-explain" class="view-section hidden absolute inset-0 bg-gradient-to-br from-yellow-900 via-orange-900 to-red-900 z-50 flex flex-col items-center justify-center p-6">
-        <div class="glass rounded-3xl p-8 max-w-4xl text-center animate__animated animate__bounceIn">
-            <div class="text-7xl mb-6">🎰</div>
-            <h1 class="text-6xl font-black text-yellow-400 mb-8 tracking-wider">
+    <div id="view-ruota-explain" class="view-section hidden absolute inset-0 bg-gradient-to-br from-yellow-900 via-orange-900 to-red-900 z-50 flex flex-col items-center justify-center">
+        <div class="glass rounded-[3rem] p-16 max-w-5xl text-center animate__animated animate__bounceIn">
+            <div class="text-9xl mb-8">🎰</div>
+            <h1 class="text-8xl font-black text-yellow-400 mb-12 tracking-wider">
                 RUOTA DELLA FORTUNA!
             </h1>
-            <div class="text-3xl text-white leading-relaxed space-y-4">
+            <div class="text-4xl text-white leading-relaxed space-y-6">
                 <p>La ruota sceglierà<br><strong class="text-yellow-300">UNA squadra fortunata!</strong></p>
-                <div class="border-t-4 border-yellow-400 my-6"></div>
-                <p class="text-4xl font-bold">Avrai 2 scelte:</p>
-                <div class="grid grid-cols-2 gap-6 mt-6">
-                    <div class="bg-green-600/30 p-6 rounded-2xl border-4 border-green-400">
-                        <div class="text-6xl mb-3">💰</div>
-                        <div class="text-3xl font-bold">50 PUNTI</div>
-                        <div class="text-xl">GRATIS!</div>
+                <div class="border-t-4 border-yellow-400 my-8"></div>
+                <p class="text-5xl font-bold">Avrai 2 scelte:</p>
+                <div class="grid grid-cols-2 gap-8 mt-8">
+                    <div class="bg-green-600/30 p-8 rounded-3xl border-4 border-green-400">
+                        <div class="text-7xl mb-4">💰</div>
+                        <div class="text-4xl font-bold">50 PUNTI</div>
+                        <div class="text-2xl">GRATIS!</div>
                     </div>
-                    <div class="bg-orange-600/30 p-6 rounded-2xl border-4 border-orange-400">
-                        <div class="text-6xl mb-3">🎯</div>
-                        <div class="text-3xl font-bold">+250pt</div>
-                        <div class="text-xl">o -100pt</div>
-                        <div class="text-sm mt-1">(Con domanda!)</div>
+                    <div class="bg-orange-600/30 p-8 rounded-3xl border-4 border-orange-400">
+                        <div class="text-7xl mb-4">🎯</div>
+                        <div class="text-4xl font-bold">150 PUNTI</div>
+                        <div class="text-2xl">Con domanda!</div>
                     </div>
                 </div>
             </div>
@@ -436,119 +435,57 @@
         </div>
     </div>
 
-    <!-- VISTA ZOOM PROGRESSIVO -->
-    <div id="view-zoom" class="view-section hidden absolute inset-0 bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 z-50 flex flex-col items-center justify-center p-6">
-        <!-- Header -->
-        <div class="absolute top-8 left-0 right-0 flex justify-between items-center px-12">
-            <div class="text-4xl font-black text-white">
-                🔍 ZOOM PROGRESSIVO
-            </div>
-            <div id="zoom-points-display" class="text-5xl font-black text-yellow-400">
-                250pt
-            </div>
-        </div>
-        
-        <!-- Immagine Zoom Container -->
-        <div class="relative w-full max-w-5xl h-[70vh] flex items-center justify-center">
-            <div id="zoom-image-container" class="relative w-full h-full overflow-hidden rounded-3xl border-8 border-white/30 shadow-2xl bg-black">
-                <img id="zoom-image" src="" alt="Zoom" class="absolute inset-0 w-full h-full object-cover transition-transform duration-1000">
-            </div>
-        </div>
-        
-        <!-- Footer con livello e barra -->
-        <div class="absolute bottom-8 left-0 right-0 px-12">
-            <div class="flex justify-between items-center mb-4">
-                <div id="zoom-level-text" class="text-3xl font-bold text-white">
-                    Livello 1 / 5
-                </div>
-                <div id="zoom-timer-text" class="text-2xl font-bold text-gray-300">
-                    Tempo: 0s
-                </div>
-            </div>
-            
-            <!-- Barra progressione livelli -->
-            <div class="flex gap-2">
-                <div id="zoom-bar-1" class="flex-1 h-3 bg-yellow-400 rounded-full transition-all"></div>
-                <div id="zoom-bar-2" class="flex-1 h-3 bg-gray-600 rounded-full transition-all"></div>
-                <div id="zoom-bar-3" class="flex-1 h-3 bg-gray-600 rounded-full transition-all"></div>
-                <div id="zoom-bar-4" class="flex-1 h-3 bg-gray-600 rounded-full transition-all"></div>
-                <div id="zoom-bar-5" class="flex-1 h-3 bg-gray-600 rounded-full transition-all"></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- VISTA MEMORY SNAPSHOT -->
-    <div id="view-memory" class="view-section hidden absolute inset-0 bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900 z-50 flex flex-col items-center justify-center p-8">
-        <!-- Header -->
-        <div class="text-center mb-8">
-            <h1 class="text-7xl font-black text-yellow-400 mb-4">🧠 MEMORY SNAPSHOT</h1>
-            <div id="memory-phase-text" class="text-4xl font-bold text-white">
-                MEMORIZZA!
-            </div>
-        </div>
-        
-        <!-- Grid delle carte -->
-        <div id="memory-grid" class="grid gap-4 mb-8">
-            <!-- Popolato dinamicamente -->
-        </div>
-        
-        <!-- Timer -->
-        <div id="memory-timer" class="text-3xl font-bold text-yellow-300">
-            ⏱️ 5 secondi
-        </div>
-    </div>
-
     <!-- VISTA SPIEGAZIONE FINALE -->
-    <div id="view-finale_explanation" class="view-section hidden absolute inset-0 bg-gradient-to-br from-red-900 via-orange-900 to-yellow-900 z-50 flex flex-col items-center justify-center overflow-hidden p-6">
+    <div id="view-finale_explanation" class="view-section hidden absolute inset-0 bg-gradient-to-br from-red-900 via-orange-900 to-yellow-900 z-50 flex flex-col items-center justify-center overflow-hidden">
         <!-- Fiamme animate -->
-        <div class="absolute top-0 left-10 text-6xl animate-pulse">🔥</div>
-        <div class="absolute top-20 right-10 text-6xl animate-pulse" style="animation-delay: 0.3s;">🔥</div>
-        <div class="absolute bottom-20 left-20 text-6xl animate-pulse" style="animation-delay: 0.6s;">🔥</div>
-        <div class="absolute bottom-10 right-20 text-6xl animate-pulse" style="animation-delay: 0.9s;">🔥</div>
+        <div class="absolute top-0 left-10 text-8xl animate-pulse">🔥</div>
+        <div class="absolute top-20 right-10 text-8xl animate-pulse" style="animation-delay: 0.3s;">🔥</div>
+        <div class="absolute bottom-20 left-20 text-8xl animate-pulse" style="animation-delay: 0.6s;">🔥</div>
+        <div class="absolute bottom-10 right-20 text-8xl animate-pulse" style="animation-delay: 0.9s;">🔥</div>
         
         <div class="relative z-10 max-w-4xl text-center animate__animated animate__zoomIn">
-            <div class="text-7xl mb-3">🔥🔥🔥🔥🔥</div>
+            <div class="text-9xl mb-4">🔥🔥🔥🔥🔥</div>
             
-            <h1 class="text-6xl font-black text-white mb-3 uppercase tracking-tight animate__animated animate__fadeInDown">
+            <h1 class="text-8xl font-black text-white mb-4 uppercase tracking-tight animate__animated animate__fadeInDown">
                 SFIDA FINALE
             </h1>
-            <p class="text-4xl font-bold text-yellow-300 mb-6 animate__animated animate__fadeInUp" style="animation-delay: 0.2s;">
+            <p class="text-6xl font-bold text-yellow-300 mb-8 animate__animated animate__fadeInUp" style="animation-delay: 0.2s;">
                 5 PROVE
             </p>
             
-            <div class="bg-black/40 rounded-2xl p-6 mb-4 text-left space-y-4">
+            <div class="bg-black/40 rounded-3xl p-8 mb-6 text-left space-y-6">
                 <!-- ALL IN -->
-                <div class="border-b-2 border-yellow-500/30 pb-4 animate__animated animate__fadeInLeft" style="animation-delay: 0.4s;">
-                    <h2 class="text-3xl font-black text-yellow-300 mb-2">💰 PROVA 1: ALL IN</h2>
-                    <p class="text-xl text-white mb-1">Scommetti: 0 - 50 - 100 - 200</p>
-                    <div class="ml-4 space-y-1">
-                        <p class="text-lg text-green-400">✅ Corretto → Vinci il DOPPIO</p>
-                        <p class="text-lg text-red-400">❌ Sbagliato → PERDI la scommessa</p>
+                <div class="border-b-2 border-yellow-500/30 pb-6 animate__animated animate__fadeInLeft" style="animation-delay: 0.4s;">
+                    <h2 class="text-5xl font-black text-yellow-300 mb-3">💰 PROVA 1: ALL IN</h2>
+                    <p class="text-3xl text-white mb-2">Scommetti i tuoi punti: 0 - 50 - 100 - 200</p>
+                    <div class="ml-6 space-y-1">
+                        <p class="text-2xl text-green-400">✅ Risposta corretta → Vinci il DOPPIO</p>
+                        <p class="text-2xl text-red-400">❌ Risposta sbagliata → PERDI la scommessa</p>
                     </div>
                 </div>
                 
                 <!-- PUNTI X2 -->
-                <div class="border-b-2 border-orange-500/30 pb-4 animate__animated animate__fadeInLeft" style="animation-delay: 0.6s;">
-                    <h2 class="text-3xl font-black text-orange-300 mb-2">🔥 PROVE 2-5: PUNTI x2</h2>
-                    <p class="text-xl text-white">Ogni risposta vale il DOPPIO!</p>
+                <div class="border-b-2 border-orange-500/30 pb-6 animate__animated animate__fadeInLeft" style="animation-delay: 0.6s;">
+                    <h2 class="text-5xl font-black text-orange-300 mb-3">🔥 PROVE 2-5: PUNTI x2</h2>
+                    <p class="text-3xl text-white">Ogni risposta corretta vale il DOPPIO!</p>
                 </div>
                 
                 <!-- CLASSIFICA NASCOSTA -->
                 <div class="animate__animated animate__fadeInLeft" style="animation-delay: 0.8s;">
-                    <h2 class="text-3xl font-black text-red-300 mb-2">⚠️ CLASSIFICA NASCOSTA ⚠️</h2>
-                    <p class="text-xl text-white">Non vedrete i punteggi!</p>
+                    <h2 class="text-5xl font-black text-red-300 mb-3">⚠️ CLASSIFICA NASCOSTA ⚠️</h2>
+                    <p class="text-3xl text-white">Non vedrete i punteggi fino alla fine!</p>
                 </div>
             </div>
             
-            <p class="text-3xl text-white font-bold mb-4 animate__animated animate__fadeIn" style="animation-delay: 1s;">
+            <p class="text-4xl text-white font-bold mb-6 animate__animated animate__fadeIn" style="animation-delay: 1s;">
                 Tutto può cambiare!
             </p>
             
-            <div class="text-5xl mb-3 animate__animated animate__bounceIn" style="animation-delay: 1.2s;">
+            <div class="text-7xl mb-4 animate__animated animate__bounceIn" style="animation-delay: 1.2s;">
                 🏆🏆🏆🏆🏆
             </div>
             
-            <div id="finale-countdown" class="text-6xl font-black text-yellow-300 animate-pulse">
+            <div id="finale-countdown" class="text-8xl font-black text-yellow-300 animate-pulse">
                 PRONTI?
             </div>
         </div>
@@ -1109,253 +1046,6 @@
         setTimeout(() => {
             showView('classifica_gen');
         }, 5000);
-    });
-
-    // ════════════════════════════════════════════════════════════════
-    // 🔍 ZOOM PROGRESSIVO
-    // ════════════════════════════════════════════════════════════════
-    
-    let zoomStartTime = 0;
-    let zoomTimerInterval = null;
-    
-    socket.on('zoom_show_level', (data) => {
-        showView('zoom');
-        
-        if(data.level === 1) {
-            zoomStartTime = Date.now();
-            // Avvia timer display
-            if(zoomTimerInterval) clearInterval(zoomTimerInterval);
-            zoomTimerInterval = setInterval(() => {
-                const elapsed = Math.floor((Date.now() - zoomStartTime) / 1000);
-                document.getElementById('zoom-timer-text').textContent = `Tempo: ${elapsed}s`;
-            }, 100);
-        }
-        
-        // Aggiorna immagine con zoom CSS
-        const img = document.getElementById('zoom-image');
-        img.src = `/images/zoom/${data.zoom.immagine}`;
-        
-        // Calcola scale in base al livello (5 = 500%, 4 = 400%, etc)
-        const zoomLevels = {
-            1: 5,   // 500% - Ultra close
-            2: 4,   // 400% - Very close
-            3: 3,   // 300% - Medium
-            4: 2,   // 200% - Wide
-            5: 1    // 100% - Full image
-        };
-        
-        const scale = zoomLevels[data.level];
-        img.style.transform = `scale(${scale})`;
-        
-        // Aggiorna punti disponibili
-        document.getElementById('zoom-points-display').textContent = `${data.points}pt`;
-        
-        // Aggiorna livello text
-        document.getElementById('zoom-level-text').textContent = `Livello ${data.level} / ${data.totalLevels}`;
-        
-        // Aggiorna barre progressione
-        for(let i = 1; i <= 5; i++) {
-            const bar = document.getElementById(`zoom-bar-${i}`);
-            if(i <= data.level) {
-                bar.className = 'flex-1 h-3 bg-yellow-400 rounded-full transition-all';
-            } else {
-                bar.className = 'flex-1 h-3 bg-gray-600 rounded-full transition-all';
-            }
-        }
-        
-        console.log(`🔍 Zoom livello ${data.level} - ${data.points}pt`);
-    });
-    
-    socket.on('zoom_buzzer_pressed', (data) => {
-        // Mostra chi ha premuto
-        showView('custom');
-        document.getElementById('custom-text-display').innerHTML = `
-            <div class="text-7xl mb-6">⚡</div>
-            <div class="text-5xl font-black text-yellow-400 mb-4">
-                ${data.teamName.toUpperCase()}
-            </div>
-            <div class="text-3xl text-white mb-2">
-                Ha premuto al livello ${data.level}!
-            </div>
-            <div class="text-4xl text-green-400 font-bold">
-                In palio: ${data.points}pt
-            </div>
-            <div class="text-xl text-gray-400 mt-4">
-                Tempo: ${data.time}s
-            </div>
-        `;
-        
-        if(zoomTimerInterval) {
-            clearInterval(zoomTimerInterval);
-            zoomTimerInterval = null;
-        }
-    });
-    
-    socket.on('zoom_correct', (data) => {
-        showView('custom');
-        document.getElementById('custom-text-display').innerHTML = `
-            <div class="text-9xl mb-6">🎉</div>
-            <div class="text-6xl font-black text-green-400 mb-6">
-                ${data.teamName.toUpperCase()} HA VINTO!
-            </div>
-            <div class="text-4xl text-white mb-4">
-                Risposta: <span class="text-yellow-400">${data.answer}</span>
-            </div>
-            <div class="text-5xl font-black text-yellow-300">
-                +${data.points}pt
-            </div>
-            <div class="text-2xl text-gray-400 mt-4">
-                (Livello ${data.level}/5)
-            </div>
-        `;
-        
-        if(zoomTimerInterval) {
-            clearInterval(zoomTimerInterval);
-            zoomTimerInterval = null;
-        }
-    });
-    
-    socket.on('zoom_wrong', (data) => {
-        showView('custom');
-        document.getElementById('custom-text-display').innerHTML = `
-            <div class="text-9xl mb-6">❌</div>
-            <div class="text-5xl font-black text-red-400 mb-6">
-                ${data.teamName.toUpperCase()}
-            </div>
-            <div class="text-3xl text-white">
-                Risposta sbagliata!
-            </div>
-            <div class="text-2xl text-gray-400 mt-4">
-                Eliminato dal gioco
-            </div>
-        `;
-        
-        // Torna allo zoom dopo 2 sec
-        setTimeout(() => {
-            showView('zoom');
-        }, 2000);
-    });
-
-    // ════════════════════════════════════════════════════════════════
-    // 🧠 MEMORY SNAPSHOT
-    // ════════════════════════════════════════════════════════════════
-    
-    let memoryTimerInterval = null;
-    
-    socket.on('memory_show_all', (data) => {
-        showView('memory');
-        
-        // Configura grid in base al livello
-        const grid = document.getElementById('memory-grid');
-        grid.className = 'grid gap-4 mb-8';
-        
-        if(data.grid === '2x4') {
-            grid.style.gridTemplateColumns = 'repeat(4, 150px)';
-            grid.style.gridTemplateRows = 'repeat(2, 150px)';
-        } else if(data.grid === '3x4') {
-            grid.style.gridTemplateColumns = 'repeat(4, 140px)';
-            grid.style.gridTemplateRows = 'repeat(3, 140px)';
-        } else if(data.grid === '4x4') {
-            grid.style.gridTemplateColumns = 'repeat(4, 130px)';
-            grid.style.gridTemplateRows = 'repeat(4, 130px)';
-        }
-        
-        // Popola grid con le carte
-        grid.innerHTML = '';
-        data.cards.forEach((emoji, index) => {
-            const card = document.createElement('div');
-            card.className = 'flex items-center justify-center bg-white/20 rounded-2xl border-4 border-white/40 text-8xl animate__animated animate__flipInY';
-            card.style.animationDelay = `${index * 0.05}s`;
-            card.textContent = emoji;
-            grid.appendChild(card);
-        });
-        
-        // Fase e timer
-        document.getElementById('memory-phase-text').textContent = 'MEMORIZZA!';
-        document.getElementById('memory-timer').textContent = `⏱️ ${data.duration} secondi`;
-        
-        // Countdown timer
-        let timeLeft = data.duration;
-        if(memoryTimerInterval) clearInterval(memoryTimerInterval);
-        memoryTimerInterval = setInterval(() => {
-            timeLeft--;
-            document.getElementById('memory-timer').textContent = `⏱️ ${timeLeft} secondi`;
-            if(timeLeft <= 0) clearInterval(memoryTimerInterval);
-        }, 1000);
-        
-        console.log('🧠 Memory: Mostra tutte le carte');
-    });
-    
-    socket.on('memory_cover_all', () => {
-        // Copri tutte le carte
-        const grid = document.getElementById('memory-grid');
-        const cards = grid.children;
-        
-        for(let card of cards) {
-            card.className = 'flex items-center justify-center bg-gray-700 rounded-2xl border-4 border-gray-500 text-8xl animate__animated animate__flipOutY';
-            card.textContent = '?';
-        }
-        
-        document.getElementById('memory-phase-text').textContent = 'CARTE COPERTE!';
-        document.getElementById('memory-timer').textContent = '';
-        
-        if(memoryTimerInterval) clearInterval(memoryTimerInterval);
-        
-        console.log('🧠 Memory: Carte coperte');
-    });
-    
-    socket.on('memory_reveal_one', (data) => {
-        const grid = document.getElementById('memory-grid');
-        const cards = grid.children;
-        
-        // Prima copri tutto (per sicurezza)
-        for(let i = 0; i < cards.length; i++) {
-            cards[i].className = 'flex items-center justify-center bg-gray-700 rounded-2xl border-4 border-gray-500 text-6xl';
-            cards[i].textContent = (i + 1); // Numero posizione
-        }
-        
-        // Poi rivela la carta scelta
-        const revealedCard = cards[data.position];
-        revealedCard.className = 'flex items-center justify-center bg-yellow-500 rounded-2xl border-4 border-yellow-300 text-8xl animate__animated animate__pulse animate__infinite';
-        revealedCard.textContent = data.image;
-        
-        document.getElementById('memory-phase-text').textContent = `TROVA IL GEMELLO DI ${data.image}`;
-        document.getElementById('memory-timer').textContent = `⏱️ ${data.duration} secondi`;
-        
-        // Countdown timer
-        let timeLeft = data.duration;
-        if(memoryTimerInterval) clearInterval(memoryTimerInterval);
-        memoryTimerInterval = setInterval(() => {
-            timeLeft--;
-            document.getElementById('memory-timer').textContent = `⏱️ ${timeLeft} secondi`;
-            if(timeLeft <= 0) clearInterval(memoryTimerInterval);
-        }, 1000);
-        
-        console.log('🧠 Memory: Rivelata carta', data.image, 'in posizione', data.position);
-    });
-    
-    socket.on('memory_show_results', (data) => {
-        if(memoryTimerInterval) clearInterval(memoryTimerInterval);
-        
-        const grid = document.getElementById('memory-grid');
-        const cards = grid.children;
-        
-        // Mostra la carta corretta
-        const correctCard = cards[data.correctPosition];
-        correctCard.className = 'flex items-center justify-center bg-green-500 rounded-2xl border-4 border-green-300 text-8xl animate__animated animate__bounceIn';
-        correctCard.textContent = data.correctImage;
-        
-        // Conta corretti
-        const correctCount = data.results.filter(r => r.correct).length;
-        const totalCount = data.results.length;
-        
-        document.getElementById('memory-phase-text').innerHTML = `
-            <div class="text-5xl text-green-400 mb-4">✅ Posizione ${data.correctPosition + 1}</div>
-            <div class="text-3xl">${correctCount}/${totalCount} squadre corrette!</div>
-        `;
-        document.getElementById('memory-timer').textContent = `+${data.points}pt`;
-        
-        console.log('🧠 Memory: Risultati -', correctCount, 'corretti su', totalCount);
     });
 
     socket.on('force_reload', () => window.location.reload());

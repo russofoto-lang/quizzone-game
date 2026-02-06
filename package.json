@@ -1,17 +1,23 @@
 {
-  "name": "quiz-game-server",
-  "version": "1.0.0",
-  "description": "Server real-time per gioco a quiz con squadre",
-  "main": "server.js",
-  "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js"
-  },
-  "dependencies": {
-    "express": "^4.18.2",
-    "socket.io": "^4.6.1"
-  },
-  "devDependencies": {
-    "nodemon": "^3.0.1"
-  }
+“name”: “siponto-forever-young”,
+“version”: “2.0.0”,
+“description”: “Quiz game show interattivo per eventi”,
+“main”: “server.js”,
+“scripts”: {
+“start”: “node server.js”,
+“dev”: “nodemon server.js”
+},
+“keywords”: [“quiz”, “game”, “socket.io”, “multiplayer”],
+“author”: “Mariano - Russo”,
+“license”: “MIT”,
+“dependencies”: {
+“express”: “^4.18.2”,
+“socket.io”: “^4.7.2”
+},
+“devDependencies”: {
+“nodemon”: “^3.0.1”
+},
+“engines”: {
+“node”: “>=18.0.0”
+}
 }

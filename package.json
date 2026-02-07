@@ -1,12 +1,20 @@
 {
   "name": "siponto-quiz",
   "version": "1.0.0",
+  "description": "Quiz game for events with real-time interaction",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
     "express": "^4.18.2",
     "socket.io": "^4.7.2"
-  }
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "keywords": ["quiz", "game", "real-time", "events"],
+  "author": "Siponto Team",
+  "license": "MIT"
 }

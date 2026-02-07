@@ -1,3 +1,5 @@
+[file name]: admin (2).html
+[file content begin]
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -307,7 +309,7 @@
                         <div id="duello-categoria-name" class="text-white text-sm">---</div>
                     </div>
                     <div class="border-t border-red-700 my-2 pt-2">
-                        <div class="text-xs text-center text-gray-400 mb-1">DOMANDE DUELLO</div>
+                        <div class="text-xs text-center text-gray-400 mb-1">DOMANDA DUELLO</div>
                         <button onclick="duelloStep(4)" id="duello-step-4" class="w-full bg-orange-600 hover:bg-orange-500 text-white font-bold py-2 rounded text-sm opacity-40 pointer-events-none">
                             🎯 Lancia Domanda
                         </button>
@@ -416,6 +418,8 @@
         totalTeams = d.teams.length;
         updateTeams(d.teams); 
         populateCategories();
+        // ✅ Carica automaticamente la preview all'avvio
+        refreshPreview();
     });
 
     function populateCategories() {
@@ -1034,3 +1038,4 @@
 
 </body>
 </html>
+[file content end]

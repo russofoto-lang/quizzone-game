@@ -315,8 +315,8 @@ function startMemoryRound() {
   
   const gridSize = getMemoryGridSize(gameState.memoryMode.currentRound);
   
-  // ✅ Tempo di memorizzazione aumentato: 8 secondi per prove 1-2, 10 secondi per prova 3
-  const showAllDuration = gameState.memoryMode.currentRound <= 2 ? 8 : 10;
+  // ✅ Tempo di memorizzazione: 5 secondi per prove 1-2, 7 secondi per prova 3
+  const showAllDuration = gameState.memoryMode.currentRound <= 2 ? 5 : 7;
   const showAllDurationMs = showAllDuration * 1000;
   
   console.log(`🧠 Prova ${gameState.memoryMode.currentRound}/3 - ${gameState.memoryMode.cards.length} carte - ${showAllDuration}s`);
@@ -337,20 +337,20 @@ function startMemoryRound() {
     setTimeout(() => {
       // FASE 3: Scopri una carta e chiedi la coppia
       gameState.memoryMode.mancheStartTime = Date.now();
-      gameState.memoryMode.answerDeadline = Date.now() + 15000;
+      gameState.memoryMode.answerDeadline = Date.now() + 10000;  // ✅ 10 secondi per rispondere
       
       io.emit('memory_reveal_one', {
         position: selection.revealed.position,
         image: selection.revealed.emoji,
         grid: gridSize,
-        duration: 15,
+        duration: 10,  // ✅ 10 secondi
         manche: gameState.memoryMode.currentManche
       });
       
-      // TIMEOUT: Dopo 15 secondi mostra risultati
+      // TIMEOUT: Dopo 10 secondi mostra risultati
       gameState.memoryMode.answerTimeout = setTimeout(() => {
         processMemoryAnswers();
-      }, 15000);
+      }, 10000);  // ✅ 10 secondi
       
     }, 1000);
   }, showAllDurationMs);

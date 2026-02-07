@@ -69,6 +69,13 @@
         </button>
 
         <div id="opts-grid" class="hidden grid grid-cols-2 gap-4 w-full h-full max-h-96 mt-10"></div>
+        
+        <!-- MEMORY GRID PULSANTI -->
+        <div id="memory-buttons" class="hidden w-full max-w-md mt-4">
+            <div id="memory-button-grid" class="grid gap-2">
+                <!-- Popolato dinamicamente -->
+            </div>
+        </div>
     </div>
 </div>
 
@@ -314,6 +321,7 @@
         document.getElementById('opts-grid').classList.remove('opacity-40','pointer-events-none');
         document.getElementById('timer-container').classList.add('hidden');
         document.getElementById('allin-buttons').classList.add('hidden');
+        document.getElementById('memory-buttons').classList.add('hidden'); // ✅ AGGIUNGI QUESTA RIGA
         
         // Nascondi container duello
         const opponentsDiv = document.getElementById('duello-opponents-container');
@@ -526,6 +534,96 @@
                 <div class="text-2xl">${data.pointsChange}</div>
             </div>
         `;
+    });
+
+    // ════════════════════════════════════════════════════════════════
+    // 🧠 MEMORY GAME - CLIENT
+    // ════════════════════════════════════════════════════════════════
+
+    socket.on('memory_reveal_one', (data) => {
+        resetUI();
+        
+        document.getElementById('msg-box').innerHTML = `
+            <div class="text-4xl mb-2">🧠 MEMORY</div>
+            <div class="text-2xl">Trova la coppia di ${data.image}!</div>
+        `;
+        
+        const buttonsDiv = document.getElementById('memory-buttons');
+        const gridDiv = document.getElementById('memory-button-grid');
+        
+        buttonsDiv.classList.remove('hidden');
+        gridDiv.innerHTML = '';
+        
+        // Configura grid in base alla manche
+        if(data.grid === '2x3') {
+            gridDiv.className = 'grid grid-cols-3 gap-2';
+        } else if(data.grid === '2x5') {
+            gridDiv.className = 'grid grid-cols-5 gap-2';
+        } else if(data.grid === '2x7') {
+            gridDiv.className = 'grid grid-cols-7 gap-2';
+        }
+        
+        // Crea pulsanti per ogni posizione
+        const totalCards = data.grid === '2x3' ? 6 : data.grid === '2x5' ? 10 : 14;
+        
+        for(let i = 0; i < totalCards; i++) {
+            const btn = document.createElement('button');
+            btn.className = 'bg-gray-700 hover:bg-gray-600 text-white font-black text-2xl py-4 rounded-lg active:scale-95 transition-all';
+            btn.textContent = i + 1;
+            
+            // Disabilita il pulsante della carta rivelata
+            if(i === data.position) {
+                btn.className = 'bg-yellow-600 text-white font-black text-2xl py-4 rounded-lg opacity-50';
+                btn.disabled = true;
+            } else {
+                btn.onclick = () => sendMemoryAnswer(i);
+            }
+            
+            gridDiv.appendChild(btn);
+        }
+    });
+
+    function sendMemoryAnswer(position) {
+        socket.emit('memory_answer', { position: position });
+        
+        // Disabilita tutti i pulsanti
+        const gridDiv = document.getElementById('memory-button-grid');
+        Array.from(gridDiv.children).forEach(btn => {
+            btn.disabled = true;
+            btn.className = 'bg-gray-800 text-gray-500 font-black text-2xl py-4 rounded-lg opacity-50';
+        });
+        
+        // Evidenzia risposta data
+        gridDiv.children[position].className = 'bg-blue-600 text-white font-black text-2xl py-4 rounded-lg border-4 border-blue-300';
+        
+        document.getElementById('msg-box').innerHTML = `
+            <div class="text-3xl text-green-400">✅ Risposta inviata!</div>
+            <div class="text-xl mt-2">Posizione: ${position + 1}</div>
+        `;
+    }
+
+    socket.on('memory_show_results', (data) => {
+        const myAnswer = data.results.find(r => r.teamId === socket.id);
+        
+        if(myAnswer) {
+            if(myAnswer.correct) {
+                document.getElementById('msg-box').innerHTML = `
+                    <div class="text-5xl mb-4">🎉</div>
+                    <div class="text-3xl font-black text-green-400 mb-2">CORRETTO!</div>
+                    <div class="text-xl">+150 punti${myAnswer.bonus ? ' +50 bonus velocità!' : ''}</div>
+                `;
+            } else {
+                document.getElementById('msg-box').innerHTML = `
+                    <div class="text-5xl mb-4">❌</div>
+                    <div class="text-2xl font-bold text-red-400">Sbagliato!</div>
+                    <div class="text-lg mt-2">La risposta era: ${data.correctPosition + 1}</div>
+                `;
+            }
+        }
+        
+        setTimeout(() => {
+            document.getElementById('memory-buttons').classList.add('hidden');
+        }, 3000);
     });
     
     socket.on('force_reload', () => window.location.reload());

@@ -96,6 +96,30 @@
         document.getElementById('my-name').innerText = d.name;
     });
 
+    // ✅ Mostra soluzione sul cellulare
+    socket.on('mostra_soluzione_display', (data) => {
+        document.getElementById('msg-box').innerHTML = `
+            <div class="text-green-400 font-bold text-xl mb-2">✅ RISPOSTA CORRETTA</div>
+            <div class="text-yellow-400 font-black text-3xl">${data.soluzione}</div>
+        `;
+    });
+
+    // ✅ PAUSA - Aggiungere notifiche visive
+    socket.on('game_paused', () => {
+        document.getElementById('msg-box').innerHTML = `
+            <div class="text-6xl mb-4">⏸️</div>
+            <div class="text-yellow-400 font-black text-2xl">PAUSA</div>
+        `;
+        // Disabilita pulsanti
+        document.querySelectorAll('button').forEach(btn => btn.disabled = true);
+    });
+
+    socket.on('game_resumed', () => {
+        document.getElementById('msg-box').textContent = 'In attesa...';
+        // Riabilita pulsanti
+        document.querySelectorAll('button').forEach(btn => btn.disabled = false);
+    });
+
     socket.on('nuova_domanda', (d) => {
         resetUI();
         document.getElementById('msg-box').innerText = d.domanda;

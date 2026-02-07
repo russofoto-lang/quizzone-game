@@ -15,7 +15,6 @@
         <button onclick="login()" class="w-full bg-blue-600 py-4 rounded-xl font-bold text-xl shadow-lg active:scale-95">ENTRA NEL GIOCO</button>
     </div>
 
-```
 <div id="game-screen" class="hidden flex-col h-full">
     <div class="bg-gray-800 p-4 flex justify-between items-center border-b border-gray-700">
         <div class="flex items-center gap-2">
@@ -102,7 +101,9 @@
 
         // Modalità normale (non ALL IN)
         if(d.modalita !== 'buzzer' && d.risposte && d.risposte.length > 0) {
-            questionStartTime = d.startTime || Date.now();
+            // ✅ PATCH 2: Calcola offset di rete
+            const networkDelay = Date.now() - d.serverTimestamp;
+            questionStartTime = d.startTime + networkDelay;
             maxTime = 20;
             startTimer();
         }
@@ -222,7 +223,12 @@
     });
 
     function startTimer() {
-        stopTimer();
+        // ✅ PATCH 9: Doppio controllo memory leak
+        if(timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
+        
         document.getElementById('timer-container').classList.remove('hidden');
         
         const timerDisplay = document.getElementById('timer-display');
@@ -524,7 +530,5 @@
     
     socket.on('force_reload', () => window.location.reload());
 </script>
-```
-
 </body>
 </html>

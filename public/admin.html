@@ -337,6 +337,32 @@
             </div>
         </div>
 
+        <!-- MEMORY GAME - COLLAPSIBLE -->
+        <div class="bg-purple-900/20 rounded-lg border border-purple-700">
+            <button onclick="toggleSection('memory')" class="w-full flex justify-between items-center p-2 hover:bg-purple-900/30 transition rounded-lg">
+                <div class="text-sm font-bold text-purple-300 uppercase">🧠 Memory Game</div>
+                <span id="icon-memory" class="text-purple-300 font-bold text-lg">▼</span>
+            </button>
+            <div id="content-memory" class="hidden p-2 pt-0">
+                <div class="space-y-1">
+                    <button onclick="startMemoryGame()" class="w-full btn-primary text-white font-bold py-2 rounded text-sm">
+                        🎮 AVVIA MEMORY
+                    </button>
+                    <div id="memory-status" class="hidden text-xs text-center py-2 bg-purple-900/30 rounded font-bold">
+                        Manche: <span id="memory-manche-display">1/3</span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-1">
+                        <button onclick="skipMemoryRound()" class="btn-warning text-white font-bold py-2 rounded text-sm">
+                            ⏭️ Skip Round
+                        </button>
+                        <button onclick="stopMemoryGame()" class="btn-danger text-white font-bold py-2 rounded text-sm">
+                            🛑 Stop
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Sfida Finale - COLLAPSIBLE -->
         <div class="bg-red-900/20 rounded-lg border border-red-700">
             <button onclick="toggleSection('finale')" class="w-full flex justify-between items-center p-2 hover:bg-red-900/30 transition rounded-lg">
@@ -813,6 +839,35 @@
         document.getElementById('duello-score-dif').textContent = '0';
         
         console.log('🔥 Duello terminato');
+    });
+
+    // ════════════════════════════════════════════════════════════════
+    // 🧠 MEMORY GAME - ADMIN
+    // ════════════════════════════════════════════════════════════════
+
+    function startMemoryGame() {
+        if(confirm('🧠 Avviare Memory Game (3 manche)?')) {
+            socket.emit('memory_start');
+            document.getElementById('memory-status').classList.remove('hidden');
+            console.log('🧠 Memory avviato');
+        }
+    }
+
+    function skipMemoryRound() {
+        socket.emit('memory_skip_round');
+        console.log('🧠 Round saltata');
+    }
+
+    function stopMemoryGame() {
+        if(confirm('🛑 Fermare Memory Game?')) {
+            socket.emit('memory_stop');
+            document.getElementById('memory-status').classList.add('hidden');
+            console.log('🧠 Memory fermato');
+        }
+    }
+
+    socket.on('memory_manche_intro', (data) => {
+        document.getElementById('memory-manche-display').textContent = `${data.manche}/${data.totalManches}`;
     });
 
     // Accordion/Collapse Toggle

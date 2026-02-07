@@ -468,6 +468,26 @@ io.on('connection', (socket) => {
   // 📝 GESTIONE DOMANDE
   // ════════════════════════════════════════════════════════════════
 
+  // Admin richiede domande per tipo/categoria
+  socket.on('get_questions', (data) => {
+    const { type, key } = data;
+    let filteredQuestions = [];
+    
+    if (type === 'categoria' && key) {
+      // Filtra per categoria specifica
+      filteredQuestions = db.questions.filter(q => q.categoria === key);
+    } else if (type === 'stima') {
+      filteredQuestions = db.questions.filter(q => q.categoria === 'Stima');
+    } else if (type === 'anagramma') {
+      filteredQuestions = db.questions.filter(q => q.categoria === 'Anagramma');
+    } else if (type === 'bonus') {
+      filteredQuestions = db.questions.filter(q => q.categoria === 'Bonus');
+    }
+    
+    socket.emit('receive_questions', filteredQuestions);
+    console.log(`📋 Inviate ${filteredQuestions.length} domande (${type}${key ? ': ' + key : ''})`);
+  });
+
   // Admin invia domanda casuale per categoria
   socket.on('send_random_question', (data) => {
     const { categoria, modalita } = data;

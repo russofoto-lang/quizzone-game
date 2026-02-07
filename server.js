@@ -3,6 +3,90 @@ const app = express();
 const http = require('http').createServer(app);
 const io = require('socket.io')(http);
 const path = require('path');
+const fs = require('fs');
+
+// ✅ Carica domande dal file JSON e trasforma la struttura
+let questionsData = { categories: [], questions: [] };
+try {
+  const questionsPath = path.join(__dirname, 'public', 'domande.json');
+  const rawData = fs.readFileSync(questionsPath, 'utf8');
+  const jsonData = JSON.parse(rawData);
+  
+  // Trasforma la struttura dal formato originale
+  const pacchetto = jsonData.pacchetti["1"];
+  const categories = Object.keys(pacchetto.categorie);
+  const allQuestions = [];
+  
+  // Converti domande da ogni categoria
+  categories.forEach(categoria => {
+    const domande = pacchetto.categorie[categoria];
+    domande.forEach(d => {
+      allQuestions.push({
+        id: d.id,
+        domanda: d.domanda,
+        risposte: d.risposte || [],
+        corretta: d.risposte ? d.risposte[d.corretta] : d.corretta,  // Converti indice in stringa
+        categoria: categoria,
+        punti: d.punti,
+        difficolta: d.difficolta
+      });
+    });
+  });
+  
+  // Aggiungi bonus, stima, anagramma
+  if (pacchetto.bonus) {
+    pacchetto.bonus.forEach(d => {
+      allQuestions.push({
+        id: d.id,
+        domanda: d.domanda,
+        risposte: d.risposte,
+        corretta: d.risposte[d.corretta],
+        categoria: "Bonus",
+        punti: d.punti,
+        difficolta: d.difficolta
+      });
+    });
+  }
+  
+  if (pacchetto.stima) {
+    pacchetto.stima.forEach(d => {
+      allQuestions.push({
+        id: d.id,
+        domanda: d.domanda,
+        risposte: [],
+        corretta: d.corretta,
+        categoria: "Stima",
+        punti: d.punti,
+        difficolta: d.difficolta
+      });
+    });
+  }
+  
+  if (pacchetto.anagramma) {
+    pacchetto.anagramma.forEach(d => {
+      allQuestions.push({
+        id: d.id,
+        domanda: d.domanda,
+        risposte: [],
+        corretta: d.corretta,
+        categoria: "Anagramma",
+        punti: d.punti,
+        difficolta: d.difficolta
+      });
+    });
+  }
+  
+  questionsData = {
+    categories: categories,
+    questions: allQuestions
+  };
+  
+  console.log(`✅ Caricate ${allQuestions.length} domande da domande.json`);
+  console.log(`✅ Categorie: ${categories.join(', ')}`);
+} catch (error) {
+  console.error('⚠️ Errore nel caricamento di domande.json:', error.message);
+  console.log('ℹ️ Utilizzo database vuoto di default');
+}
 
 // ✅FIX: Servi file statici dalla cartella public
 app.use(express.static(path.join(__dirname, 'public')));
@@ -36,11 +120,11 @@ let gameState = {
     waitingForAnswer: false
   },
   
-  // ✅ NUOVO: Memory mode
+  // ✅ MEMORY MODE: 1 manche con 3 prove
   memoryMode: {
     active: false,
     currentManche: 0,
-    totalManches: 3,
+    totalManches: 1,  // ✅ Solo 1 manche
     cards: [],
     revealedCard: null,
     pairPosition: null,
@@ -54,11 +138,64 @@ let gameState = {
   }
 };
 
-// Database mock
+// Database - usa i dati caricati dal JSON
 const db = {
-  categories: ["storia", "geografia", "scienze", "cinema", "musica", "sport"],
-  questions: []
+  categories: questionsData.categories || ["storia", "geografia", "scienze", "cinema", "musica", "sport"],
+  questions: questionsData.questions || []
 };
+
+// ════════════════════════════════════════════════════════════════
+// 📝 FUNZIONI DOMANDE
+// ════════════════════════════════════════════════════════════════
+
+function getQuestionsByCategory(category) {
+  return db.questions.filter(q => q.categoria === category);
+}
+
+function getRandomQuestion(category = null) {
+  let availableQuestions = category 
+    ? getQuestionsByCategory(category)
+    : db.questions;
+  
+  if (availableQuestions.length === 0) {
+    console.error('⚠️ Nessuna domanda disponibile!');
+    return null;
+  }
+  
+  const randomIndex = Math.floor(Math.random() * availableQuestions.length);
+  return availableQuestions[randomIndex];
+}
+
+function sendQuestion(questionData, modalita = 'multipla') {
+  if (!questionData) {
+    console.error('⚠️ Impossibile inviare domanda: dati mancanti');
+    return;
+  }
+  
+  gameState.currentQuestion = {
+    ...questionData,
+    startTime: Date.now(),
+    modalita: modalita
+  };
+  gameState.roundAnswers = [];
+  gameState.buzzerQueue = [];
+  gameState.buzzerLocked = false;
+  
+  const payload = {
+    domanda: questionData.domanda,
+    risposte: questionData.risposte || [],
+    modalita: modalita,
+    categoria: questionData.categoria,
+    startTime: Date.now(),
+    serverTimestamp: Date.now()
+  };
+  
+  // Salva la risposta corretta solo nel server
+  gameState.currentQuestion.corretta = questionData.corretta;
+  
+  io.emit('nuova_domanda', payload);
+  console.log(`📝 Domanda inviata: "${questionData.domanda}" (${modalita})`);
+}
 
 // ════════════════════════════════════════════════════════════════
 // 🧠 MEMORY GAME - HELPER FUNCTIONS
@@ -70,9 +207,9 @@ const EMOJI_POOL = [
   '🌈', '⭐', '🔥', '💎', '🎯', '🏆', '🎁', '🎂'
 ];
 
-function generateMemoryCards(mancheNumber) {
-  // Round 1: 3 coppie (6 carte), Round 2: 5 coppie (10 carte), Round 3: 7 coppie (14 carte)
-  const pairsCount = mancheNumber === 1 ? 3 : mancheNumber === 2 ? 5 : 7;
+function generateMemoryCards(roundNumber) {
+  // Prova 1: 3 coppie (6 carte), Prova 2: 5 coppie (10 carte), Prova 3: 7 coppie (14 carte)
+  const pairsCount = roundNumber === 1 ? 3 : roundNumber === 2 ? 5 : 7;
   const totalCards = pairsCount * 2;
   
   // Seleziona emoji casuali
@@ -114,10 +251,10 @@ function selectRandomCardToReveal(cards, usedPositions = []) {
   };
 }
 
-function getMemoryGridSize(mancheNumber) {
-  // Round 1: 2x3 (6 carte), Round 2: 2x5 (10 carte), Round 3: 2x7 (14 carte)
-  if(mancheNumber === 1) return '2x3';
-  if(mancheNumber === 2) return '2x5';
+function getMemoryGridSize(roundNumber) {
+  // Prova 1: 2x3 (6 carte), Prova 2: 2x5 (10 carte), Prova 3: 2x7 (14 carte)
+  if(roundNumber === 1) return '2x3';
+  if(roundNumber === 2) return '2x5';
   return '2x7';
 }
 
@@ -126,24 +263,20 @@ function getMemoryGridSize(mancheNumber) {
 // ════════════════════════════════════════════════════════════════
 
 function startMemoryManche(mancheNumber) {
-  console.log(`🧠 Manche ${mancheNumber}/3`);
+  console.log(`🧠 Inizio Memory Game - 3 prove`);
   
   gameState.memoryMode.currentManche = mancheNumber;
-  gameState.memoryMode.cards = generateMemoryCards(mancheNumber);
   gameState.memoryMode.usedPositions = [];
   gameState.memoryMode.currentRound = 0;
   
-  const totalCards = gameState.memoryMode.cards.length;
-  const totalRounds = totalCards / 2;
-  
-  // Mostra schermata intro manche
+  // Mostra schermata intro
   io.emit('memory_manche_intro', {
     manche: mancheNumber,
-    totalManches: 3,
-    pairsCount: totalCards / 2
+    totalManches: 1,  // ✅ Solo 1 manche con 3 prove
+    pairsCount: 3  // Prima prova
   });
   
-  // Dopo 3 secondi inizia prima round
+  // Dopo 3 secondi inizia prima prova
   setTimeout(() => {
     startMemoryRound();
   }, 3000);
@@ -151,7 +284,18 @@ function startMemoryManche(mancheNumber) {
 
 function startMemoryRound() {
   gameState.memoryMode.currentRound++;
+  
+  // ✅ Controlla se abbiamo fatto tutte e 3 le prove
+  if(gameState.memoryMode.currentRound > 3) {
+    endMemoryManche();
+    return;
+  }
+  
   gameState.memoryMode.answers = {};
+  
+  // ✅ Genera nuove carte per questa prova
+  gameState.memoryMode.cards = generateMemoryCards(gameState.memoryMode.currentRound);
+  gameState.memoryMode.usedPositions = [];
   
   const selection = selectRandomCardToReveal(
     gameState.memoryMode.cards, 
@@ -159,7 +303,7 @@ function startMemoryRound() {
   );
   
   if(!selection) {
-    // Manche finita
+    // Non dovrebbe succedere, ma per sicurezza
     endMemoryManche();
     return;
   }
@@ -169,11 +313,13 @@ function startMemoryRound() {
   gameState.memoryMode.usedPositions.push(selection.revealed.position);
   gameState.memoryMode.usedPositions.push(selection.pair.position);
   
-  const gridSize = getMemoryGridSize(gameState.memoryMode.currentManche);
+  const gridSize = getMemoryGridSize(gameState.memoryMode.currentRound);
   
-  // ✅ NUOVO: Tempo di visualizzazione - 5 secondi per round 1-2, 7 secondi per round 3
-  const showAllDuration = gameState.memoryMode.currentManche <= 2 ? 5 : 7;
+  // ✅ Tempo di memorizzazione aumentato: 8 secondi per prove 1-2, 10 secondi per prova 3
+  const showAllDuration = gameState.memoryMode.currentRound <= 2 ? 8 : 10;
   const showAllDurationMs = showAllDuration * 1000;
+  
+  console.log(`🧠 Prova ${gameState.memoryMode.currentRound}/3 - ${gameState.memoryMode.cards.length} carte - ${showAllDuration}s`);
   
   // FASE 1: Mostra tutte le carte
   io.emit('memory_show_all', {
@@ -259,12 +405,11 @@ function processMemoryAnswers() {
     points: 150
   });
   
-  console.log(`🧠 Round completata - ${results.filter(r => r.correct).length}/${results.length} corretti`);
+  console.log(`🧠 Prova ${gameState.memoryMode.currentRound}/3 completata - ${results.filter(r => r.correct).length}/${results.length} corretti`);
   
-  // Prossima round dopo 3 secondi
+  // ✅ Prossima prova dopo 3 secondi (o fine gioco se erano 3 prove)
   setTimeout(() => {
-    const totalRounds = gameState.memoryMode.cards.length / 2;
-    if(gameState.memoryMode.currentRound >= totalRounds) {
+    if(gameState.memoryMode.currentRound >= 3) {
       endMemoryManche();
     } else {
       startMemoryRound();
@@ -273,20 +418,13 @@ function processMemoryAnswers() {
 }
 
 function endMemoryManche() {
-  console.log(`🧠 Fine Manche ${gameState.memoryMode.currentManche}/3`);
+  console.log(`🧠 Fine Memory Game - 3 prove completate!`);
   
-  if(gameState.memoryMode.currentManche >= 3) {
-    // Fine gioco
-    gameState.memoryMode.active = false;
-    io.emit('memory_game_end');
-    io.emit('cambia_vista', { view: 'classifica_gen' });
-    console.log('🧠 Memory Game completato!');
-  } else {
-    // Prossima manche
-    setTimeout(() => {
-      startMemoryManche(gameState.memoryMode.currentManche + 1);
-    }, 3000);
-  }
+  // Fine gioco
+  gameState.memoryMode.active = false;
+  io.emit('memory_game_end');
+  io.emit('cambia_vista', { view: 'classifica_gen' });
+  console.log('🧠 Memory Game completato!');
 }
 
 // Connessioni Socket.io
@@ -324,6 +462,71 @@ io.on('connection', (socket) => {
     io.to('admin').emit('update_teams', realTeams);
     
     console.log(`👥 Squadra "${teamName}" connessa`);
+  });
+
+  // ════════════════════════════════════════════════════════════════
+  // 📝 GESTIONE DOMANDE
+  // ════════════════════════════════════════════════════════════════
+
+  // Admin invia domanda casuale per categoria
+  socket.on('send_random_question', (data) => {
+    const { categoria, modalita } = data;
+    const question = getRandomQuestion(categoria);
+    
+    if (question) {
+      sendQuestion(question, modalita || 'multipla');
+    } else {
+      socket.emit('error', { message: 'Nessuna domanda disponibile per questa categoria' });
+    }
+  });
+
+  // Admin invia domanda specifica
+  socket.on('send_question', (questionData) => {
+    sendQuestion(questionData, questionData.modalita || 'multipla');
+  });
+
+  // Admin attiva buzzer standalone
+  socket.on('start_buzzer', (data) => {
+    gameState.buzzerActive = true;
+    gameState.buzzerStandalone = true;
+    gameState.currentQuestion = {
+      domanda: data.domanda || 'Premi il buzzer!',
+      startTime: Date.now(),
+      modalita: 'buzzer'
+    };
+    
+    io.emit('nuova_domanda', {
+      domanda: gameState.currentQuestion.domanda,
+      modalita: 'buzzer',
+      risposte: [],
+      startTime: Date.now(),
+      serverTimestamp: Date.now()
+    });
+    
+    console.log('🔔 Buzzer attivato');
+  });
+
+  // Admin mostra risposta corretta
+  socket.on('mostra_corretta', () => {
+    if (gameState.currentQuestion) {
+      io.emit('mostra_risposta_corretta', {
+        corretta: gameState.currentQuestion.corretta,
+        risposte: gameState.roundAnswers
+      });
+      console.log(`✅ Risposta corretta mostrata: ${gameState.currentQuestion.corretta}`);
+    }
+  });
+
+  // Admin resetta UI
+  socket.on('reset_ui', () => {
+    gameState.currentQuestion = null;
+    gameState.roundAnswers = [];
+    gameState.buzzerActive = false;
+    gameState.buzzerLocked = false;
+    gameState.buzzerQueue = [];
+    
+    io.emit('reset_client_ui');
+    console.log('🔄 UI resettata');
   });
 
   // Ricevi risposte domande

@@ -526,6 +526,34 @@ io.on('connection', (socket) => {
     console.log('🔔 Buzzer attivato');
   });
 
+  // Admin invia domanda (comando principale)
+  socket.on('invia_domanda', (questionData) => {
+    const modalita = questionData.modalita || 'multipla';
+    sendQuestion(questionData, modalita);
+    
+    // Notifica admin che la domanda è stata inviata
+    io.to('admin').emit('reset_round_monitor');
+  });
+
+  // Admin cambia vista display (regia)
+  socket.on('regia_cmd', (view) => {
+    io.emit('cambia_vista', { view: view });
+    console.log(`📺 Vista cambiata: ${view}`);
+  });
+
+  // Admin reset displays
+  socket.on('reset_displays', () => {
+    gameState.currentQuestion = null;
+    gameState.roundAnswers = [];
+    gameState.buzzerActive = false;
+    gameState.buzzerLocked = false;
+    gameState.buzzerQueue = [];
+    
+    io.emit('reset_client_ui');
+    io.to('admin').emit('reset_round_monitor');
+    console.log('🔄 Display resettati');
+  });
+
   // Admin mostra risposta corretta
   socket.on('mostra_corretta', () => {
     if (gameState.currentQuestion) {
@@ -535,6 +563,56 @@ io.on('connection', (socket) => {
       });
       console.log(`✅ Risposta corretta mostrata: ${gameState.currentQuestion.corretta}`);
     }
+  });
+
+  // Admin assegna punti manualmente
+  socket.on('assign_points', (data) => {
+    const { teamId, points } = data;
+    const team = gameState.teams[teamId];
+    
+    if (team) {
+      team.score += points;
+      const realTeams = Object.values(gameState.teams).filter(t => !t.isPreview);
+      io.emit('update_teams', realTeams);
+      io.to('admin').emit('update_teams', realTeams);
+      console.log(`💰 ${team.name}: ${points > 0 ? '+' : ''}${points} punti (totale: ${team.score})`);
+    }
+  });
+
+  // Admin modifica punteggio squadra
+  socket.on('update_team_score', (data) => {
+    const { teamId, newScore } = data;
+    const team = gameState.teams[teamId];
+    
+    if (team) {
+      team.score = newScore;
+      const realTeams = Object.values(gameState.teams).filter(t => !t.isPreview);
+      io.emit('update_teams', realTeams);
+      io.to('admin').emit('update_teams', realTeams);
+      console.log(`📝 ${team.name}: punteggio modificato a ${newScore}`);
+    }
+  });
+
+  // Admin blocca/sblocca buzzer
+  socket.on('close_buzzer', () => {
+    gameState.buzzerLocked = true;
+    gameState.buzzerActive = false;
+    console.log('🔒 Buzzer bloccato');
+  });
+
+  socket.on('open_buzzer', () => {
+    gameState.buzzerLocked = false;
+    gameState.buzzerActive = true;
+    gameState.buzzerQueue = [];
+    console.log('🔓 Buzzer aperto');
+  });
+
+  socket.on('reset_buzzer', () => {
+    gameState.buzzerQueue = [];
+    gameState.buzzerLocked = false;
+    gameState.buzzerActive = false;
+    io.emit('reset_buzzer_ui');
+    console.log('🔄 Buzzer resettato');
   });
 
   // Admin resetta UI

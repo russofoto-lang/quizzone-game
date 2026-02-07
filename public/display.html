@@ -13,7 +13,6 @@
         .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
         #qrcode img { margin: 0 auto; border: 15px solid white; border-radius: 10px; }
 
-```
     /* Responsive text sizing */
     .question-text { font-size: clamp(2rem, 4vw, 4rem); line-height: 1.2; }
     .answer-option { font-size: clamp(1.5rem, 2.5vw, 2rem); }
@@ -36,12 +35,10 @@
         animation: confetti-fall 3s linear infinite; 
     }
 </style>
-```
 
 </head>
 <body class="flex flex-col h-screen p-6">
 
-```
 <div class="h-[10%] flex justify-between items-center border-b border-gray-700 pb-2">
     <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-red-600">SIPONTO FOREVER YOUNG</h1>
     <div id="mini-leaderboard" class="text-xl font-mono text-blue-400"></div>
@@ -706,10 +703,12 @@
             d.risposte.forEach((r, idx) => {
                 o.innerHTML += `<div class="answer-option bg-white/10 p-4 rounded-2xl border-2 border-white/10 shadow-lg font-bold">${String.fromCharCode(65+idx)}: ${r}</div>`;
             });
-            
-            questionStartTime = d.startTime || Date.now();
-            maxTime = 20;
-            startTimer();
+        
+        // ✅ PATCH 2: Calcola offset di rete
+        const networkDelay = Date.now() - d.serverTimestamp;
+        questionStartTime = d.startTime + networkDelay;
+        maxTime = 20;
+        startTimer();
         } else {
             o.classList.add('hidden');
             document.getElementById('timer-display-container').classList.add('hidden');
@@ -718,7 +717,12 @@
 
     // TIMER
     function startTimer() {
-        stopTimer();
+        // ✅ PATCH 9: Doppio controllo memory leak
+        if(timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
+        
         document.getElementById('timer-display-container').classList.remove('hidden');
         
         const timerText = document.getElementById('timer-display-text');
@@ -754,303 +758,4 @@
                 stopTimer();
                 timerText.textContent = '0';
             }
-        }, 100);
-    }
-
-    function stopTimer() {
-        if(timerInterval) {
-            clearInterval(timerInterval);
-            timerInterval = null;
-        }
-    }
-
-    // BUZZER
-    socket.on('buzzer_queue_update', (d) => {
-        const queueDiv = document.getElementById('buzzer-queue-display');
-        if(!queueDiv) return;
-        
-        // Mostra vista gioco con overlay buzzer
-        showView('gioco');
-        document.getElementById('buzzer-overlay').classList.remove('hidden');
-        document.getElementById('q-text').innerText = "🎵 GIOCO MUSICALE";
-        document.getElementById('cat').innerText = "IN ATTESA";
-        document.getElementById('opts').classList.add('hidden');
-        document.getElementById('timer-display-container').classList.add('hidden');
-        
-        queueDiv.innerHTML = '';
-        
-        if(d.queue && d.queue.length > 0) {
-            d.queue.forEach((player, idx) => {
-                const medals = ['🥇', '🥈', '🥉'];
-                const medal = medals[idx] || `${idx + 1}°`;
-                
-                queueDiv.innerHTML += `
-                    <div class="bg-white/10 rounded-2xl p-6 flex justify-between items-center animate__animated animate__fadeInLeft" style="animation-delay: ${idx * 0.1}s">
-                        <div class="flex items-center gap-6">
-                            <span class="text-6xl">${medal}</span>
-                            <span class="text-5xl font-black text-white uppercase">${player.name}</span>
-                        </div>
-                        <span class="text-4xl text-yellow-400 font-mono">${player.time}s</span>
-                    </div>
-                `;
-            });
-        } else {
-            queueDiv.innerHTML = '<p class="text-white/60 text-3xl">In attesa di prenotazioni...</p>';
-        }
-    });
-
-    socket.on('reset_buzzer_display', () => { 
-        document.getElementById('buzzer-overlay').classList.add('hidden'); 
-    });
-
-    // SOLUZIONE
-    socket.on('mostra_soluzione', (d) => {
-        stopTimer();
-        showView('gioco');
-        document.getElementById('solution').classList.remove('hidden');
-        document.getElementById('sol-text').innerText = d.soluzione;
-        document.getElementById('buzzer-overlay').classList.add('hidden');
-        document.getElementById('timer-display-container').classList.add('hidden');
-    });
-    
-    // MOSTRA DOMANDA ALL IN (dopo scommesse)
-    socket.on('show_allin_question', (d) => {
-        console.log('📺 Mostro domanda ALL IN dopo scommesse');
-        document.getElementById('q-text').innerText = d.domanda;
-        
-        const o = document.getElementById('opts');
-        o.innerHTML = '';
-        o.classList.remove('hidden');
-        
-        d.risposte.forEach((r, idx) => {
-            o.innerHTML += `<div class="bg-white/10 p-6 rounded-2xl border-2 border-white/10 shadow-lg text-4xl font-bold">${String.fromCharCode(65+idx)}: ${r}</div>`;
-        });
-        
-        questionStartTime = d.startTime;
-        maxTime = 20;
-        startTimer();
-    });
-
-    // CLASSIFICA
-    socket.on('update_teams', (t) => {
-        t.sort((a,b) => b.score - a.score);
-        
-        const fb = document.getElementById('full-leaderboard-body'); 
-        fb.innerHTML = '';
-        t.forEach((x,i) => {
-            const medal = i === 0 ? '🥇' : (i === 1 ? '🥈' : (i === 2 ? '🥉' : i+1));
-            fb.innerHTML += `
-            <tr class="border-b border-white/10 animate__animated animate__fadeInUp">
-                <td class="p-6 font-black text-4xl text-gray-400 w-24">${medal}</td>
-                <td class="p-6 text-4xl font-bold uppercase">${x.name}</td>
-                <td class="p-6 text-right text-5xl font-black text-yellow-500">${x.score}</td>
-            </tr>`;
-        });
-        
-        const mini = document.getElementById('mini-leaderboard');
-        mini.innerText = t.slice(0,3).map(x => `${x.name}: ${x.score}`).join(' | ');
-    });
-
-    // YouTube Karaoke Events
-    socket.on('play_youtube_karaoke', (data) => {
-        console.log('🎤 Avvio karaoke YouTube:', data.videoId);
-        const player = document.getElementById('youtube-player');
-        player.src = `https://www.youtube.com/embed/${data.videoId}?autoplay=1&controls=1&rel=0`;
-        showView('karaoke');
-    });
-
-    socket.on('stop_karaoke', () => {
-        console.log('⏹️ Stop karaoke');
-        const player = document.getElementById('youtube-player');
-        player.src = '';
-        showView('logo_forever');
-    });
-
-    // Ruota della Fortuna Events
-    socket.on('ruota_explain', () => {
-        console.log('🎰 Spiegazione Ruota');
-        showView('ruota-explain');
-    });
-
-    socket.on('ruota_spin', (data) => {
-        console.log('🎰 Ruota gira con squadre:', data.teams);
-        showView('ruota-spin');
-        
-        // Animazione ruota con nomi squadre
-        const wheelName = document.getElementById('wheel-name');
-        let index = 0;
-        const interval = setInterval(() => {
-            wheelName.textContent = data.teams[index % data.teams.length];
-            index++;
-        }, 200);
-        
-        // Dopo 5 secondi mostra vincitore
-        setTimeout(() => {
-            clearInterval(interval);
-            wheelName.textContent = data.winner.name;
-            document.getElementById('wheel').classList.remove('animate-spin');
-            
-            setTimeout(() => {
-                showView('ruota-winner');
-                document.getElementById('winner-team-name').textContent = data.winner.name;
-            }, 1000);
-        }, 5000);
-    });
-
-    // DISPLAY_QUESTION - Per ruota della fortuna (visualizza solo sul display, no interazione)
-    socket.on('display_question', (d) => {
-        console.log('Display question (solo visualizzazione):', d.domanda);
-        showView('gioco');
-        stopTimer();
-        
-        document.getElementById('buzzer-overlay').classList.add('hidden');
-        document.getElementById('solution').classList.add('hidden');
-        document.getElementById('cat').innerText = (d.categoria || "RUOTA DELLA FORTUNA").toUpperCase();
-        document.getElementById('q-text').innerText = d.domanda;
-        
-        const o = document.getElementById('opts'); 
-        o.innerHTML = '';
-        
-        if(d.risposte) { 
-            o.classList.remove('hidden'); 
-            d.risposte.forEach((r, idx) => {
-                o.innerHTML += `<div class="answer-option bg-white/10 p-4 rounded-2xl border-2 border-white/10 shadow-lg font-bold">${String.fromCharCode(65+idx)}: ${r}</div>`;
-            });
-        }
-        
-        document.getElementById('timer-display-container').classList.add('hidden');
-    });
-
-    // RESET CLIENT UI - Reset completo display
-    socket.on('reset_client_ui', () => {
-        console.log('🔄 Reset client UI');
-        stopTimer();
-        document.getElementById('buzzer-overlay').classList.add('hidden');
-        document.getElementById('solution').classList.add('hidden');
-        document.getElementById('opts').classList.add('hidden');
-        document.getElementById('timer-display-container').classList.add('hidden');
-        document.getElementById('q-text').innerText = 'Caricamento domanda...';
-        document.getElementById('cat').innerText = 'CATEGORIA';
-    });
-
-    // ════════════════════════════════════════════════════════════════
-    // 🔥 DUELLO RUBA-PUNTI
-    // ════════════════════════════════════════════════════════════════
-    
-    socket.on('duello_explain', () => {
-        showView('custom');
-        document.getElementById('custom-text-display').innerHTML = `
-            <div class="text-6xl mb-6">⚔️</div>
-            <div class="text-5xl font-black mb-4">DUELLO RUBA-PUNTI!</div>
-            <div class="text-3xl mb-4">Una squadra sarà estratta per sfidare un avversario</div>
-            <div class="text-2xl text-red-400 font-bold mb-2">🔥 Vinci: RUBI 250 punti!</div>
-            <div class="text-2xl text-blue-400 font-bold">🛡️ Perdi: +100pt bonus difesa</div>
-        `;
-    });
-    
-    // Animazione estrazione attaccante duello
-    socket.on('duello_extraction_animation', (data) => {
-        showView('duello-extraction');
-        
-        const wheel = document.getElementById('duello-wheel');
-        const wheelName = document.getElementById('duello-wheel-name');
-        
-        let currentIndex = 0;
-        const teams = data.teams;
-        
-        // Cambia nome rapidamente per effetto spinning
-        const spinInterval = setInterval(() => {
-            wheelName.textContent = teams[currentIndex];
-            currentIndex = (currentIndex + 1) % teams.length;
-        }, 150);
-        
-        // Dopo 3 secondi mostra il vincitore
-        setTimeout(() => {
-            clearInterval(spinInterval);
-            wheel.style.animation = 'none';
-            wheelName.textContent = data.winner.name;
-            
-            // Dopo 1 secondo mostra schermata vincitore
-            setTimeout(() => {
-                showView('duello-attaccante');
-                document.getElementById('duello-attaccante-name-display').textContent = data.winner.name;
-            }, 1000);
-        }, 3000);
-    });
-    
-    socket.on('duello_question_display', (data) => {
-        showView('duello');
-        
-        document.getElementById('duello-attaccante-name').textContent = data.attaccante.name.toUpperCase();
-        document.getElementById('duello-difensore-name').textContent = data.difensore.name.toUpperCase();
-        document.getElementById('duello-attaccante-score').textContent = data.scoreAttaccante;
-        document.getElementById('duello-difensore-score').textContent = data.scoreDifensore;
-        
-        document.getElementById('duello-categoria').textContent = (data.question.categoria || 'DUELLO').toUpperCase();
-        document.getElementById('duello-question-number').textContent = `DOMANDA ${data.questionNumber}/3`;
-        document.getElementById('duello-question-text').textContent = data.question.domanda;
-        document.getElementById('duello-status').innerHTML = '<span class="text-yellow-400 animate-pulse">⚡ In attesa di buzzer...</span>';
-    });
-    
-    socket.on('duello_buzzer_pressed', (data) => {
-        document.getElementById('duello-status').innerHTML = `
-            <div class="bg-yellow-500 text-black p-4 rounded-2xl inline-block animate__animated animate__bounceIn">
-                <span class="text-4xl">🎤 ${data.teamName.toUpperCase()}</span><br>
-                <span class="text-xl">sta rispondendo... (${data.time}s)</span>
-            </div>
-        `;
-    });
-    
-    socket.on('duello_point_scored', (data) => {
-        document.getElementById('duello-attaccante-score').textContent = data.scoreAttaccante;
-        document.getElementById('duello-difensore-score').textContent = data.scoreDifensore;
-        
-        document.getElementById('duello-status').innerHTML = `
-            <div class="bg-green-600 p-6 rounded-2xl inline-block animate__animated animate__bounceIn">
-                <span class="text-5xl">✅ ${data.teamName.toUpperCase()} SEGNA!</span><br>
-                <span class="text-2xl">${data.scoreAttaccante} - ${data.scoreDifensore}</span>
-            </div>
-        `;
-    });
-    
-    socket.on('duello_wrong_answer', (data) => {
-        document.getElementById('duello-status').innerHTML = `
-            <div class="bg-red-600 p-6 rounded-2xl inline-block animate__animated animate__shakeX">
-                <span class="text-4xl">❌ ${data.wrongTeamName.toUpperCase()} HA SBAGLIATO!</span>
-            </div>
-        `;
-    });
-    
-    socket.on('duello_end', (data) => {
-        showView('custom');
-        
-        const winnerEmoji = data.attaccanteWins ? '🔥' : '🛡️';
-        const winnerColor = data.attaccanteWins ? 'text-orange-400' : 'text-blue-400';
-        const pointsMsg = data.attaccanteWins ? 
-            `${data.winner.name} ruba 250 punti a ${data.loser.name}!` :
-            `${data.winner.name} difende e guadagna 100 punti bonus!`;
-        
-        document.getElementById('custom-text-display').innerHTML = `
-            <div class="text-9xl mb-6">${winnerEmoji}</div>
-            <div class="text-6xl font-black ${winnerColor} mb-6">
-                ${data.winner.name.toUpperCase()} VINCE!
-            </div>
-            <div class="text-4xl font-bold mb-4">
-                ${data.finalScore.attaccante} - ${data.finalScore.difensore}
-            </div>
-            <div class="text-3xl text-yellow-300">
-                ${pointsMsg}
-            </div>
-        `;
-        
-        setTimeout(() => {
-            showView('classifica_gen');
-        }, 5000);
-    });
-
-    socket.on('force_reload', () => window.location.reload());
-</script>
-```
-
-</body>
-</html>
+        }, 

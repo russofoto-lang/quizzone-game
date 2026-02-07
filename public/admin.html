@@ -578,7 +578,7 @@
     function updateTeams(t) {
         t.sort((a,b) => b.score - a.score);
         
-        // Filtra preview
+        // ✅ PATCH 6: Filtra preview
         const realTeams = t.filter(x => !x.isPreview);
         
         const lb = document.getElementById('leaderboard-center');

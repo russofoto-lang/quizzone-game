@@ -71,6 +71,7 @@ const EMOJI_POOL = [
 ];
 
 function generateMemoryCards(mancheNumber) {
+  // Round 1: 3 coppie (6 carte), Round 2: 5 coppie (10 carte), Round 3: 7 coppie (14 carte)
   const pairsCount = mancheNumber === 1 ? 3 : mancheNumber === 2 ? 5 : 7;
   const totalCards = pairsCount * 2;
   
@@ -114,6 +115,7 @@ function selectRandomCardToReveal(cards, usedPositions = []) {
 }
 
 function getMemoryGridSize(mancheNumber) {
+  // Round 1: 2x3 (6 carte), Round 2: 2x5 (10 carte), Round 3: 2x7 (14 carte)
   if(mancheNumber === 1) return '2x3';
   if(mancheNumber === 2) return '2x5';
   return '2x7';
@@ -169,11 +171,15 @@ function startMemoryRound() {
   
   const gridSize = getMemoryGridSize(gameState.memoryMode.currentManche);
   
-  // FASE 1: Mostra tutte le carte (5 secondi)
+  // ✅ NUOVO: Tempo di visualizzazione - 5 secondi per round 1-2, 7 secondi per round 3
+  const showAllDuration = gameState.memoryMode.currentManche <= 2 ? 5 : 7;
+  const showAllDurationMs = showAllDuration * 1000;
+  
+  // FASE 1: Mostra tutte le carte
   io.emit('memory_show_all', {
     cards: gameState.memoryMode.cards.map(c => c.emoji),
     grid: gridSize,
-    duration: 5,
+    duration: showAllDuration,
     manche: gameState.memoryMode.currentManche,
     round: gameState.memoryMode.currentRound
   });
@@ -201,7 +207,7 @@ function startMemoryRound() {
       }, 15000);
       
     }, 1000);
-  }, 5000);
+  }, showAllDurationMs);
 }
 
 function processMemoryAnswers() {

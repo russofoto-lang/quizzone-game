@@ -57,7 +57,9 @@
             document.getElementById('msg-box').innerText = d.domanda;
 
             if(d.modalita !== 'buzzer' && d.risposte && d.risposte.length > 0) {
-                questionStartTime = d.startTime || Date.now();
+                // ✅ PATCH 2: Calcola offset di rete
+                const networkDelay = Date.now() - d.serverTimestamp;
+                questionStartTime = d.startTime + networkDelay;
                 maxTime = 20;
                 startTimer();
             }
@@ -95,7 +97,12 @@
         });
 
         function startTimer() {
-            stopTimer();
+            // ✅ PATCH 9: Doppio controllo memory leak
+            if(timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+            
             document.getElementById('timer-container').classList.remove('hidden');
             
             const timerDisplay = document.getElementById('timer-display');

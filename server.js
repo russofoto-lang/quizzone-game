@@ -4,12 +4,14 @@ const http = require('http').createServer(app);
 const io = require('socket.io')(http);
 const path = require('path');
 
-// Servi file statici
-app.use(express.static(__dirname));
-app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
-app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'admin.html')));
-app.get('/display', (req, res) => res.sendFile(path.join(__dirname, 'display.html')));
-app.get('/preview', (req, res) => res.sendFile(path.join(__dirname, 'preview.html')));
+// ✅FIX: Servi file statici dalla cartella public
+app.use(express.static(path.join(__dirname, 'public')));
+
+// ✅ FIX: Route corrette puntando a public/
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
+app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
+app.get('/display', (req, res) => res.sendFile(path.join(__dirname, 'public', 'display.html')));
+app.get('/preview', (req, res) => res.sendFile(path.join(__dirname, 'public', 'preview.html')));
 
 // Stato del gioco
 let gameState = {
@@ -457,11 +459,18 @@ io.on('connection', (socket) => {
     console.log('🧠 Memory Game fermato');
   });
 
-  // ... [RESTANTE CODICE ESISTENTE DEL SERVER] ...
-
+  socket.on('disconnect', () => {
+    const team = gameState.teams[socket.id];
+    if (team) {
+      console.log(`❌ Disconnesso: ${team.name}`);
+      delete gameState.teams[socket.id];
+      
+      const realTeams = Object.values(gameState.teams).filter(t => !t.isPreview);
+      io.emit('update_teams', realTeams);
+      io.to('admin').emit('update_teams', realTeams);
+    }
+  });
 });
-
-// ... [FUNZIONI DEL SERVER ESISTENTI] ...
 
 const PORT = process.env.PORT || 3000;
 http.listen(PORT, () => console.log(`✅ Server in ascolto su porta ${PORT}`));

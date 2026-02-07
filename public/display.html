@@ -505,6 +505,44 @@
         </div>
     </div>
 
+    <!-- VISTA MEMORY INTRO MANCHE -->
+    <div id="view-memory-intro" class="view-section hidden absolute inset-0 bg-gradient-to-br from-indigo-900 to-purple-900 z-50 flex flex-col items-center justify-center">
+        <div class="text-center animate__animated animate__zoomIn">
+            <div class="text-9xl mb-8">🧠</div>
+            <h1 class="text-8xl font-black text-white mb-6">MEMORY</h1>
+            <div id="memory-intro-manche" class="text-6xl font-bold text-yellow-400 mb-4">
+                MANCHE 1/3
+            </div>
+            <div id="memory-intro-pairs" class="text-4xl text-white">
+                3 COPPIE DA TROVARE
+            </div>
+        </div>
+    </div>
+
+    <!-- VISTA MEMORY GAME -->
+    <div id="view-memory" class="view-section hidden absolute inset-0 bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900 z-50 flex flex-col items-center justify-center p-8">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-7xl font-black text-yellow-400 mb-4">🧠 MEMORY GAME</h1>
+            <div id="memory-manche-info" class="text-4xl font-bold text-white">
+                MANCHE 1/3
+            </div>
+            <div id="memory-phase-text" class="text-3xl font-bold text-white mt-2">
+                MEMORIZZA!
+            </div>
+        </div>
+        
+        <!-- Grid delle carte -->
+        <div id="memory-grid" class="grid gap-4 mb-8">
+            <!-- Popolato dinamicamente -->
+        </div>
+        
+        <!-- Timer -->
+        <div id="memory-timer" class="text-3xl font-bold text-yellow-300">
+            ⏱️ 5 secondi
+        </div>
+    </div>
+
 </div>
 
 <script>
@@ -512,6 +550,7 @@
     let timerInterval = null;
     let questionStartTime = 0;
     let maxTime = 20;
+    let memoryTimerInterval = null;
     
     function showView(id) {
         document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
@@ -1052,6 +1091,140 @@
         setTimeout(() => {
             showView('classifica_gen');
         }, 5000);
+    });
+
+    // ════════════════════════════════════════════════════════════════
+    // 🧠 MEMORY GAME - DISPLAY
+    // ════════════════════════════════════════════════════════════════
+
+    socket.on('memory_manche_intro', (data) => {
+        showView('memory-intro');
+        document.getElementById('memory-intro-manche').textContent = `MANCHE ${data.manche}/${data.totalManches}`;
+        document.getElementById('memory-intro-pairs').textContent = `${data.pairsCount} COPPIE DA TROVARE`;
+        console.log(`🧠 Intro Manche ${data.manche}`);
+    });
+
+    socket.on('memory_show_all', (data) => {
+        showView('memory');
+        
+        // Configura grid
+        const grid = document.getElementById('memory-grid');
+        grid.className = 'grid gap-4 mb-8';
+        
+        if(data.grid === '2x3') {
+            grid.style.gridTemplateColumns = 'repeat(3, 180px)';
+            grid.style.gridTemplateRows = 'repeat(2, 180px)';
+        } else if(data.grid === '2x5') {
+            grid.style.gridTemplateColumns = 'repeat(5, 150px)';
+            grid.style.gridTemplateRows = 'repeat(2, 150px)';
+        } else if(data.grid === '2x7') {
+            grid.style.gridTemplateColumns = 'repeat(7, 130px)';
+            grid.style.gridTemplateRows = 'repeat(2, 130px)';
+        }
+        
+        // Popola carte
+        grid.innerHTML = '';
+        data.cards.forEach((emoji, index) => {
+            const card = document.createElement('div');
+            card.className = 'flex items-center justify-center bg-white/20 rounded-2xl border-4 border-white/40 text-8xl animate__animated animate__flipInY';
+            card.style.animationDelay = `${index * 0.05}s`;
+            card.textContent = emoji;
+            grid.appendChild(card);
+        });
+        
+        // Info e timer
+        document.getElementById('memory-manche-info').textContent = `MANCHE ${data.manche}/3 - ROUND ${data.round}`;
+        document.getElementById('memory-phase-text').textContent = 'MEMORIZZA LE CARTE!';
+        document.getElementById('memory-timer').textContent = `⏱️ ${data.duration} secondi`;
+        
+        // Countdown
+        let timeLeft = data.duration;
+        if(memoryTimerInterval) clearInterval(memoryTimerInterval);
+        memoryTimerInterval = setInterval(() => {
+            timeLeft--;
+            document.getElementById('memory-timer').textContent = `⏱️ ${timeLeft} secondi`;
+            if(timeLeft <= 0) clearInterval(memoryTimerInterval);
+        }, 1000);
+        
+        console.log('🧠 Mostra tutte le carte');
+    });
+
+    socket.on('memory_cover_all', () => {
+        const grid = document.getElementById('memory-grid');
+        const cards = grid.children;
+        
+        for(let i = 0; i < cards.length; i++) {
+            cards[i].className = 'flex items-center justify-center bg-gray-700 rounded-2xl border-4 border-gray-500 text-6xl font-black text-white animate__animated animate__flipOutY';
+            setTimeout(() => {
+                cards[i].textContent = i + 1; // Numero posizione
+                cards[i].className = 'flex items-center justify-center bg-gray-700 rounded-2xl border-4 border-gray-500 text-6xl font-black text-white';
+            }, 300);
+        }
+        
+        document.getElementById('memory-phase-text').textContent = 'CARTE COPERTE!';
+        document.getElementById('memory-timer').textContent = '';
+        
+        if(memoryTimerInterval) clearInterval(memoryTimerInterval);
+        
+        console.log('🧠 Carte coperte');
+    });
+
+    socket.on('memory_reveal_one', (data) => {
+        const grid = document.getElementById('memory-grid');
+        const cards = grid.children;
+        
+        // Rivela la carta scelta
+        const revealedCard = cards[data.position];
+        revealedCard.className = 'flex items-center justify-center bg-yellow-500 rounded-2xl border-4 border-yellow-300 text-8xl animate__animated animate__pulse animate__infinite';
+        revealedCard.textContent = data.image;
+        
+        document.getElementById('memory-phase-text').textContent = `TROVA LA COPPIA DI ${data.image}`;
+        document.getElementById('memory-timer').textContent = `⏱️ ${data.duration} secondi`;
+        
+        // Countdown
+        let timeLeft = data.duration;
+        if(memoryTimerInterval) clearInterval(memoryTimerInterval);
+        memoryTimerInterval = setInterval(() => {
+            timeLeft--;
+            document.getElementById('memory-timer').textContent = `⏱️ ${timeLeft} secondi`;
+            if(timeLeft <= 0) clearInterval(memoryTimerInterval);
+        }, 1000);
+        
+        console.log('🧠 Rivelata carta:', data.image, 'in posizione', data.position);
+    });
+
+    socket.on('memory_show_results', (data) => {
+        if(memoryTimerInterval) clearInterval(memoryTimerInterval);
+        
+        const grid = document.getElementById('memory-grid');
+        const cards = grid.children;
+        
+        // Mostra la carta corretta
+        const correctCard = cards[data.correctPosition];
+        correctCard.className = 'flex items-center justify-center bg-green-500 rounded-2xl border-4 border-green-300 text-8xl animate__animated animate__bounceIn';
+        correctCard.textContent = data.correctImage;
+        
+        // Conta corretti
+        const correctCount = data.results.filter(r => r.correct).length;
+        const totalCount = data.results.length;
+        
+        document.getElementById('memory-phase-text').innerHTML = `
+            <div class="text-5xl text-green-400 mb-4">✅ Posizione ${data.correctPosition + 1}</div>
+            <div class="text-3xl">${correctCount}/${totalCount} squadre corrette!</div>
+        `;
+        document.getElementById('memory-timer').textContent = `+${data.points}pt`;
+        
+        console.log('🧠 Risultati -', correctCount, 'corretti su', totalCount);
+    });
+
+    socket.on('memory_game_end', () => {
+        showView('custom');
+        document.getElementById('custom-text-display').innerHTML = `
+            <div class="text-9xl mb-6">🧠</div>
+            <div class="text-6xl font-black mb-4">MEMORY COMPLETATO!</div>
+            <div class="text-4xl text-yellow-300">Ottimo lavoro!</div>
+        `;
+        console.log('🧠 Memory Game terminato');
     });
 
     socket.on('force_reload', () => window.location.reload());

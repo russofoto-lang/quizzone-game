@@ -554,6 +554,70 @@ io.on('connection', (socket) => {
     console.log('🔄 Display resettati');
   });
 
+  // Admin mostra soluzione sul display
+  socket.on('mostra_soluzione', (data) => {
+    io.emit('mostra_soluzione_display', {
+      soluzione: data.soluzione,
+      domanda: gameState.currentQuestion ? gameState.currentQuestion.domanda : ''
+    });
+    console.log(`💡 Soluzione mostrata: ${data.soluzione}`);
+  });
+
+  // Admin mette in pausa
+  socket.on('pause_game', () => {
+    gameState.isPaused = true;
+    io.emit('game_paused');
+    console.log('⏸️ Gioco in pausa');
+  });
+
+  // Admin riprende gioco
+  socket.on('resume_game', () => {
+    gameState.isPaused = false;
+    io.emit('game_resumed');
+    console.log('▶️ Gioco ripreso');
+  });
+
+  // Admin resetta tutto il gioco
+  socket.on('reset_game', () => {
+    // Reset punteggi
+    Object.values(gameState.teams).forEach(team => {
+      if (!team.isPreview) {
+        team.score = 0;
+        team.streak = 0;
+      }
+    });
+    
+    // Reset stato
+    gameState.currentQuestion = null;
+    gameState.roundAnswers = [];
+    gameState.buzzerActive = false;
+    gameState.buzzerLocked = false;
+    gameState.buzzerQueue = [];
+    gameState.isPaused = false;
+    
+    const realTeams = Object.values(gameState.teams).filter(t => !t.isPreview);
+    io.emit('update_teams', realTeams);
+    io.emit('reset_client_ui');
+    io.to('admin').emit('update_teams', realTeams);
+    io.to('admin').emit('reset_round_monitor');
+    
+    console.log('🔄 Reset totale del gioco');
+  });
+
+  // Admin mostra vincitore
+  socket.on('show_winner', () => {
+    const realTeams = Object.values(gameState.teams).filter(t => !t.isPreview);
+    const sortedTeams = realTeams.sort((a, b) => b.score - a.score);
+    
+    if (sortedTeams.length > 0) {
+      io.emit('show_winner_screen', {
+        winner: sortedTeams[0],
+        podium: sortedTeams.slice(0, 3)
+      });
+      console.log(`🏆 Vincitore: ${sortedTeams[0].name} con ${sortedTeams[0].score} punti`);
+    }
+  });
+
   // Admin mostra risposta corretta
   socket.on('mostra_corretta', () => {
     if (gameState.currentQuestion) {
@@ -632,6 +696,12 @@ io.on('connection', (socket) => {
     const team = gameState.teams[socket.id];
     if (!team || !gameState.currentQuestion) return;
     
+    // ✅ Blocca risposte se il gioco è in pausa
+    if (gameState.isPaused) {
+      socket.emit('game_paused');
+      return;
+    }
+    
     const elapsed = (Date.now() - gameState.currentQuestion.startTime) / 1000;
     const isCorrect = risposta === gameState.currentQuestion.corretta;
     
@@ -673,6 +743,12 @@ io.on('connection', (socket) => {
   // Buzzer
   socket.on('prenoto', () => {
     if (gameState.buzzerLocked || !gameState.buzzerActive) return;
+    
+    // ✅ Blocca buzzer se il gioco è in pausa
+    if (gameState.isPaused) {
+      socket.emit('game_paused');
+      return;
+    }
     
     const team = gameState.teams[socket.id];
     if (!team) return;

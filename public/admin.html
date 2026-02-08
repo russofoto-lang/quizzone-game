@@ -448,10 +448,10 @@
     });
 
     document.getElementById('sel-cat').addEventListener('change', (e) => {
-        if(e.target.value) socket.emit('get_questions', {type: 'categoria', key: e.target.value});
+        if(e.target.value) socket.emit('get_questions', {type: 'categoria', category: e.target.value});
     });
 
-    socket.on('receive_questions', (q) => {
+    socket.on('questions_list', (q) => {  // ✅ FIX: Era 'receive_questions'
         currentQuestions = q;
         showQuestionsList(q);
     });

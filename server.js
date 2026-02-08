@@ -183,22 +183,22 @@ function sendQuestion(questionData, modalita = 'multipla') {
     categoria: questionData.categoria
   });
   
-  // ? LOG EVIDENZIATO DELLA RISPOSTA CORRETTA
-  console.log('\n' + '?'.repeat(80));
-  console.log('? NUOVA DOMANDA');
-  console.log('?'.repeat(80));
-  console.log(`? Categoria: ${questionData.categoria}`);
-  console.log(`? Modalit?: ${modalita}`);
-  console.log(`? Domanda: "${questionData.domanda}"`);
-  console.log(`? RISPOSTA CORRETTA: ${questionData.corretta}`);
-  console.log('?'.repeat(80) + '\n');
+  // ✅ LOG EVIDENZIATO DELLA RISPOSTA CORRETTA
+  console.log('\n' + '='.repeat(80));
+  console.log('🎯 NUOVA DOMANDA');
+  console.log('='.repeat(80));
+  console.log(`📚 Categoria: ${questionData.categoria}`);
+  console.log(`🎮 Modalità: ${modalita}`);
+  console.log(`❓ Domanda: "${questionData.domanda}"`);
+  console.log(`✅ RISPOSTA CORRETTA: ${questionData.corretta}`);
+  console.log('='.repeat(80) + '\n');
 }
 
 // MEMORY GAME
 const EMOJI_POOL = [
-  '?', '?', '?', '?', '?', '?', '?', '?',
-  '?', '?', '?', '?', '?', '?', '?', '?',
-  '?', '?', '?', '?', '?', '?', '?', '?'
+  '🍎', '🍌', '🍕', '🎮', '⚽', '🎸', '🚀', '🌟',
+  '🐱', '🐶', '🦁', '🐼', '🎨', '📚', '🎭', '🎪',
+  '🌈', '⭐', '🔥', '💎', '🎯', '🏆', '🎁', '🎂'
 ];
 
 function generateMemoryCards(roundNumber) {
@@ -385,19 +385,20 @@ function startDuello() {
   gameState.duelloMode.waitingForAnswer = false;
   gameState.duelloMode.currentBuzzer = null;
   
-  // ? FIX: Invia l'attaccante all'admin
+  // ✅ FIX: Invia l'attaccante all'admin
   io.to('admin').emit('duello_attaccante', {
     attaccante: { id: lastPlace.id, name: lastPlace.name }
   });
   
-  io.emit('cambia_vista', { view: 'duello_intro' });
-  io.emit('duello_intro', { 
-    attaccante: { id: lastPlace.id, name: lastPlace.name }
+  // ✅ FIX: Animazione estrazione sul display
+  io.emit('duello_extraction_animation', {
+    teams: realTeams.map(t => t.name),
+    winner: { id: lastPlace.id, name: lastPlace.name }
   });
   
-  console.log('\n' + '?'.repeat(40));
-  console.log(`? DUELLO AVVIATO - Attaccante: ${lastPlace.name}`);
-  console.log('?'.repeat(40) + '\n');
+  console.log('\n' + '🔥'.repeat(40));
+  console.log(`🔥 DUELLO AVVIATO - Attaccante: ${lastPlace.name}`);
+  console.log('🔥'.repeat(40) + '\n');
 }
 
 function finalizeDuello() {
@@ -467,6 +468,24 @@ io.on('connection', (socket) => {
   });
 
   socket.on('invia_domanda', (d) => sendQuestion(d, d.modalita || 'multipla'));
+
+  // ✅ FIX: Listener per ottenere domande filtrate
+  socket.on('get_questions', (filter) => {
+    let filtered = [];
+    
+    if (filter.type === 'categoria' && filter.category) {
+      filtered = db.questions.filter(q => q.categoria === filter.category);
+    } else if (filter.type === 'stima') {
+      filtered = db.questions.filter(q => q.categoria === 'Stima');
+    } else if (filter.type === 'anagramma') {
+      filtered = db.questions.filter(q => q.categoria === 'Anagramma');
+    } else if (filter.type === 'bonus') {
+      filtered = db.questions.filter(q => q.categoria === 'Bonus');
+    }
+    
+    socket.emit('questions_list', filtered);
+    console.log(`📋 Inviate ${filtered.length} domande (tipo: ${filter.type}${filter.category ? ', categoria: ' + filter.category : ''})`);
+  });
 
   socket.on('risposta', (data) => {
     if (!gameState.currentQuestion || gameState.isPaused) return;

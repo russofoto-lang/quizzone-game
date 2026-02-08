@@ -676,32 +676,6 @@
         }
     });
 
-    // ✅ PAUSA - Aggiungere notifiche visive
-    socket.on('game_paused', () => {
-        // Mostra overlay pausa
-        const pauseOverlay = document.getElementById('pause-overlay') || createPauseOverlay();
-        pauseOverlay.classList.remove('hidden');
-    });
-
-    socket.on('game_resumed', () => {
-        const pauseOverlay = document.getElementById('pause-overlay');
-        if (pauseOverlay) pauseOverlay.classList.add('hidden');
-    });
-
-    function createPauseOverlay() {
-        const div = document.createElement('div');
-        div.id = 'pause-overlay';
-        div.className = 'hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50';
-        div.innerHTML = `
-            <div class="text-center">
-                <div class="text-9xl mb-4">⏸️</div>
-                <div class="text-6xl font-black text-yellow-400">PAUSA</div>
-            </div>
-        `;
-        document.body.appendChild(div);
-        return div;
-    }
-
     // PAUSA GIOCO
     socket.on('game_paused', (data) => {
         console.log('Ricevuto comando pausa');
@@ -982,7 +956,7 @@
         const wheelName = document.getElementById('wheel-name');
         let index = 0;
         const interval = setInterval(() => {
-            wheelName.textContent = data.teams[index % data.teams.length];
+            wheelName.textContent = data.teams[index % data.teams.length].name;  // ✅ FIX: Aggiunto .name
             index++;
         }, 200);
         

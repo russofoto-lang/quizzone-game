@@ -176,22 +176,68 @@
 
     // Ruota Fortuna - Mostra scelta
     socket.on('ruota_choice', (data) => {
+        console.log('🎰 Ricevuta scelta ruota:', data);
         resetUI();
-        document.getElementById('ruota-choice-buttons').classList.remove('hidden');
+        
+        // Mostra messaggio
+        document.getElementById('msg-box').innerHTML = `
+            <div class="text-2xl font-black mb-6">${data.message}</div>
+        `;
+        
+        // Crea pulsanti per le opzioni
+        const container = document.getElementById('ruota-choice-buttons');
+        container.innerHTML = '';
+        container.classList.remove('hidden');
+        
+        data.options.forEach(option => {
+            const btn = document.createElement('button');
+            btn.className = 'bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-black text-2xl py-8 px-6 rounded-3xl shadow-2xl active:scale-95 transition-all mb-4';
+            btn.innerHTML = `
+                <div>${option.label}</div>
+                ${option.value ? `<div class="text-xl mt-2">(= ${option.value} punti)</div>` : ''}
+            `;
+            btn.onclick = () => makeRuotaChoice(option.id, option.opponents);
+            container.appendChild(btn);
+        });
     });
 
-    function makeRuotaChoice(choice) {
+    function makeRuotaChoice(choice, opponents = null) {
+        // Se scelta "steal" e ci sono avversari, mostra lista
+        if(choice === 'steal' && opponents && opponents.length > 0) {
+            const container = document.getElementById('ruota-choice-buttons');
+            container.innerHTML = '<div class="text-2xl font-bold mb-4">Scegli chi derubare:</div>';
+            
+            opponents.forEach(opp => {
+                const btn = document.createElement('button');
+                btn.className = 'bg-gradient-to-r from-red-500 to-pink-500 text-white font-black text-xl py-6 px-6 rounded-3xl shadow-2xl active:scale-95 transition-all mb-3 w-full';
+                btn.innerHTML = `
+                    <div>${opp.name}</div>
+                    <div class="text-sm mt-1">${opp.score} punti</div>
+                `;
+                btn.onclick = () => {
+                    socket.emit('ruota_choice_made', { 
+                        choice: 'steal',
+                        targetTeam: opp.id
+                    });
+                    container.classList.add('hidden');
+                    document.getElementById('msg-box').innerText = `💰 Hai scelto di rubare 200 punti a ${opp.name}!`;
+                };
+                container.appendChild(btn);
+            });
+            return;
+        }
+        
+        // Altrimenti invia direttamente la scelta
         socket.emit('ruota_choice_made', { 
-            teamId: socket.id, 
             choice: choice 
         });
         
         document.getElementById('ruota-choice-buttons').classList.add('hidden');
         
-        if(choice === 'safe') {
+        if(choice === 'double') {
+            document.getElementById('msg-box').innerText = '🔥 Hai scelto di raddoppiare i tuoi punti!';
+        } else if(choice === 'safe') {
             document.getElementById('msg-box').innerText = '💰 Hai scelto 50 punti sicuri!';
-        } else {
-            document.getElementById('msg-box').innerText = '🎯 Preparati alla domanda sfida!';
         }
     }
 
@@ -205,6 +251,82 @@
             </div>
         `;
     });
+    
+    // ✅ FIX: Scommesse ALL IN
+    socket.on('finale_allin_betting', (data) => {
+        console.log('💰 Scommesse ALL IN aperte');
+        resetUI();
+        
+        // Mostra domanda
+        document.getElementById('msg-box').innerHTML = `
+            <div class="text-3xl font-black mb-4">🔥 DOMANDA ALL IN 🔥</div>
+            <div class="text-xl mb-6">${data.question.domanda}</div>
+            <div class="text-lg font-bold text-yellow-400">Scommetti i tuoi punti sulla risposta!</div>
+        `;
+        
+        // Mostra opzioni risposta
+        const grid = document.getElementById('opts-grid');
+        grid.classList.remove('hidden');
+        grid.innerHTML = '';
+        
+        data.question.risposte.forEach((risposta, idx) => {
+            const btn = document.createElement('button');
+            btn.className = 'bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold text-xl py-6 px-4 rounded-2xl shadow-2xl active:scale-95 transition-all';
+            btn.innerHTML = `${String.fromCharCode(65 + idx)}: ${risposta}`;
+            btn.onclick = () => showAllInBetSelector(risposta, data);
+            grid.appendChild(btn);
+        });
+    });
+    
+    function showAllInBetSelector(answer, data) {
+        const myTeam = data.teams.find(t => t.id === socket.id);
+        if(!myTeam) return;
+        
+        document.getElementById('opts-grid').classList.add('hidden');
+        document.getElementById('msg-box').innerHTML = `
+            <div class="text-2xl font-black mb-4">Quanto vuoi scommettere?</div>
+            <div class="text-lg mb-4">Risposta: <span class="text-yellow-400">${answer}</span></div>
+            <div class="text-sm text-gray-300 mb-6">I tuoi punti: ${myTeam.score}</div>
+        `;
+        
+        const container = document.createElement('div');
+        container.className = 'space-y-3';
+        
+        const betAmounts = [
+            { label: 'Tutto (ALL IN)', value: myTeam.score },
+            { label: 'Metà punti', value: Math.floor(myTeam.score / 2) },
+            { label: '200 punti', value: Math.min(200, myTeam.score) },
+            { label: '100 punti', value: Math.min(100, myTeam.score) }
+        ];
+        
+        betAmounts.forEach(bet => {
+            if(bet.value > 0) {
+                const btn = document.createElement('button');
+                btn.className = 'bg-gradient-to-r from-orange-500 to-red-600 text-white font-black text-xl py-4 px-6 rounded-2xl shadow-xl active:scale-95 transition-all w-full';
+                btn.innerHTML = `${bet.label} (${bet.value} punti)`;
+                btn.onclick = () => placeAllInBet(answer, bet.value);
+                container.appendChild(btn);
+            }
+        });
+        
+        document.getElementById('msg-box').appendChild(container);
+    }
+    
+    function placeAllInBet(answer, amount) {
+        socket.emit('finale_allin_bet', {
+            answer: answer,
+            bet: amount
+        });
+        
+        document.getElementById('msg-box').innerHTML = `
+            <div class="bg-green-600 p-6 rounded-xl">
+                <div class="text-6xl mb-4">✅</div>
+                <div class="text-2xl font-black">Scommessa piazzata!</div>
+                <div class="text-xl mt-4">${amount} punti su "${answer}"</div>
+                <div class="text-sm mt-4 text-gray-200">Attendi gli altri giocatori...</div>
+            </div>
+        `;
+    }
     
     // MOSTRA DOMANDA ALL IN (dopo scommesse)
     socket.on('show_allin_question', (d) => {

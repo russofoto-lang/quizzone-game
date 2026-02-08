@@ -97,15 +97,17 @@
     <div id="view-classifica_round" class="view-section hidden absolute inset-0 bg-indigo-950 z-40 flex flex-col items-center pt-10">
         <h2 class="text-5xl font-black text-white mb-8 bg-indigo-600 px-12 py-3 rounded-full shadow-2xl italic">⚡ RISULTATI ROUND ⚡</h2>
         <div class="w-full max-w-5xl h-[70vh] overflow-y-auto glass rounded-3xl p-6">
-                        <table class="w-full text-left text-2xl border-collapse">
+            <table class="w-full text-left text-2xl border-collapse">
                 <thead class="text-indigo-300 border-b-2 border-indigo-800">
                     <tr>
                         <th class="p-4">POS</th>
                         <th class="p-4">SQUADRA</th>
+                        <th class="p-4">RISPOSTA</th>
+                        <th class="p-4 text-right">TEMPO</th>
                         <th class="p-4 text-right">PUNTI</th>
                     </tr>
                 </thead>
-                <tbody id="round-results-table"></tbody>
+                <tbody id="round-list-body"></tbody>
             </table>
         </div>
     </div>
@@ -674,9 +676,8 @@
         }
     });
 
-    // ✅ PAUSA - Aggiungere notifiche visive
+    // ✅ FIX 1: PAUSA - Mostra solo sfondo, non la scritta "PAUSA"
     socket.on('game_paused', () => {
-        // ✅ FIX: Mostra solo sfondo, non la scritta "PAUSA"
         showView('custom');
         document.getElementById('custom-text-display').innerHTML = `
             <div class="text-9xl mb-6 animate-pulse">☕</div>
@@ -684,35 +685,28 @@
         `;
     });
 
-
-    socket.on('game_resumed', () => {
-        const pauseOverlay = document.getElementById('pause-overlay');
-        if (pauseOverlay) pauseOverlay.classList.add('hidden');
-    });
-
-    function createPauseOverlay() {
-        const div = document.createElement('div');
-        div.id = 'pause-overlay';
-        div.className = 'hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50';
-        div.innerHTML = `
-            <div class="text-center">
-                <div class="text-9xl mb-4">⏸️</div>
-                <div class="text-6xl font-black text-yellow-400">PAUSA</div>
-            </div>
-        `;
-        document.body.appendChild(div);
-        return div;
-    }
-
-    // PAUSA GIOCO
-    } else {
-            leaderboard.innerHTML = '<p class="text-white/60">Nessuna squadra registrata</p>';
-        }
-    });
-
     socket.on('game_resumed', () => {
         console.log('Gioco ripreso');
         showView('logo');
+    });
+
+    // ✅ FIX 2: Reset completo del display
+    socket.on('reset_display_ui', () => {
+        // Reset completo del display
+        showView('logo');
+        document.getElementById('q-text').innerText = 'Caricamento domanda...';
+        document.getElementById('opts').innerHTML = '';
+        document.getElementById('opts').classList.add('hidden');
+        document.getElementById('solution').classList.add('hidden');
+        document.getElementById('timer-display-container').classList.add('hidden');
+        document.getElementById('buzzer-overlay').classList.add('hidden');
+        
+        if(timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
+        
+        console.log('🔄 Display resettato');
     });
 
     function renderRoundList(data) {
@@ -1020,26 +1014,7 @@
         document.getElementById('cat').innerText = 'CATEGORIA';
     });
 
-    
-
-    socket.on('reset_display_ui', () => {
-        // Reset completo del display
-        showView('logo');
-        document.getElementById('q-text').innerText = 'Caricamento domanda...';
-        document.getElementById('opts').innerHTML = '';
-        document.getElementById('opts').classList.add('hidden');
-        document.getElementById('solution').classList.add('hidden');
-        document.getElementById('timer-display-container').classList.add('hidden');
-        document.getElementById('buzzer-overlay').classList.add('hidden');
-
-        if(timerInterval) {
-            clearInterval(timerInterval);
-            timerInterval = null;
-        }
-
-        console.log('🔄 Display resettato');
-    });
-// ════════════════════════════════════════════════════════════════
+    // ════════════════════════════════════════════════════════════════
     // 🔥 DUELLO RUBA-PUNTI
     // ════════════════════════════════════════════════════════════════
     
@@ -1288,20 +1263,18 @@
         console.log('🧠 Memory Game terminato');
     });
 
-    });
-
+    // ✅ FIX 3: Gestione classifica round con punti positivi/negativi
     socket.on('update_round_leaderboard', (data) => {
         const tbody = document.getElementById('round-results-table');
         if (!tbody) return;
-
+        
         tbody.innerHTML = '';
-
+        
         data.results.forEach((team, index) => {
             const medals = ['🥇', '🥈', '🥉'];
             const medal = index < 3 ? medals[index] : `${index + 1}°`;
-
             const pointsClass = team.roundPoints > 0 ? 'text-green-400' : team.roundPoints < 0 ? 'text-red-400' : 'text-gray-400';
-
+            
             tbody.innerHTML += `
                 <tr class="border-b border-white/20 animate__animated animate__fadeInLeft" style="animation-delay: ${index * 0.1}s">
                     <td class="py-4 px-6 text-5xl">${medal}</td>

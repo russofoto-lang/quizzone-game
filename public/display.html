@@ -270,6 +270,33 @@
         </div>
     </div>
 
+    <!-- VISTA KARAOKE YOUTUBE -->
+    <div id="view-karaoke" class="view-section hidden absolute inset-0 bg-black z-50 flex flex-col">
+        <!-- Header Forever Young (resta sempre) -->
+        <div class="h-[10%] flex justify-center items-center bg-gradient-to-r from-yellow-600 to-red-600 border-b-4 border-yellow-400">
+            <h1 class="text-5xl font-black text-white tracking-wider drop-shadow-lg">
+                🎮 SIPONTO FOREVER YOUNG 🎮
+            </h1>
+        </div>
+        
+        <!-- YouTube Player -->
+        <div class="flex-1 relative bg-black flex items-center justify-center">
+            <iframe id="youtube-player" 
+                    class="w-full h-full" 
+                    frameborder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                    allowfullscreen>
+            </iframe>
+        </div>
+        
+        <!-- Banner Karaoke -->
+        <div class="h-[8%] bg-gradient-to-r from-pink-600 via-purple-600 to-pink-600 flex items-center justify-center border-t-4 border-pink-400">
+            <div class="text-4xl font-black text-white tracking-widest animate-pulse">
+                🎤 KARAOKE TIME! 🎤
+            </div>
+        </div>
+    </div>
+
     <!-- VISTA DUELLO RUBA-PUNTI -->
     <div id="view-duello" class="view-section hidden absolute inset-0 bg-gradient-to-br from-red-900 via-orange-900 to-yellow-900 z-40 flex flex-col items-center justify-center p-6">
         
@@ -301,33 +328,6 @@
             
             <div id="duello-status" class="text-3xl font-bold text-center">
                 <span class="text-yellow-400 animate-pulse">⚡ In attesa di buzzer...</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- VISTA KARAOKE YOUTUBE -->
-    <div id="view-karaoke" class="view-section hidden absolute inset-0 bg-black z-50 flex flex-col">
-        <!-- Header Forever Young (resta sempre) -->
-        <div class="h-[10%] flex justify-center items-center bg-gradient-to-r from-yellow-600 to-red-600 border-b-4 border-yellow-400">
-            <h1 class="text-5xl font-black text-white tracking-wider drop-shadow-lg">
-                🎮 SIPONTO FOREVER YOUNG 🎮
-            </h1>
-        </div>
-        
-        <!-- YouTube Player -->
-        <div class="flex-1 relative bg-black flex items-center justify-center">
-            <iframe id="youtube-player" 
-                    class="w-full h-full" 
-                    frameborder="0" 
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                    allowfullscreen>
-            </iframe>
-        </div>
-        
-        <!-- Banner Karaoke -->
-        <div class="h-[8%] bg-gradient-to-r from-pink-600 via-purple-600 to-pink-600 flex items-center justify-center border-t-4 border-pink-400">
-            <div class="text-4xl font-black text-white tracking-widest animate-pulse">
-                🎤 KARAOKE TIME! 🎤
             </div>
         </div>
     </div>
@@ -648,7 +648,7 @@
         }
     }
 
-    // ✅ Mostra soluzione sul display
+    // ✅ FIX: Riceve soluzione SOLO il display
     socket.on('mostra_soluzione_display', (data) => {
         // Nascondi tutto
         document.getElementById('game-screen').classList.add('hidden');
@@ -949,7 +949,10 @@
         mini.innerText = realTeams.slice(0,3).map(x => `${x.name}: ${x.score}`).join(' | ');
     });
 
-    // YouTube Karaoke Events
+    // ════════════════════════════════════════════════════════════════
+    // 🎤 KARAOKE YOUTUBE
+    // ════════════════════════════════════════════════════════════════
+
     socket.on('play_youtube_karaoke', (data) => {
         console.log('🎤 Avvio karaoke YouTube:', data.videoId);
         const player = document.getElementById('youtube-player');
@@ -961,7 +964,7 @@
         console.log('⏹️ Stop karaoke');
         const player = document.getElementById('youtube-player');
         player.src = '';
-        showView('logo_forever');
+        showView('logo');
     });
 
     // Ruota della Fortuna Events

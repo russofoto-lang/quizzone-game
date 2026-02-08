@@ -74,4 +74,99 @@
             if(d.modalita === 'buzzer') {
                 const btn = document.getElementById('btn-buzzer');
                 btn.classList.remove('hidden');
-                btn.className = "w-64 h-64 rounded-full bg-red-600 border-red-800 flex items-center justify-center animate-pulse shadow-[0_0_
+                btn.className = "w-64 h-64 rounded-full bg-red-600 border-red-800 flex items-center justify-center animate-pulse shadow-[0_0_50px_rgba(255,0,0,0.5)]";
+                btn.innerHTML = "<span class='text-4xl font-black text-white uppercase'>BUZZER ATTIVO</span>";
+            } else if(d.risposte && d.risposte.length > 0) {
+                document.getElementById('btn-buzzer').classList.add('hidden');
+                const g = document.getElementById('opts-grid');
+                g.classList.remove('hidden');
+                g.innerHTML = '';
+                d.risposte.forEach(r => {
+                    const b = document.createElement('div');
+                    b.className = "bg-blue-600 rounded-xl p-4 font-bold text-lg shadow-xl text-center";
+                    b.innerText = r;
+                    g.appendChild(b);
+                });
+            }
+        });
+        
+        // Preview non deve ricevere soluzioni
+        
+        socket.on('game_paused', () => {
+            resetUI();
+            document.getElementById('msg-box').innerHTML = `
+                <div class="bg-orange-600 p-6 rounded-xl">
+                    <div class="text-6xl mb-4">☕</div>
+                    <div class="text-3xl font-black">PAUSA</div>
+                </div>
+            `;
+        });
+        
+        socket.on('game_resumed', () => {
+            document.getElementById('msg-box').innerHTML = 'In attesa...';
+        });
+        
+        socket.on('reset_client_ui', () => {
+            resetUI();
+            document.getElementById('msg-box').innerHTML = 'In attesa...';
+        });
+        
+        function startTimer() {
+            if(timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+            
+            document.getElementById('timer-container').classList.remove('hidden');
+            
+            const timerDisplay = document.getElementById('timer-display');
+            const timerBar = document.getElementById('timer-bar');
+            
+            timerBar.style.width = '100%';
+            timerBar.style.backgroundColor = '#10b981';
+            
+            timerInterval = setInterval(() => {
+                const elapsed = (Date.now() - questionStartTime) / 1000;
+                const remaining = Math.max(0, maxTime - elapsed);
+                
+                timerDisplay.textContent = Math.ceil(remaining);
+                timerBar.style.width = `${(remaining / maxTime) * 100}%`;
+                
+                if(remaining <= 5) {
+                    timerBar.style.backgroundColor = '#ef4444';
+                    timerDisplay.style.color = '#ef4444';
+                } else if(remaining <= 10) {
+                    timerBar.style.backgroundColor = '#f59e0b';
+                    timerDisplay.style.color = '#f59e0b';
+                } else {
+                    timerBar.style.backgroundColor = '#10b981';
+                    timerDisplay.style.color = '#10b981';
+                }
+                
+                if(remaining <= 0) {
+                    stopTimer();
+                    timerDisplay.textContent = '0';
+                }
+            }, 100);
+        }
+        
+        function stopTimer() {
+            if(timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+        
+        function resetUI() {
+            stopTimer();
+            document.getElementById('btn-buzzer').classList.add('hidden');
+            document.getElementById('opts-grid').classList.add('hidden');
+            document.getElementById('opts-grid').innerHTML = '';
+            document.getElementById('timer-container').classList.add('hidden');
+            document.getElementById('memory-buttons').classList.add('hidden');
+        }
+        
+        socket.on('force_reload', () => window.location.reload());
+    </script>
+</body>
+</html>

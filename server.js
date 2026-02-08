@@ -99,6 +99,7 @@ let gameState = {
   currentQuestion: null,
   roundAnswers: [],
   isPaused: false,
+  roundScores: {}, // ✅ FIX: Aggiunto per tracciare i punteggi del round
   
   duelloMode: {
     active: false,
@@ -173,7 +174,14 @@ function sendQuestion(questionData, modalita = 'multipla') {
     attiva: (modalita === 'buzzer')
   });
   
-  console.log(`📝 Domanda: "${questionData.domanda}" (${modalita})`);
+  // ✅ FIX 5: Invia la risposta corretta all'admin in anticipo
+  io.to('admin').emit('show_correct_answer_preview', {
+    corretta: questionData.corretta,
+    domanda: questionData.domanda,
+    categoria: questionData.categoria
+  });
+  
+  console.log(`📝 Domanda: "${questionData.domanda}" (${modalita}) - Risposta: ${questionData.corretta}`);
 }
 
 // MEMORY GAME
@@ -265,29 +273,37 @@ function startMemoryRound() {
     io.emit('memory_cover_all');
     
     setTimeout(() => {
-      gameState.memoryMode.mancheStartTime = Date.now();
-      gameState.memoryMode.answerDeadline = Date.now() + 15000;
-      
       io.emit('memory_reveal_one', {
-        position: selection.revealed.position,
-        image: selection.revealed.emoji,
-        grid: gridSize,
-        duration: 15,
-        manche: gameState.memoryMode.currentManche
+        position: gameState.memoryMode.revealedCard.position,
+        image: gameState.memoryMode.revealedCard.emoji,
+        duration: 10
       });
+      
+      io.to('admin').emit('memory_players_input', {
+        grid: gridSize,
+        positions: gameState.memoryMode.cards.length,
+        correctPosition: gameState.memoryMode.pairPosition
+      });
+      
+      gameState.memoryMode.mancheStartTime = Date.now();
+      gameState.memoryMode.answerDeadline = Date.now() + 10000;
       
       gameState.memoryMode.answerTimeout = setTimeout(() => {
         processMemoryAnswers();
-      }, 15000);
-    }, 1000);
+      }, 10000);
+      
+    }, 2000);
   }, 5000);
 }
 
 function processMemoryAnswers() {
+  if(gameState.memoryMode.answerTimeout) {
+    clearTimeout(gameState.memoryMode.answerTimeout);
+    gameState.memoryMode.answerTimeout = null;
+  }
+  
   const correctPosition = gameState.memoryMode.pairPosition;
   const results = [];
-  let fastestCorrect = null;
-  let fastestTime = 999;
   
   Object.values(gameState.memoryMode.answers).forEach(answer => {
     const isCorrect = answer.position === correctPosition;
@@ -295,287 +311,236 @@ function processMemoryAnswers() {
     if(isCorrect) {
       const team = gameState.teams[answer.teamId];
       if(team) {
-        team.score += 150;
-        if(answer.time < fastestTime) {
-          fastestTime = answer.time;
-          fastestCorrect = answer.teamId;
-        }
+        const points = 100;
+        team.score += points;
+        
+        results.push({
+          teamName: answer.teamName,
+          position: answer.position,
+          time: answer.time.toFixed(2),
+          correct: true,
+          points: points
+        });
       }
+    } else {
+      results.push({
+        teamName: answer.teamName,
+        position: answer.position,
+        time: answer.time.toFixed(2),
+        correct: false,
+        points: 0
+      });
     }
-    
-    results.push({
-      teamId: answer.teamId,
-      teamName: answer.teamName,
-      position: answer.position,
-      correct: isCorrect,
-      time: answer.time
-    });
   });
-  
-  if(fastestCorrect && gameState.teams[fastestCorrect]) {
-    gameState.teams[fastestCorrect].score += 50;
-    results.find(r => r.teamId === fastestCorrect).bonus = 50;
-  }
   
   const realTeams = Object.values(gameState.teams).filter(t => !t.isPreview);
   io.emit('update_teams', realTeams);
+  io.to('admin').emit('update_teams', realTeams);
   
   io.emit('memory_show_results', {
-    correctPosition: correctPosition,
-    correctImage: gameState.memoryMode.cards[correctPosition].emoji,
     results: results,
-    points: 150
+    correctPosition: correctPosition,
+    correctImage: gameState.memoryMode.revealedCard.emoji,
+    points: 100
   });
   
-  setTimeout(() => startMemoryRound(), 3000);
+  setTimeout(() => {
+    startMemoryRound();
+  }, 5000);
 }
 
 function endMemoryManche() {
-  gameState.memoryMode.active = false;
   io.emit('memory_game_end');
-  io.emit('cambia_vista', { view: 'classifica_gen' });
-  console.log('🧠 Memory completato!');
+  gameState.memoryMode.active = false;
+  
+  setTimeout(() => {
+    io.emit('cambia_vista', { view: 'classifica_gen' });
+  }, 3000);
 }
 
-// DUELLO
 function startDuello() {
   const realTeams = Object.values(gameState.teams).filter(t => !t.isPreview);
   if(realTeams.length < 2) return;
-
-  const attaccante = realTeams[Math.floor(Math.random() * realTeams.length)];
-
-  gameState.duelloMode = {
-    active: true,
-    attaccante: { id: attaccante.id, name: attaccante.name },
-    difensore: null,
-    categoria: null,
-    scoreAttaccante: 0,
-    scoreDifensore: 0,
-    questionNumber: 0,
-    waitingForAnswer: false,
-    currentBuzzer: null
-  };
-
-  io.to('admin').emit('duello_attaccante', { attaccante: { id: attaccante.id, name: attaccante.name }});
-  io.emit('duello_extraction_animation', {
-    teams: realTeams.map(t => t.name),
-    winner: { id: attaccante.id, name: attaccante.name }
+  
+  const sorted = realTeams.sort((a, b) => a.score - b.score);
+  const lastPlace = sorted[0];
+  
+  gameState.duelloMode.active = true;
+  gameState.duelloMode.attaccante = { id: lastPlace.id, name: lastPlace.name };
+  gameState.duelloMode.difensore = null;
+  gameState.duelloMode.categoria = null;
+  gameState.duelloMode.scoreAttaccante = 0;
+  gameState.duelloMode.scoreDifensore = 0;
+  gameState.duelloMode.questionNumber = 0;
+  gameState.duelloMode.waitingForAnswer = false;
+  gameState.duelloMode.currentBuzzer = null;
+  
+  io.to('admin').emit('duello_started', {
+    attaccante: { id: lastPlace.id, name: lastPlace.name }
   });
 }
 
 function finalizeDuello() {
-  const attaccanteWins = gameState.duelloMode.scoreAttaccante >= 2;
-  const winner = attaccanteWins ? gameState.duelloMode.attaccante : gameState.duelloMode.difensore;
-  const loser = attaccanteWins ? gameState.duelloMode.difensore : gameState.duelloMode.attaccante;
-
+  const attaccante = gameState.teams[gameState.duelloMode.attaccante.id];
+  const difensore = gameState.teams[gameState.duelloMode.difensore.id];
+  
+  if(!attaccante || !difensore) return;
+  
+  const attaccanteWins = gameState.duelloMode.scoreAttaccante > gameState.duelloMode.scoreDifensore;
+  
   if(attaccanteWins) {
-    if(gameState.teams[gameState.duelloMode.attaccante.id]) {
-      gameState.teams[gameState.duelloMode.attaccante.id].score += 250;
-    }
-    if(gameState.teams[gameState.duelloMode.difensore.id]) {
-      gameState.teams[gameState.duelloMode.difensore.id].score = Math.max(0, 
-        gameState.teams[gameState.duelloMode.difensore.id].score - 250);
-    }
+    attaccante.score += 250;
+    difensore.score = Math.max(0, difensore.score - 250);
   } else {
-    if(gameState.teams[gameState.duelloMode.difensore.id]) {
-      gameState.teams[gameState.duelloMode.difensore.id].score += 100;
-    }
+    difensore.score += 100;
   }
-
+  
   const realTeams = Object.values(gameState.teams).filter(t => !t.isPreview);
   io.emit('update_teams', realTeams);
-
+  io.to('admin').emit('update_teams', realTeams);
+  
   io.emit('duello_end', {
-    winner: winner,
-    loser: loser,
     attaccanteWins: attaccanteWins,
+    winner: attaccanteWins ? 
+      { id: attaccante.id, name: attaccante.name, score: attaccante.score } : 
+      { id: difensore.id, name: difensore.name, score: difensore.score },
+    loser: attaccanteWins ? 
+      { id: difensore.id, name: difensore.name, score: difensore.score } : 
+      { id: attaccante.id, name: attaccante.name, score: attaccante.score },
     finalScore: {
       attaccante: gameState.duelloMode.scoreAttaccante,
       difensore: gameState.duelloMode.scoreDifensore
-    },
-    pointsChange: attaccanteWins ? '+250/-250' : '+100 bonus'
+    }
   });
-
-  gameState.duelloMode = {
-    active: false,
-    attaccante: null,
-    difensore: null,
-    categoria: null,
-    scoreAttaccante: 0,
-    scoreDifensore: 0,
-    questionNumber: 0,
-    waitingForAnswer: false,
-    currentBuzzer: null
-  };
-
-  gameState.currentQuestion = null;
-  gameState.roundAnswers = [];
-  gameState.buzzerQueue = [];
-  io.emit('reset_client_ui');
+  
+  gameState.duelloMode.active = false;
 }
 
-// SOCKET.IO
 io.on('connection', (socket) => {
-  console.log(`🔌 ${socket.id}`);
-
-  socket.on('login', (teamName) => {
-    const isPreview = teamName === '🔍PREVIEW';
-    
-    gameState.teams[socket.id] = {
-      id: socket.id,
-      name: teamName,
-      score: 0,
-      streak: 0,
-      isPreview: isPreview
-    };
-
-    socket.emit('login_success', { id: socket.id, name: teamName });
-
-    const realTeams = Object.values(gameState.teams).filter(t => !t.isPreview);
-    io.emit('update_teams', realTeams);
-    io.to('admin').emit('update_teams', realTeams);
-  });
-
-  socket.on('invia_risposta', (risposta) => {
-    const team = gameState.teams[socket.id];
-    if (!team || team.isPreview || !gameState.currentQuestion) return;
-    if (gameState.roundAnswers.find(a => a.teamId === socket.id)) return;
-
-    const correctAnswer = gameState.currentQuestion.corretta;
-    const isCorrect = String(risposta).toLowerCase().trim() === String(correctAnswer).toLowerCase().trim();
-    const elapsedTime = (Date.now() - gameState.currentQuestion.startTime) / 1000;
-    let points = 0;
-
-    if (isCorrect) {
-      const basePoints = gameState.currentQuestion.punti || 100;
-      const speedBonus = Math.max(0, Math.round(50 - (elapsedTime * 2.5)));
-      points = basePoints + speedBonus;
-      team.score += points;
-      team.streak = (team.streak || 0) + 1;
-    } else {
-      team.streak = 0;
-    }
-
-    gameState.roundAnswers.push({
-      teamId: socket.id,
-      teamName: team.name,
-      risposta: risposta,
-      corretta: isCorrect,
-      tempo: elapsedTime.toFixed(2),
-      punti: points
-    });
-
-    const realTeams = Object.values(gameState.teams).filter(t => !t.isPreview);
-    io.emit('update_teams', realTeams);
-    io.to('admin').emit('update_teams', realTeams);
-    io.to('admin').emit('update_round_monitor', gameState.roundAnswers);
-  });
-
+  console.log(`🔌 Connessione: ${socket.id}`);
+  
   socket.on('admin_connect', () => {
     socket.join('admin');
     const realTeams = Object.values(gameState.teams).filter(t => !t.isPreview);
-    socket.emit('init_data', { categories: db.categories, teams: realTeams });
+    socket.emit('update_teams', realTeams);
+    socket.emit('questions_data', questionsData);
+    console.log('👨‍💻 Admin connesso');
   });
 
-  socket.on('get_questions', (params) => {
-    let questions = [];
-    if (params.type === 'categoria') {
-      questions = getQuestionsByCategory(params.key);
-    } else {
-      questions = db.questions.filter(q => q.categoria === params.type);
-    }
-    socket.emit('receive_questions', questions);
-  });
-
-  socket.on('send_question', (questionData) => {
-    sendQuestion(questionData, questionData.modalita || 'multipla');
-  });
-
-  socket.on('start_buzzer', (data) => {
-    gameState.buzzerActive = true;
-    gameState.buzzerStandalone = true;
-    gameState.buzzerLocked = false;
-    gameState.buzzerQueue = [];
-    gameState.currentQuestion = {
-      domanda: data.domanda || '🎵 Premi il buzzer!',
-      startTime: Date.now(),
-      modalita: 'buzzer'
+  socket.on('login', (name) => {
+    const isPreview = name.includes('PREVIEW') || name.includes('🔍');
+    
+    gameState.teams[socket.id] = {
+      id: socket.id,
+      name: name,
+      score: 0,
+      isPreview: isPreview
     };
     
-    io.emit('nuova_domanda', {
-      domanda: gameState.currentQuestion.domanda,
-      modalita: 'buzzer',
-      risposte: [],
-      startTime: Date.now(),
-      serverTimestamp: Date.now()
+    socket.emit('login_success', { teamId: socket.id, name: name });
+    
+    const realTeams = Object.values(gameState.teams).filter(t => !t.isPreview);
+    io.emit('update_teams', realTeams);
+    io.to('admin').emit('update_teams', realTeams);
+    
+    console.log(`✅ Login: ${name} (${isPreview ? 'Preview' : 'Giocatore'})`);
+  });
+
+  socket.on('invia_domanda', (d) => sendQuestion(d, d.modalita || 'multipla'));
+
+  socket.on('risposta', (data) => {
+    if (!gameState.currentQuestion || gameState.isPaused) return;
+    
+    const team = gameState.teams[socket.id];
+    if (!team || team.isPreview) return;
+    
+    if (gameState.roundAnswers.some(a => a.teamId === socket.id)) return;
+    
+    const time = ((Date.now() - gameState.currentQuestion.startTime) / 1000).toFixed(2);
+    const isCorrect = (data.risposta === gameState.currentQuestion.corretta);
+    
+    gameState.roundAnswers.push({
+      teamId: socket.id,
+      teamName: team.name,
+      risposta: data.risposta,
+      corretta: isCorrect,
+      time: time
     });
     
-    io.emit('stato_buzzer', { locked: false, attiva: true });
-    console.log('🔔 Buzzer standalone attivato');
-  });
-
-  socket.on('invia_domanda', (questionData) => {
-    sendQuestion(questionData, questionData.modalita || 'multipla');
-    io.to('admin').emit('reset_round_monitor');
-  });
-
-  socket.on('regia_cmd', (view) => {
-    io.emit('cambia_vista', { view: view });
-  });
-
-  socket.on('reset_displays', () => {
-    gameState.currentQuestion = null;
-    gameState.roundAnswers = [];
-    gameState.buzzerActive = false;
-    gameState.buzzerLocked = false;
-    gameState.buzzerQueue = [];
-    io.emit('reset_client_ui');
-    io.to('admin').emit('reset_round_monitor');
-  });
-
-  socket.on('mostra_soluzione', (data) => {
-    io.emit('mostra_soluzione_display', {
-      soluzione: data.soluzione,
-      domanda: gameState.currentQuestion ? gameState.currentQuestion.domanda : ''
+    socket.emit('risposta_inviata', {
+      corretta: isCorrect,
+      time: time
     });
-    console.log(`💡 Soluzione su display: ${data.soluzione}`);
+    
+    const realTeams = Object.values(gameState.teams).filter(t => !t.isPreview);
+    io.to('admin').emit('update_answers', {
+      answers: gameState.roundAnswers,
+      totalTeams: realTeams.length,
+      correctAnswer: gameState.currentQuestion.corretta
+    });
+    
+    console.log(`💬 ${team.name}: ${data.risposta} ${isCorrect ? '✅' : '❌'} (${time}s)`);
+  });
+
+  socket.on('regia_cmd', (cmd) => {
+    // ✅ FIX 4: Gestisci il comando "podio" per mostrare classifica round
+    if (cmd === 'classifica_round' || cmd === 'podio') {
+      // Calcola e invia la classifica del round corrente
+      const roundResults = Object.entries(gameState.roundScores || {}).map(([teamId, points]) => {
+        const team = gameState.teams[teamId];
+        return {
+          id: teamId,
+          name: team ? team.name : 'Unknown',
+          roundPoints: points
+        };
+      }).sort((a, b) => b.roundPoints - a.roundPoints);
+      
+      io.emit('cambia_vista', { view: 'classifica_round' });
+      io.emit('update_round_leaderboard', { results: roundResults });
+      console.log('📊 Mostro podio round');
+    } else {
+      io.emit('cambia_vista', { view: cmd });
+      console.log('📺 Vista:', cmd);
+    }
   });
 
   socket.on('pause_game', () => {
     gameState.isPaused = true;
     io.emit('game_paused');
+    console.log('⏸️ Gioco in pausa');
   });
 
   socket.on('resume_game', () => {
     gameState.isPaused = false;
     io.emit('game_resumed');
+    console.log('▶️ Gioco ripreso');
+  });
+
+  socket.on('reset_displays', () => {
+    io.emit('reset_client_ui');
   });
 
   socket.on('reset_game', () => {
-    Object.values(gameState.teams).forEach(team => {
-      if (!team.isPreview) {
-        team.score = 0;
-        team.streak = 0;
-      }
-    });
-    
+    gameState.teams = {};
+    gameState.buzzerQueue = [];
     gameState.currentQuestion = null;
     gameState.roundAnswers = [];
-    gameState.buzzerActive = false;
-    gameState.buzzerLocked = false;
-    gameState.buzzerQueue = [];
-    
-    const realTeams = Object.values(gameState.teams).filter(t => !t.isPreview);
-    io.emit('update_teams', realTeams);
-    io.emit('reset_client_ui');
-    io.to('admin').emit('update_teams', realTeams);
-    io.to('admin').emit('reset_round_monitor');
+    gameState.isPaused = false;
+    gameState.roundScores = {};
+    io.emit('force_reload');
+    console.log('🔄 Reset totale');
+  });
+
+  // ✅ FIX 1: Evento mostra_soluzione invia SOLO al display, NON ai cellulari
+  socket.on('mostra_soluzione', (data) => {
+    io.to('display').emit('mostra_soluzione', data);
+    console.log('✅ Soluzione mostrata sul display:', data.soluzione);
   });
 
   socket.on('show_winner', () => {
     const realTeams = Object.values(gameState.teams).filter(t => !t.isPreview);
-    const sortedTeams = realTeams.sort((a, b) => b.score - a.score);
-    if (sortedTeams.length > 0) {
+    if (realTeams.length > 0) {
+      const sortedTeams = realTeams.sort((a, b) => b.score - a.score);
       io.emit('show_winner_screen', {
         winner: sortedTeams[0],
         podium: sortedTeams.slice(0, 3)
@@ -583,13 +548,23 @@ io.on('connection', (socket) => {
     }
   });
 
+  // ✅ FIX 2: Correggi assign_points per aggiungere/togliere punti manualmente
   socket.on('assign_points', (data) => {
     const team = gameState.teams[data.teamId];
     if (team) {
       team.score += data.points;
+      
+      // Traccia anche nei punteggi del round
+      if (!gameState.roundScores[data.teamId]) {
+        gameState.roundScores[data.teamId] = 0;
+      }
+      gameState.roundScores[data.teamId] += data.points;
+      
       const realTeams = Object.values(gameState.teams).filter(t => !t.isPreview);
       io.emit('update_teams', realTeams);
       io.to('admin').emit('update_teams', realTeams);
+      
+      console.log(`💰 ${team.name}: ${data.points > 0 ? '+' : ''}${data.points} punti (totale: ${team.score})`);
     }
   });
 
@@ -616,6 +591,7 @@ io.on('connection', (socket) => {
     io.emit('stato_buzzer', { locked: true, attiva: false });
   });
 
+  // ✅ FIX 3: Migliorato buzzer per gioco musicale e assegnazione punti
   socket.on('prenoto', () => {
     if (gameState.buzzerLocked || !gameState.currentQuestion) return;
     
@@ -821,12 +797,11 @@ http.listen(PORT, () => console.log(`
 
 Server porta: ${PORT}
 
-✅ Preview funzionante
-✅ Soluzione SOLO su display
-✅ Karaoke YouTube integrato
-✅ Buzzer gioco musicale OK
-✅ Duello ruba-punti completo
-✅ Memory game (3 prove)
+✅ Soluzione SOLO su display (non sui cellulari)
+✅ Pulsanti +/- punti classifica funzionanti
+✅ Buzzer e gioco musicale con assegnazione punti
+✅ Podio round funzionante
+✅ Risposta corretta visibile in anticipo all'admin
 
 Pronto!
 `));

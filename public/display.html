@@ -1,22 +1,1313 @@
-socket.on('update_round_leaderboard', (data) => {
-    const tbody = document.getElementById('round-results-table');
-    if (!tbody) return;
+<!DOCTYPE html>
+
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>DISPLAY SHOW - Siponto Forever Young</title>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
+    <style>
+        body { background: #0f172a; color: white; overflow: hidden; font-family: 'Inter', sans-serif; }
+        .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        #qrcode img { margin: 0 auto; border: 15px solid white; border-radius: 10px; }
+
+    /* Responsive text sizing */
+    .question-text { font-size: clamp(2rem, 4vw, 4rem); line-height: 1.2; }
+    .answer-option { font-size: clamp(1.5rem, 2.5vw, 2rem); }
+    .category-text { font-size: clamp(1rem, 1.5vw, 1.5rem); }
     
-    tbody.innerHTML = '';
+    @keyframes countdown-pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+    }
+    .countdown-critical { animation: countdown-pulse 0.5s ease-in-out infinite; }
     
-    data.results.forEach((team, index) => {
-        const medals = ['🥇', '🥈', '🥉'];
-        const medal = index < 3 ? medals[index] : `${index + 1}°`;
+    @keyframes confetti-fall {
+        0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
+        100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+    }
+    .confetti { 
+        position: absolute; 
+        width: 10px; 
+        height: 10px; 
+        animation: confetti-fall 3s linear infinite; 
+    }
+</style>
+
+</head>
+<body class="flex flex-col h-screen p-6">
+
+<div class="h-[10%] flex justify-between items-center border-b border-gray-700 pb-2">
+    <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-red-600">SIPONTO FOREVER YOUNG</h1>
+    <div id="mini-leaderboard" class="text-xl font-mono text-blue-400"></div>
+</div>
+
+<div class="h-[90%] relative flex items-center justify-center">
+
+    <!-- VISTA LOGO QR -->
+    <div id="view-logo" class="view-section absolute inset-0 flex flex-col items-center justify-center">
+        <div class="glass p-10 rounded-[3rem] shadow-2xl text-center animate__animated animate__fadeInDown">
+            <h2 class="text-3xl font-bold mb-6 text-white uppercase tracking-tighter">Inquadra per partecipare</h2>
+            <div id="qrcode" class="shadow-2xl"></div>
+            <p class="mt-6 text-2xl font-black text-yellow-500">quizzone-game.onrender.com</p>
+        </div>
+        <div class="mt-10 text-gray-500 animate-pulse text-xl uppercase tracking-widest">Attesa inizio sessione...</div>
+    </div>
+
+    <!-- VISTA GIOCO -->
+    <div id="view-gioco" class="view-section hidden absolute inset-0 flex flex-col items-center justify-center p-4">
+        <div id="buzzer-overlay" class="hidden absolute inset-0 bg-black/90 z-50 flex flex-col items-center justify-center p-6">
+            <p class="text-5xl text-red-500 font-black mb-6 animate__animated animate__bounceIn">⚡ PRENOTAZIONI BUZZER ⚡</p>
+            
+            <div class="bg-red-900/50 rounded-3xl p-6 max-w-4xl w-full max-h-[70vh] overflow-y-auto">
+                <div id="buzzer-queue-display" class="space-y-3"></div>
+            </div>
+        </div>
+
+        <div class="bg-gray-800/80 w-full max-w-7xl p-6 rounded-[2rem] border-t-8 border-blue-500 shadow-2xl text-center glass max-h-[85vh] overflow-y-auto">
+            
+            <!-- TIMER DISPLAY -->
+            <div id="timer-display-container" class="hidden mb-4">
+                <div class="flex justify-center items-center gap-4 mb-2">
+                    <span class="text-xl text-white font-semibold">Tempo rimasto:</span>
+                    <span id="timer-display-text" class="text-6xl font-black" style="color: #10b981;">20</span>
+                    <span class="text-2xl text-white">secondi</span>
+                </div>
+                <div class="w-full bg-gray-700 rounded-full h-3 overflow-hidden">
+                    <div id="timer-display-bar" class="h-3 rounded-full transition-all duration-1000" style="background-color: #10b981; width: 100%;"></div>
+                </div>
+            </div>
+
+            <h2 id="cat" class="category-text font-bold text-blue-400 mb-4 uppercase tracking-[0.3em]">CATEGORIA</h2>
+            <div id="q-text" class="question-text font-black leading-tight mb-6 text-white px-4">Caricamento domanda...</div>
+            
+            <div id="opts" class="grid grid-cols-2 gap-4 hidden max-w-5xl mx-auto"></div>
+
+            <div id="solution" class="hidden mt-6 border-t border-gray-600 pt-6 animate__animated animate__fadeInUp">
+                <div class="inline-block bg-green-600 text-white px-8 py-4 rounded-full text-4xl font-black shadow-2xl uppercase italic">
+                    ✅ <span id="sol-text">RISPOSTA</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- VISTA CLASSIFICA ROUND -->
+    <div id="view-classifica_round" class="view-section hidden absolute inset-0 bg-indigo-950 z-40 flex flex-col items-center pt-10">
+        <h2 class="text-5xl font-black text-white mb-8 bg-indigo-600 px-12 py-3 rounded-full shadow-2xl italic">⚡ RISULTATI ROUND ⚡</h2>
+        <div class="w-full max-w-5xl h-[70vh] overflow-y-auto glass rounded-3xl p-6">
+            <table class="w-full text-left text-2xl border-collapse">
+                <thead class="text-indigo-300 border-b-2 border-indigo-800">
+                    <tr>
+                        <th class="p-4">POS</th>
+                        <th class="p-4">SQUADRA</th>
+                        <th class="p-4">RISPOSTA</th>
+                        <th class="p-4 text-right">TEMPO</th>
+                        <th class="p-4 text-right">PUNTI</th>
+                    </tr>
+                </thead>
+                <tbody id="round-list-body"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- VISTA CLASSIFICA GENERALE -->
+    <div id="view-classifica_gen" class="view-section hidden absolute inset-0 bg-slate-900 z-40 flex flex-col items-center pt-10">
+        <h2 class="text-6xl font-black text-yellow-500 mb-10 uppercase tracking-tighter">🏆 Classifica Generale 🏆</h2>
+        <div class="w-full max-w-4xl h-[70vh] overflow-y-auto glass rounded-[3rem] p-8">
+            <table class="w-full text-left text-3xl"><tbody id="full-leaderboard-body"></tbody></table>
+        </div>
+    </div>
+
+    <!-- VISTA VINCITORE CON CONFETTI -->
+    <div id="view-winner" class="view-section hidden absolute inset-0 bg-gradient-to-br from-yellow-900 via-orange-900 to-red-900 z-50 flex flex-col items-center justify-center">
+        <div id="confetti-container" class="absolute inset-0 overflow-hidden"></div>
+        <div class="relative z-10 text-center animate__animated animate__zoomIn">
+            <div class="text-9xl mb-8 animate-pulse">🎉</div>
+            <h1 class="text-8xl font-black uppercase mb-6 text-white">VINCITORE!</h1>
+            <div id="winner-name" class="text-7xl font-black text-yellow-300 mb-4 uppercase"></div>
+            <div class="text-5xl font-bold text-white mb-12">
+                <span id="winner-score"></span> PUNTI
+            </div>
+            <div class="text-4xl text-white/80">🏆 COMPLIMENTI! 🏆</div>
+        </div>
+    </div>
+
+    <!-- VISTA BENVENUTO -->
+    <div id="view-benvenuto" class="view-section hidden absolute inset-0 bg-gradient-to-br from-purple-900 via-pink-800 to-red-900 z-40 flex flex-col items-center justify-center">
+        <div class="text-center animate__animated animate__fadeInDown">
+            <div class="text-9xl mb-8">🎉</div>
+            <h1 class="text-8xl font-black text-white mb-6 tracking-tight">BENVENUTI!</h1>
+            <p class="text-5xl text-white/90 mb-4">Siponto Forever Young</p>
+            <p class="text-4xl text-yellow-300">Preparati a giocare!</p>
+        </div>
+    </div>
+
+    <!-- VISTA REGOLE -->
+    <div id="view-regole" class="view-section hidden absolute inset-0 bg-gradient-to-br from-blue-900 to-indigo-900 z-40 flex flex-col items-center justify-center p-6">
+        <div class="glass rounded-3xl p-6 max-w-6xl w-full animate__animated animate__zoomIn">
+            <h1 class="text-4xl font-black text-white mb-4 text-center">📋 REGOLAMENTO</h1>
+            
+            <!-- Grid 2 colonne per compattare -->
+            <div class="grid grid-cols-2 gap-4 text-white">
+                
+                <!-- Quiz ABCD -->
+                <div class="bg-white/10 rounded-2xl p-4">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="text-3xl">✅</span>
+                        <p class="font-black text-yellow-300 text-xl">Quiz ABCD</p>
+                    </div>
+                    <p class="text-sm leading-tight">Rispondi veloce per bonus punti! Fino a +50 punti extra.</p>
+                </div>
+                
+                <!-- Buzzer -->
+                <div class="bg-white/10 rounded-2xl p-4">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="text-3xl">⚡</span>
+                        <p class="font-black text-yellow-300 text-xl">Buzzer</p>
+                    </div>
+                    <p class="text-sm leading-tight">Primo che preme risponde! 100 punti se corretto.</p>
+                </div>
+                
+                <!-- Bonus Velocità -->
+                <div class="bg-white/10 rounded-2xl p-4">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="text-3xl">🎯</span>
+                        <p class="font-black text-yellow-300 text-xl">Bonus Velocità</p>
+                    </div>
+                    <p class="text-sm leading-tight">2 sec = +145pt 🔥 | 10 sec = +125pt ⚡ | 20 sec = +100pt</p>
+                </div>
+                
+                <!-- Ruota della Fortuna -->
+                <div class="bg-gradient-to-br from-yellow-600/30 to-red-600/30 rounded-2xl p-4 border-2 border-yellow-400">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="text-3xl">🎰</span>
+                        <p class="font-black text-yellow-300 text-xl">Ruota Fortuna</p>
+                    </div>
+                    <p class="text-sm leading-tight font-bold">💰 50pt sicuri | 🎯 +250pt/-100pt sfida</p>
+                </div>
+                
+                <!-- Duello Ruba-Punti -->
+                <div class="col-span-2 bg-gradient-to-r from-red-600/30 to-orange-600/30 rounded-2xl p-4 border-2 border-red-400">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="text-3xl">🔥</span>
+                        <p class="font-black text-red-300 text-xl">Duello Ruba-Punti</p>
+                    </div>
+                    <p class="text-sm leading-tight font-bold">Sfida 1vs1 su 3 domande buzzer | Vinci: RUBI 250pt | Perdi: difensore +100pt</p>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+
+    <!-- VISTA PUNTEGGI -->
+    <div id="view-punteggi" class="view-section hidden absolute inset-0 bg-gradient-to-br from-green-900 to-emerald-900 z-40 flex flex-col items-center justify-center">
+        <div class="glass rounded-[3rem] p-8 max-w-4xl animate__animated animate__flipInX">
+            <h1 class="text-5xl font-black text-white mb-6 text-center">💰 SISTEMA PUNTEGGI</h1>
+            <div class="text-2xl text-white space-y-3">
+                <div class="bg-white/10 rounded-2xl p-4 flex justify-between items-center">
+                    <span>Risposta in 2s:</span>
+                    <span class="text-4xl font-black text-green-400">145 pt 🔥</span>
+                </div>
+                <div class="bg-white/10 rounded-2xl p-4 flex justify-between items-center">
+                    <span>Risposta in 10s:</span>
+                    <span class="text-4xl font-black text-yellow-400">125 pt ⚡</span>
+                </div>
+                <div class="bg-white/10 rounded-2xl p-4 flex justify-between items-center">
+                    <span>Risposta in 20s:</span>
+                    <span class="text-4xl font-black text-white">100 pt ✓</span>
+                </div>
+                <div class="bg-white/10 rounded-2xl p-4 flex justify-between items-center">
+                    <span>Buzzer corretto:</span>
+                    <span class="text-4xl font-black text-blue-400">100 pt</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- VISTA PAUSA -->
+    <div id="view-pausa" class="view-section hidden absolute inset-0 bg-gradient-to-br from-orange-900 to-amber-900 z-40 flex flex-col items-center justify-center">
+        <div class="text-center animate__animated animate__bounceIn">
+            <div class="text-9xl mb-8">☕</div>
+            <h1 class="text-8xl font-black text-white mb-12">PAUSA</h1>
+            
+            <div class="glass rounded-[3rem] p-8 max-w-4xl">
+                <h2 class="text-4xl font-bold text-yellow-300 mb-6">📊 CLASSIFICA ATTUALE:</h2>
+                <div id="pause-leaderboard" class="space-y-3 text-3xl text-left"></div>
+            </div>
+            
+            <p class="text-5xl text-yellow-300 mt-12 animate-pulse">⏰ Riprenderemo tra pochissimo</p>
+        </div>
+    </div>
+
+    <!-- VISTA PROSSIMA DOMANDA -->
+    <div id="view-prossima" class="view-section hidden absolute inset-0 bg-gradient-to-br from-yellow-900 to-orange-900 z-40 flex flex-col items-center justify-center">
+        <div class="text-center animate__animated animate__pulse">
+            <div class="text-9xl mb-8">⏰</div>
+            <h1 class="text-8xl font-black text-white">PROSSIMA DOMANDA</h1>
+        </div>
+    </div>
+
+    <!-- VISTA LOGO FOREVER YOUNG -->
+    <div id="view-logo_forever" class="view-section hidden absolute inset-0 bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 z-40 flex flex-col items-center justify-center">
+        <div class="text-center animate__animated animate__zoomIn">
+            <div class="text-9xl mb-8">🎮</div>
+            <h1 class="text-9xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-pink-500 to-purple-600 mb-4">
+                FOREVER YOUNG
+            </h1>
+            <h2 class="text-7xl font-bold text-white">SIPONTO</h2>
+        </div>
+    </div>
+
+    <!-- VISTA CUSTOM -->
+    <div id="view-custom" class="view-section hidden absolute inset-0 bg-gradient-to-br from-gray-900 to-slate-900 z-40 flex flex-col items-center justify-center">
+        <div class="glass rounded-[3rem] p-16 max-w-5xl text-center animate__animated animate__fadeIn">
+            <div class="text-9xl mb-8">💬</div>
+            <p id="custom-text-display" class="text-6xl font-bold text-white leading-tight whitespace-pre-wrap">
+                Messaggio personalizzato
+            </p>
+        </div>
+    </div>
+
+    <!-- VISTA KARAOKE YOUTUBE -->
+    <div id="view-karaoke" class="view-section hidden absolute inset-0 bg-black z-50 flex flex-col">
+        <!-- Header Forever Young (resta sempre) -->
+        <div class="h-[10%] flex justify-center items-center bg-gradient-to-r from-yellow-600 to-red-600 border-b-4 border-yellow-400">
+            <h1 class="text-5xl font-black text-white tracking-wider drop-shadow-lg">
+                🎮 SIPONTO FOREVER YOUNG 🎮
+            </h1>
+        </div>
         
-        tbody.innerHTML += `
-            <tr class="border-b border-white/20 animate__animated animate__fadeInLeft" style="animation-delay: ${index * 0.1}s">
-                <td class="py-4 px-6 text-5xl">${medal}</td>
-                <td class="py-4 px-6 font-black text-4xl uppercase">${team.name}</td>
-                <td class="py-4 px-6 text-right">
-                    <span class="text-5xl font-black text-yellow-400">+${team.roundPoints}</span>
-                    <span class="text-2xl text-gray-400 ml-2">pt</span>
-                </td>
-            </tr>
+        <!-- YouTube Player -->
+        <div class="flex-1 relative bg-black flex items-center justify-center">
+            <iframe id="youtube-player" 
+                    class="w-full h-full" 
+                    frameborder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                    allowfullscreen>
+            </iframe>
+        </div>
+        
+        <!-- Banner Karaoke -->
+        <div class="h-[8%] bg-gradient-to-r from-pink-600 via-purple-600 to-pink-600 flex items-center justify-center border-t-4 border-pink-400">
+            <div class="text-4xl font-black text-white tracking-widest animate-pulse">
+                🎤 KARAOKE TIME! 🎤
+            </div>
+        </div>
+    </div>
+
+    <!-- VISTA DUELLO RUBA-PUNTI -->
+    <div id="view-duello" class="view-section hidden absolute inset-0 bg-gradient-to-br from-red-900 via-orange-900 to-yellow-900 z-40 flex flex-col items-center justify-center p-6">
+        
+        <!-- Scoreboard -->
+        <div class="bg-black/50 rounded-3xl p-6 mb-8 flex items-center justify-center gap-12 glass animate__animated animate__fadeInDown">
+            <div class="text-center">
+                <div id="duello-attaccante-name" class="text-3xl font-black text-yellow-400 mb-2">ATTACCANTE</div>
+                <div id="duello-attaccante-score" class="text-8xl font-black text-white">0</div>
+            </div>
+            
+            <div class="text-6xl font-black text-white">-</div>
+            
+            <div class="text-center">
+                <div id="duello-difensore-name" class="text-3xl font-black text-blue-400 mb-2">DIFENSORE</div>
+                <div id="duello-difensore-score" class="text-8xl font-black text-white">0</div>
+            </div>
+        </div>
+        
+        <!-- Area Domanda -->
+        <div class="bg-gray-900/90 rounded-3xl p-8 max-w-6xl w-full glass animate__animated animate__fadeInUp">
+            <div class="flex items-center justify-between mb-6">
+                <div id="duello-categoria" class="text-2xl font-bold text-orange-400">CATEGORIA</div>
+                <div id="duello-question-number" class="text-2xl font-bold text-white">DOMANDA 1/3</div>
+            </div>
+            
+            <div id="duello-question-text" class="text-4xl font-black text-white mb-8 leading-tight">
+                Domanda del duello...
+            </div>
+            
+            <div id="duello-status" class="text-3xl font-bold text-center">
+                <span class="text-yellow-400 animate-pulse">⚡ In attesa di buzzer...</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- VISTA RUOTA FORTUNA - SPIEGAZIONE -->
+    <div id="view-ruota-explain" class="view-section hidden absolute inset-0 bg-gradient-to-br from-yellow-900 via-orange-900 to-red-900 z-50 flex flex-col items-center justify-center">
+        <div class="glass rounded-[3rem] p-16 max-w-5xl text-center animate__animated animate__bounceIn">
+            <div class="text-9xl mb-8">🎰</div>
+            <h1 class="text-8xl font-black text-yellow-400 mb-12 tracking-wider">
+                RUOTA DELLA FORTUNA!
+            </h1>
+            <div class="text-4xl text-white leading-relaxed space-y-6">
+                <p>La ruota sceglierà<br><strong class="text-yellow-300">UNA squadra fortunata!</strong></p>
+                <div class="border-t-4 border-yellow-400 my-8"></div>
+                <p class="text-5xl font-bold">Avrai 2 scelte:</p>
+                <div class="grid grid-cols-2 gap-8 mt-8">
+                    <div class="bg-green-600/30 p-8 rounded-3xl border-4 border-green-400">
+                        <div class="text-7xl mb-4">💰</div>
+                        <div class="text-4xl font-bold">50 PUNTI</div>
+                        <div class="text-2xl">GRATIS!</div>
+                    </div>
+                    <div class="bg-orange-600/30 p-8 rounded-3xl border-4 border-orange-400">
+                        <div class="text-7xl mb-4">🎯</div>
+                        <div class="text-4xl font-bold">150 PUNTI</div>
+                        <div class="text-2xl">Con domanda!</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- VISTA RUOTA FORTUNA - SPINNING -->
+    <div id="view-ruota-spin" class="view-section hidden absolute inset-0 bg-gradient-to-br from-purple-900 via-pink-900 to-red-900 z-50 flex flex-col items-center justify-center">
+        <div class="text-center animate__animated animate__fadeIn">
+            <h1 class="text-7xl font-black text-yellow-400 mb-12 tracking-wider">
+                🎰 LA RUOTA GIRA... 🎰
+            </h1>
+            <div id="wheel-container" class="relative w-96 h-96 mx-auto">
+                <div id="wheel" class="absolute inset-0 rounded-full border-8 border-yellow-400 bg-gradient-to-br from-yellow-500 to-orange-600 flex items-center justify-center text-6xl font-black text-white shadow-2xl animate-spin">
+                    <span id="wheel-name">?</span>
+                </div>
+                <div class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-8 text-9xl">
+                    ▼
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- VISTA RUOTA FORTUNA - VINCITORE -->
+    <div id="view-ruota-winner" class="view-section hidden absolute inset-0 bg-gradient-to-br from-yellow-900 via-orange-900 to-red-900 z-50 flex flex-col items-center justify-center">
+        <div class="text-center animate__animated animate__bounceIn">
+            <div class="text-9xl mb-8">🎊</div>
+            <h1 class="text-7xl font-black text-yellow-400 mb-8 tracking-wider">
+                SQUADRA FORTUNATA!
+            </h1>
+            <div class="bg-white/10 backdrop-blur-lg rounded-[3rem] p-16 border-8 border-yellow-400">
+                <div class="text-9xl font-black text-white mb-8">
+                    🏆 <span id="winner-team-name">TEAM</span> 🏆
+                </div>
+                <div class="text-5xl text-yellow-300 font-bold">
+                    Scegli la tua sorte!
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- VISTA DUELLO - ESTRAZIONE ATTACCANTE -->
+    <div id="view-duello-extraction" class="view-section hidden absolute inset-0 bg-gradient-to-br from-red-900 via-orange-900 to-yellow-900 z-50 flex flex-col items-center justify-center">
+        <div class="text-center animate__animated animate__fadeIn">
+            <h1 class="text-7xl font-black text-white mb-12 tracking-wider animate__animated animate__pulse animate__infinite">
+                🔥 DUELLO RUBA-PUNTI! 🔥
+            </h1>
+            <div id="duello-extraction-container" class="relative w-96 h-96 mx-auto">
+                <div id="duello-wheel" class="absolute inset-0 rounded-full border-8 border-red-400 bg-gradient-to-br from-red-500 to-orange-600 flex items-center justify-center text-5xl font-black text-white shadow-2xl animate-spin">
+                    <span id="duello-wheel-name">?</span>
+                </div>
+                <div class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-8 text-9xl">
+                    ⚔️
+                </div>
+            </div>
+            <div class="text-3xl text-yellow-300 font-bold mt-8 animate-pulse">
+                Chi sarà l'ATTACCANTE?
+            </div>
+        </div>
+    </div>
+
+    <!-- VISTA DUELLO - ATTACCANTE ESTRATTO -->
+    <div id="view-duello-attaccante" class="view-section hidden absolute inset-0 bg-gradient-to-br from-orange-900 via-red-900 to-pink-900 z-50 flex flex-col items-center justify-center">
+        <div class="text-center animate__animated animate__bounceIn">
+            <div class="text-9xl mb-8">⚔️</div>
+            <h1 class="text-6xl font-black text-red-400 mb-8 tracking-wider">
+                ATTACCANTE ESTRATTO!
+            </h1>
+            <div class="bg-white/10 backdrop-blur-lg rounded-[3rem] p-16 border-8 border-red-400">
+                <div class="text-9xl font-black text-white mb-8">
+                    🔥 <span id="duello-attaccante-name-display">TEAM</span> 🔥
+                </div>
+                <div class="text-4xl text-yellow-300 font-bold">
+                    Scegli chi sfidare!
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- VISTA SPIEGAZIONE FINALE -->
+    <div id="view-finale_explanation" class="view-section hidden absolute inset-0 bg-gradient-to-br from-red-900 via-orange-900 to-yellow-900 z-50 flex flex-col items-center justify-center overflow-hidden">
+        <!-- Fiamme animate -->
+        <div class="absolute top-0 left-10 text-8xl animate-pulse">🔥</div>
+        <div class="absolute top-20 right-10 text-8xl animate-pulse" style="animation-delay: 0.3s;">🔥</div>
+        <div class="absolute bottom-20 left-20 text-8xl animate-pulse" style="animation-delay: 0.6s;">🔥</div>
+        <div class="absolute bottom-10 right-20 text-8xl animate-pulse" style="animation-delay: 0.9s;">🔥</div>
+        
+        <div class="relative z-10 max-w-4xl text-center animate__animated animate__zoomIn">
+            <div class="text-9xl mb-4">🔥🔥🔥🔥🔥</div>
+            
+            <h1 class="text-8xl font-black text-white mb-4 uppercase tracking-tight animate__animated animate__fadeInDown">
+                SFIDA FINALE
+            </h1>
+            <p class="text-6xl font-bold text-yellow-300 mb-8 animate__animated animate__fadeInUp" style="animation-delay: 0.2s;">
+                5 PROVE
+            </p>
+            
+            <div class="bg-black/40 rounded-3xl p-8 mb-6 text-left space-y-6">
+                <!-- ALL IN -->
+                <div class="border-b-2 border-yellow-500/30 pb-6 animate__animated animate__fadeInLeft" style="animation-delay: 0.4s;">
+                    <h2 class="text-5xl font-black text-yellow-300 mb-3">💰 PROVA 1: ALL IN</h2>
+                    <p class="text-3xl text-white mb-2">Scommetti i tuoi punti: 0 - 50 - 100 - 200</p>
+                    <div class="ml-6 space-y-1">
+                        <p class="text-2xl text-green-400">✅ Risposta corretta → Vinci il DOPPIO</p>
+                        <p class="text-2xl text-red-400">❌ Risposta sbagliata → PERDI la scommessa</p>
+                    </div>
+                </div>
+                
+                <!-- PUNTI X2 -->
+                <div class="border-b-2 border-orange-500/30 pb-6 animate__animated animate__fadeInLeft" style="animation-delay: 0.6s;">
+                    <h2 class="text-5xl font-black text-orange-300 mb-3">🔥 PROVE 2-5: PUNTI x2</h2>
+                    <p class="text-3xl text-white">Ogni risposta corretta vale il DOPPIO!</p>
+                </div>
+                
+                <!-- CLASSIFICA NASCOSTA -->
+                <div class="animate__animated animate__fadeInLeft" style="animation-delay: 0.8s;">
+                    <h2 class="text-5xl font-black text-red-300 mb-3">⚠️ CLASSIFICA NASCOSTA ⚡</h2>
+                    <p class="text-3xl text-white">Non vedrete i punteggi fino alla fine!</p>
+                </div>
+            </div>
+            
+            <p class="text-4xl text-white font-bold mb-6 animate__animated animate__fadeIn" style="animation-delay: 1s;">
+                Tutto può cambiare!
+            </p>
+            
+            <div class="text-7xl mb-4 animate__animated animate__bounceIn" style="animation-delay: 1.2s;">
+                🏆🏆🏆🏆🏆
+            </div>
+            
+            <div id="finale-countdown" class="text-8xl font-black text-yellow-300 animate-pulse">
+                PRONTI?
+            </div>
+        </div>
+    </div>
+
+    <!-- VISTA ALL IN BETTING -->
+    <div id="view-allin_betting" class="view-section hidden absolute inset-0 bg-gradient-to-br from-yellow-900 via-orange-900 to-red-900 z-50 flex flex-col items-center justify-center">
+        <div class="text-center animate__animated animate__zoomIn">
+            <div class="text-9xl mb-8 animate-bounce">💰</div>
+            <h1 class="text-9xl font-black text-white mb-6 uppercase">ALL IN!</h1>
+            <p class="text-6xl text-yellow-300 mb-12">Scommettete sui vostri telefoni!</p>
+            <div class="bg-black/40 rounded-3xl p-8 max-w-2xl mx-auto">
+                <p class="text-4xl text-white mb-4">Scegliete: 0 - 50 - 100 - 200</p>
+                <p class="text-3xl text-green-400 mb-2">✅ Corretta → Doppio</p>
+                <p class="text-3xl text-red-400">❌ Sbagliata → Perdi tutto</p>
+            </div>
+            <div class="mt-12 text-5xl text-yellow-300 animate-pulse">
+                📱 Guardate i vostri telefoni! 📱
+            </div>
+        </div>
+    </div>
+
+    <!-- VISTA MEMORY INTRO MANCHE -->
+    <div id="view-memory-intro" class="view-section hidden absolute inset-0 bg-gradient-to-br from-indigo-900 to-purple-900 z-50 flex flex-col items-center justify-center">
+        <div class="text-center animate__animated animate__zoomIn">
+            <div class="text-9xl mb-8">🧠</div>
+            <h1 class="text-8xl font-black text-white mb-6">MEMORY</h1>
+            <div id="memory-intro-manche" class="text-6xl font-bold text-yellow-400 mb-4">
+                MANCHE 1/3
+            </div>
+            <div id="memory-intro-pairs" class="text-4xl text-white">
+                3 COPPIE DA TROVARE
+            </div>
+        </div>
+    </div>
+
+    <!-- VISTA MEMORY GAME -->
+    <div id="view-memory" class="view-section hidden absolute inset-0 bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900 z-50 flex flex-col items-center justify-center p-8">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-7xl font-black text-yellow-400 mb-4">🧠 MEMORY GAME</h1>
+            <div id="memory-manche-info" class="text-4xl font-bold text-white">
+                MANCHE 1/3
+            </div>
+            <div id="memory-phase-text" class="text-3xl font-bold text-white mt-2">
+                MEMORIZZA!
+            </div>
+        </div>
+        
+        <!-- Grid delle carte -->
+        <div id="memory-grid" class="grid gap-4 mb-8">
+            <!-- Popolato dinamicamente -->
+        </div>
+        
+        <!-- Timer -->
+        <div id="memory-timer" class="text-3xl font-bold text-yellow-300">
+            ⏱️ 5 secondi
+        </div>
+    </div>
+
+</div>
+
+<script>
+    const socket = io();
+    let timerInterval = null;
+    let questionStartTime = 0;
+    let maxTime = 20;
+    let memoryTimerInterval = null;
+    
+    function showView(id) {
+        document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
+        const viewId = 'view-' + id;
+        const el = document.getElementById(viewId);
+        if(el) {
+            el.classList.remove('hidden');
+            console.log('Mostro vista:', viewId);
+        } else {
+            console.error('Vista non trovata:', viewId);
+        }
+    }
+
+    socket.on('connect', () => {
+        socket.join('display');
+        console.log('📺 Display connesso');
+        showView('logo');
+    });
+
+    // GESTIONE COMANDI REGIA
+    socket.on('cambia_vista', (data) => {
+        console.log('Ricevuto comando regia:', data.view);
+        stopTimer();
+        
+        showView(data.view);
+        
+        // Genera QR code
+        if(data.view === 'logo') {
+            const qrDiv = document.getElementById("qrcode");
+            qrDiv.innerHTML = "";
+            try {
+                new QRCode(qrDiv, {
+                    text: window.location.origin || "https://quizzone-game.onrender.com",
+                    width: 320,
+                    height: 320,
+                    colorDark : "#000000",
+                    colorLight : "#ffffff"
+                });
+            } catch(e) {
+                console.error('Errore QR:', e);
+            }
+        }
+        
+        // Classifica round
+        if(data.view === 'classifica_round' && data.data) {
+            renderRoundList(data.data);
+        }
+        
+        // Schermata custom
+        if(data.view === 'custom' && data.data) {
+            console.log('📺 Ricevuto testo custom:', data.data.text);
+            document.getElementById('custom-text-display').textContent = data.data.text || 'Nessun messaggio';
+        }
+        
+        // VINCITORE CON CONFETTI
+        if(data.view === 'winner' && data.data) {
+            document.getElementById('winner-name').textContent = data.data.winnerName || 'Campione';
+            document.getElementById('winner-score').textContent = data.data.winnerScore || 0;
+            createConfetti();
+        }
+        
+        // SPIEGAZIONE FINALE con countdown
+        if(data.view === 'finale_explanation') {
+            setTimeout(() => {
+                const countdownEl = document.getElementById('finale-countdown');
+                let count = 3;
+                countdownEl.textContent = count;
+                
+                const countInterval = setInterval(() => {
+                    count--;
+                    if(count > 0) {
+                        countdownEl.textContent = count;
+                    } else {
+                        countdownEl.textContent = 'VIA!';
+                        clearInterval(countInterval);
+                    }
+                }, 1000);
+            }, 17000); // Dopo 17 secondi inizia countdown 3-2-1
+        }
+    });
+
+    // CONFETTI ANIMATION
+    function createConfetti() {
+        const container = document.getElementById('confetti-container');
+        container.innerHTML = '';
+        const colors = ['#FFD700', '#FF6347', '#00CED1', '#FF69B4', '#32CD32', '#FF4500'];
+        
+        for(let i = 0; i < 100; i++) {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            confetti.style.animationDelay = Math.random() * 3 + 's';
+            confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
+            container.appendChild(confetti);
+        }
+    }
+
+    // ✅ FIX: Riceve soluzione SOLO il display
+    socket.on('mostra_soluzione_display', (data) => {
+        // Nascondi tutto
+        document.getElementById('game-screen').classList.add('hidden');
+        document.getElementById('qr-screen').classList.add('hidden');
+        document.getElementById('benvenuto-screen').classList.add('hidden');
+        // ... (nascondi altri screen se esistono)
+        
+        // Mostra schermata soluzione
+        const soluzioneScreen = document.getElementById('soluzione-screen') || createSoluzioneScreen();
+        soluzioneScreen.classList.remove('hidden');
+        
+        document.getElementById('soluzione-text').textContent = data.soluzione;
+        
+        function createSoluzioneScreen() {
+            const div = document.createElement('div');
+            div.id = 'soluzione-screen';
+            div.className = 'hidden flex flex-col items-center justify-center h-screen bg-gradient-to-br from-yellow-600 to-orange-600';
+            div.innerHTML = `
+                <div class="text-6xl font-black text-white mb-8">✅ RISPOSTA CORRETTA</div>
+                <div id="soluzione-text" class="text-8xl font-black text-white bg-black/30 px-16 py-8 rounded-3xl border-8 border-white"></div>
+            `;
+            document.body.appendChild(div);
+            return div;
+        }
+    });
+
+    // ✅ PAUSA - Aggiungere notifiche visive
+    socket.on('game_paused', () => {
+        // Mostra overlay pausa
+        const pauseOverlay = document.getElementById('pause-overlay') || createPauseOverlay();
+        pauseOverlay.classList.remove('hidden');
+    });
+
+    socket.on('game_resumed', () => {
+        const pauseOverlay = document.getElementById('pause-overlay');
+        if (pauseOverlay) pauseOverlay.classList.add('hidden');
+    });
+
+    function createPauseOverlay() {
+        const div = document.createElement('div');
+        div.id = 'pause-overlay';
+        div.className = 'hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50';
+        div.innerHTML = `
+            <div class="text-center">
+                <div class="text-9xl mb-4">⏸️</div>
+                <div class="text-6xl font-black text-yellow-400">PAUSA</div>
+            </div>
+        `;
+        document.body.appendChild(div);
+        return div;
+    }
+
+    // PAUSA GIOCO
+    socket.on('game_paused', (data) => {
+        console.log('Ricevuto comando pausa');
+        showView('pausa');
+        const leaderboard = document.getElementById('pause-leaderboard');
+        leaderboard.innerHTML = '';
+        
+        if(data.teams && data.teams.length > 0) {
+            data.teams.slice(0, 5).forEach((team, idx) => {
+                const medals = ['🥇', '🥈', '🥉'];
+                const medal = medals[idx] || `${idx + 1}°`;
+                leaderboard.innerHTML += `
+                    <div class="flex justify-between items-center bg-white/10 rounded-xl p-4">
+                        <span><span class="text-4xl mr-3">${medal}</span> <span class="font-bold">${team.name}</span></span>
+                        <span class="font-black text-yellow-400">${team.score} pt</span>
+                    </div>
+                `;
+            });
+        } else {
+            leaderboard.innerHTML = '<p class="text-white/60">Nessuna squadra registrata</p>';
+        }
+    });
+
+    socket.on('game_resumed', () => {
+        console.log('Gioco ripreso');
+        showView('logo');
+    });
+
+    function renderRoundList(data) {
+        const tbody = document.getElementById('round-list-body'); 
+        tbody.innerHTML = '';
+        
+        if(data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="p-10 text-center text-gray-500 text-4xl">Nessuna risposta</td></tr>';
+            return;
+        }
+
+        const sorted = [...data].sort((a, b) => (b.punti || 0) - (a.punti || 0));
+
+        sorted.forEach((entry, i) => {
+            const isCorrect = entry.corretta;
+            const rowClass = isCorrect ? 'bg-green-500/20 text-green-400' : 'text-white opacity-80';
+            const punti = entry.punti || 0;
+            tbody.innerHTML += `
+                <tr class="border-b border-white/5 ${rowClass} animate__animated animate__fadeInLeft" style="animation-delay: ${i*0.1}s">
+                    <td class="p-6 font-mono text-3xl text-indigo-400">${i+1}</td>
+                    <td class="p-6 font-black">${entry.teamName}</td>
+                    <td class="p-6 italic">${entry.risposta}</td>
+                    <td class="p-6 text-right font-mono">${entry.tempo}s</td>
+                    <td class="p-6 text-right font-black text-2xl ${isCorrect ? 'text-green-400' : 'text-red-400'}">
+                        ${isCorrect ? '+' + punti : punti}
+                    </td>
+                </tr>`;
+        });
+    }
+
+    // NUOVA DOMANDA
+    socket.on('nuova_domanda', (d) => {
+        console.log('Nuova domanda:', d.modalita);
+        showView('gioco');
+        stopTimer();
+        
+        document.getElementById('buzzer-overlay').classList.add('hidden');
+        document.getElementById('solution').classList.add('hidden');
+        document.getElementById('cat').innerText = (d.categoria || "PROVA").toUpperCase();
+        
+        // ALL IN: Mostra schermata attesa scommesse
+        if(d.isAllIn) {
+            document.getElementById('q-text').innerText = "💰 ALL IN";
+            document.getElementById('opts').classList.add('hidden');
+            document.getElementById('timer-display-container').classList.add('hidden');
+            
+            // Mostra messaggio attesa
+            const qText = document.getElementById('q-text');
+            qText.innerHTML = `
+                <div class="text-center">
+                    <div class="text-9xl mb-6 animate-pulse">💰</div>
+                    <div class="text-7xl font-black mb-4">ALL IN</div>
+                    <div class="text-5xl text-yellow-400">Le squadre stanno scommettendo...</div>
+                </div>
+            `;
+            return;
+        }
+        
+        document.getElementById('q-text').innerText = d.domanda;
+        
+        const o = document.getElementById('opts'); 
+        o.innerHTML = '';
+        
+        if(d.risposte && d.modalita !== 'buzzer' && d.modalita !== 'stima' && d.modalita !== 'anagramma') { 
+            o.classList.remove('hidden'); 
+            d.risposte.forEach((r, idx) => {
+                o.innerHTML += `<div class="answer-option bg-white/10 p-4 rounded-2xl border-2 border-white/10 shadow-lg font-bold">${String.fromCharCode(65+idx)}: ${r}</div>`;
+            });
+        
+        // ✅ PATCH 2: Calcola offset di rete
+        const networkDelay = Date.now() - d.serverTimestamp;
+        questionStartTime = d.startTime + networkDelay;
+        maxTime = 20;
+        startTimer();
+        } else {
+            o.classList.add('hidden');
+            document.getElementById('timer-display-container').classList.add('hidden');
+        }
+    });
+
+    // TIMER
+    function startTimer() {
+        // ✅ PATCH 9: Doppio controllo memory leak
+        if(timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
+        
+        document.getElementById('timer-display-container').classList.remove('hidden');
+        
+        const timerText = document.getElementById('timer-display-text');
+        const timerBar = document.getElementById('timer-display-bar');
+        
+        timerBar.style.width = '100%';
+        timerBar.style.backgroundColor = '#10b981';
+        timerText.style.color = '#10b981';
+        timerText.classList.remove('countdown-critical');
+        
+        timerInterval = setInterval(() => {
+            const elapsed = (Date.now() - questionStartTime) / 1000;
+            const remaining = Math.max(0, maxTime - elapsed);
+            
+            timerText.textContent = Math.ceil(remaining);
+            timerBar.style.width = `${(remaining / maxTime) * 100}%`;
+            
+            if(remaining <= 5) {
+                timerBar.style.backgroundColor = '#ef4444';
+                timerText.style.color = '#ef4444';
+                timerText.classList.add('countdown-critical');
+            } else if(remaining <= 10) {
+                timerBar.style.backgroundColor = '#f59e0b';
+                timerText.style.color = '#f59e0b';
+                timerText.classList.remove('countdown-critical');
+            } else {
+                timerBar.style.backgroundColor = '#10b981';
+                timerText.style.color = '#10b981';
+                timerText.classList.remove('countdown-critical');
+            }
+            
+            if(remaining <= 0) {
+                stopTimer();
+                timerText.textContent = '0';
+            }
+        }, 100);
+    }
+
+    function stopTimer() {
+        if(timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
+    }
+
+    // BUZZER
+    socket.on('buzzer_queue_update', (d) => {
+        const queueDiv = document.getElementById('buzzer-queue-display');
+        if(!queueDiv) return;
+        
+        // Mostra vista gioco con overlay buzzer
+        showView('gioco');
+        document.getElementById('buzzer-overlay').classList.remove('hidden');
+        document.getElementById('q-text').innerText = "🎵 GIOCO MUSICALE";
+        document.getElementById('cat').innerText = "IN ATTESA";
+        document.getElementById('opts').classList.add('hidden');
+        document.getElementById('timer-display-container').classList.add('hidden');
+        
+        queueDiv.innerHTML = '';
+        
+        if(d.queue && d.queue.length > 0) {
+            d.queue.forEach((player, idx) => {
+                const medals = ['🥇', '🥈', '🥉'];
+                const medal = medals[idx] || `${idx + 1}°`;
+                
+                queueDiv.innerHTML += `
+                    <div class="bg-white/10 rounded-2xl p-6 flex justify-between items-center animate__animated animate__fadeInLeft" style="animation-delay: ${idx * 0.1}s">
+                        <div class="flex items-center gap-6">
+                            <span class="text-6xl">${medal}</span>
+                            <span class="text-5xl font-black text-white uppercase">${player.name}</span>
+                        </div>
+                        <span class="text-4xl text-yellow-400 font-mono">${player.time}s</span>
+                    </div>
+                `;
+            });
+        } else {
+            queueDiv.innerHTML = '<p class="text-white/60 text-3xl">In attesa di prenotazioni...</p>';
+        }
+    });
+
+    socket.on('reset_buzzer_display', () => { 
+        document.getElementById('buzzer-overlay').classList.add('hidden'); 
+    });
+
+    // SOLUZIONE
+    socket.on('mostra_soluzione', (d) => {
+        stopTimer();
+        showView('gioco');
+        document.getElementById('solution').classList.remove('hidden');
+        document.getElementById('sol-text').innerText = d.soluzione;
+        document.getElementById('buzzer-overlay').classList.add('hidden');
+        document.getElementById('timer-display-container').classList.add('hidden');
+    });
+    
+    // MOSTRA DOMANDA ALL IN (dopo scommesse)
+    socket.on('show_allin_question', (d) => {
+        console.log('📺 Mostro domanda ALL IN dopo scommesse');
+        document.getElementById('q-text').innerText = d.domanda;
+        
+        const o = document.getElementById('opts');
+        o.innerHTML = '';
+        o.classList.remove('hidden');
+        
+        d.risposte.forEach((r, idx) => {
+            o.innerHTML += `<div class="bg-white/10 p-6 rounded-2xl border-2 border-white/10 shadow-lg text-4xl font-bold">${String.fromCharCode(65+idx)}: ${r}</div>`;
+        });
+        
+        questionStartTime = d.startTime;
+        maxTime = 20;
+        startTimer();
+    });
+
+    // CLASSIFICA
+    socket.on('update_teams', (t) => {
+        // ✅ PATCH 6: Filtra preview
+        const realTeams = t.filter(team => !team.isPreview);
+        realTeams.sort((a,b) => b.score - a.score);
+        
+        const fb = document.getElementById('full-leaderboard-body'); 
+        fb.innerHTML = '';
+        realTeams.forEach((x,i) => {
+            const medal = i === 0 ? '🥇' : (i === 1 ? '🥈' : (i === 2 ? '🥉' : i+1));
+            fb.innerHTML += `
+            <tr class="border-b border-white/10 animate__animated animate__fadeInUp">
+                <td class="p-6 font-black text-4xl text-gray-400 w-24">${medal}</td>
+                <td class="p-6 text-4xl font-bold uppercase">${x.name}</td>
+                <td class="p-6 text-right text-5xl font-black text-yellow-500">${x.score}</td>
+            </tr>`;
+        });
+        
+        const mini = document.getElementById('mini-leaderboard');
+        mini.innerText = realTeams.slice(0,3).map(x => `${x.name}: ${x.score}`).join(' | ');
+    });
+
+    // ════════════════════════════════════════════════════════════════
+    // 🎤 KARAOKE YOUTUBE
+    // ════════════════════════════════════════════════════════════════
+
+    socket.on('play_youtube_karaoke', (data) => {
+        console.log('🎤 Avvio karaoke YouTube:', data.videoId);
+        const player = document.getElementById('youtube-player');
+        player.src = `https://www.youtube.com/embed/${data.videoId}?autoplay=1&controls=1&rel=0`;
+        showView('karaoke');
+    });
+
+    socket.on('stop_karaoke', () => {
+        console.log('⏹️ Stop karaoke');
+        const player = document.getElementById('youtube-player');
+        player.src = '';
+        showView('logo');
+    });
+
+    // Ruota della Fortuna Events
+    socket.on('ruota_explain', () => {
+        console.log('🎰 Spiegazione Ruota');
+        showView('ruota-explain');
+    });
+
+    socket.on('ruota_spin', (data) => {
+        console.log('🎰 Ruota gira con squadre:', data.teams);
+        showView('ruota-spin');
+        
+        // Animazione ruota con nomi squadre
+        const wheelName = document.getElementById('wheel-name');
+        let index = 0;
+        const interval = setInterval(() => {
+            wheelName.textContent = data.teams[index % data.teams.length];
+            index++;
+        }, 200);
+        
+        // Dopo 5 secondi mostra vincitore
+        setTimeout(() => {
+            clearInterval(interval);
+            wheelName.textContent = data.winner.name;
+            document.getElementById('wheel').classList.remove('animate-spin');
+            
+            setTimeout(() => {
+                showView('ruota-winner');
+                document.getElementById('winner-team-name').textContent = data.winner.name;
+            }, 1000);
+        }, 5000);
+    });
+
+    // DISPLAY_QUESTION - Per ruota della fortuna (visualizza solo sul display, no interazione)
+    socket.on('display_question', (d) => {
+        console.log('Display question (solo visualizzazione):', d.domanda);
+        showView('gioco');
+        stopTimer();
+        
+        document.getElementById('buzzer-overlay').classList.add('hidden');
+        document.getElementById('solution').classList.add('hidden');
+        document.getElementById('cat').innerText = (d.categoria || "RUOTA DELLA FORTUNA").toUpperCase();
+        document.getElementById('q-text').innerText = d.domanda;
+        
+        const o = document.getElementById('opts'); 
+        o.innerHTML = '';
+        
+        if(d.risposte) { 
+            o.classList.remove('hidden'); 
+            d.risposte.forEach((r, idx) => {
+                o.innerHTML += `<div class="answer-option bg-white/10 p-4 rounded-2xl border-2 border-white/10 shadow-lg font-bold">${String.fromCharCode(65+idx)}: ${r}</div>`;
+            });
+        }
+        
+        document.getElementById('timer-display-container').classList.add('hidden');
+    });
+
+    // RESET CLIENT UI - Reset completo display
+    socket.on('reset_client_ui', () => {
+        console.log('🔄 Reset client UI');
+        stopTimer();
+        document.getElementById('buzzer-overlay').classList.add('hidden');
+        document.getElementById('solution').classList.add('hidden');
+        document.getElementById('opts').classList.add('hidden');
+        document.getElementById('timer-display-container').classList.add('hidden');
+        document.getElementById('q-text').innerText = 'Caricamento domanda...';
+        document.getElementById('cat').innerText = 'CATEGORIA';
+    });
+
+    // ════════════════════════════════════════════════════════════════
+    // 🔥 DUELLO RUBA-PUNTI
+    // ════════════════════════════════════════════════════════════════
+    
+    socket.on('duello_explain', () => {
+        showView('custom');
+        document.getElementById('custom-text-display').innerHTML = `
+            <div class="text-6xl mb-6">⚔️</div>
+            <div class="text-5xl font-black mb-4">DUELLO RUBA-PUNTI!</div>
+            <div class="text-3xl mb-4">Una squadra sarà estratta per sfidare un avversario</div>
+            <div class="text-2xl text-red-400 font-bold mb-2">🔥 Vinci: RUBI 250 punti!</div>
+            <div class="text-2xl text-blue-400 font-bold">🛡️ Perdi: +100pt bonus difesa</div>
         `;
     });
-});
+    
+    // Animazione estrazione attaccante duello
+    socket.on('duello_extraction_animation', (data) => {
+        showView('duello-extraction');
+        
+        const wheel = document.getElementById('duello-wheel');
+        const wheelName = document.getElementById('duello-wheel-name');
+        
+        let currentIndex = 0;
+        const teams = data.teams;
+        
+        // Cambia nome rapidamente per effetto spinning
+        const spinInterval = setInterval(() => {
+            wheelName.textContent = teams[currentIndex];
+            currentIndex = (currentIndex + 1) % teams.length;
+        }, 150);
+        
+        // Dopo 3 secondi mostra il vincitore
+        setTimeout(() => {
+            clearInterval(spinInterval);
+            wheel.style.animation = 'none';
+            wheelName.textContent = data.winner.name;
+            
+            // Dopo 1 secondo mostra schermata vincitore
+            setTimeout(() => {
+                showView('duello-attaccante');
+                document.getElementById('duello-attaccante-name-display').textContent = data.winner.name;
+            }, 1000);
+        }, 3000);
+    });
+    
+    socket.on('duello_question_display', (data) => {
+        showView('duello');
+        
+        document.getElementById('duello-attaccante-name').textContent = data.attaccante.name.toUpperCase();
+        document.getElementById('duello-difensore-name').textContent = data.difensore.name.toUpperCase();
+        document.getElementById('duello-attaccante-score').textContent = data.scoreAttaccante;
+        document.getElementById('duello-difensore-score').textContent = data.scoreDifensore;
+        
+        document.getElementById('duello-categoria').textContent = (data.question.categoria || 'DUELLO').toUpperCase();
+        document.getElementById('duello-question-number').textContent = `DOMANDA ${data.questionNumber}/3`;
+        document.getElementById('duello-question-text').textContent = data.question.domanda;
+        document.getElementById('duello-status').innerHTML = '<span class="text-yellow-400 animate-pulse">⚡ In attesa di buzzer...</span>';
+    });
+    
+    socket.on('duello_buzzer_pressed', (data) => {
+        document.getElementById('duello-status').innerHTML = `
+            <div class="bg-yellow-500 text-black p-4 rounded-2xl inline-block animate__animated animate__bounceIn">
+                <span class="text-4xl">🎤 ${data.teamName.toUpperCase()}</span><br>
+                <span class="text-xl">sta rispondendo... (${data.time}s)</span>
+            </div>
+        `;
+    });
+    
+    socket.on('duello_point_scored', (data) => {
+        document.getElementById('duello-attaccante-score').textContent = data.scoreAttaccante;
+        document.getElementById('duello-difensore-score').textContent = data.scoreDifensore;
+        
+        document.getElementById('duello-status').innerHTML = `
+            <div class="bg-green-600 p-6 rounded-2xl inline-block animate__animated animate__bounceIn">
+                <span class="text-5xl">✅ ${data.teamName.toUpperCase()} SEGNA!</span><br>
+                <span class="text-2xl">${data.scoreAttaccante} - ${data.scoreDifensore}</span>
+            </div>
+        `;
+    });
+    
+    socket.on('duello_wrong_answer', (data) => {
+        document.getElementById('duello-status').innerHTML = `
+            <div class="bg-red-600 p-6 rounded-2xl inline-block animate__animated animate__shakeX">
+                <span class="text-4xl">❌ ${data.wrongTeamName.toUpperCase()} HA SBAGLIATO!</span>
+            </div>
+        `;
+    });
+    
+    socket.on('duello_end', (data) => {
+        showView('custom');
+        
+        const winnerEmoji = data.attaccanteWins ? '🔥' : '🛡️';
+        const winnerColor = data.attaccanteWins ? 'text-orange-400' : 'text-blue-400';
+        const pointsMsg = data.attaccanteWins ? 
+            `${data.winner.name} ruba 250 punti a ${data.loser.name}!` :
+            `${data.winner.name} difende e guadagna 100 punti bonus!`;
+        
+        document.getElementById('custom-text-display').innerHTML = `
+            <div class="text-9xl mb-6">${winnerEmoji}</div>
+            <div class="text-6xl font-black ${winnerColor} mb-6">
+                ${data.winner.name.toUpperCase()} VINCE!
+            </div>
+            <div class="text-4xl font-bold mb-4">
+                ${data.finalScore.attaccante} - ${data.finalScore.difensore}
+            </div>
+            <div class="text-3xl text-yellow-300">
+                ${pointsMsg}
+            </div>
+        `;
+        
+        setTimeout(() => {
+            showView('classifica_gen');
+        }, 5000);
+    });
+
+    // ════════════════════════════════════════════════════════════════
+    // 🧠 MEMORY GAME - DISPLAY
+    // ════════════════════════════════════════════════════════════════
+
+    socket.on('memory_manche_intro', (data) => {
+        showView('memory-intro');
+        document.getElementById('memory-intro-manche').textContent = `MANCHE ${data.manche}/${data.totalManches}`;
+        document.getElementById('memory-intro-pairs').textContent = `${data.pairsCount} COPPIE DA TROVARE`;
+        console.log(`🧠 Intro Manche ${data.manche}`);
+    });
+
+    socket.on('memory_show_all', (data) => {
+        showView('memory');
+        
+        // Configura grid
+        const grid = document.getElementById('memory-grid');
+        grid.className = 'grid gap-4 mb-8';
+        
+        if(data.grid === '2x3') {
+            grid.style.gridTemplateColumns = 'repeat(3, 180px)';
+            grid.style.gridTemplateRows = 'repeat(2, 180px)';
+        } else if(data.grid === '2x5') {
+            grid.style.gridTemplateColumns = 'repeat(5, 150px)';
+            grid.style.gridTemplateRows = 'repeat(2, 150px)';
+        } else if(data.grid === '2x7') {
+            grid.style.gridTemplateColumns = 'repeat(7, 130px)';
+            grid.style.gridTemplateRows = 'repeat(2, 130px)';
+        }
+        
+        // Popola carte
+        grid.innerHTML = '';
+        data.cards.forEach((emoji, index) => {
+            const card = document.createElement('div');
+            card.className = 'flex items-center justify-center bg-white/20 rounded-2xl border-4 border-white/40 text-8xl animate__animated animate__flipInY';
+            card.style.animationDelay = `${index * 0.05}s`;
+            card.textContent = emoji;
+            grid.appendChild(card);
+        });
+        
+        // Info e timer
+        document.getElementById('memory-manche-info').textContent = `MANCHE ${data.manche}/3 - ROUND ${data.round}`;
+        document.getElementById('memory-phase-text').textContent = 'MEMORIZZA LE CARTE!';
+        document.getElementById('memory-timer').textContent = `⏱️ ${data.duration} secondi`;
+        
+        // Countdown
+        let timeLeft = data.duration;
+        if(memoryTimerInterval) clearInterval(memoryTimerInterval);
+        memoryTimerInterval = setInterval(() => {
+            timeLeft--;
+            document.getElementById('memory-timer').textContent = `⏱️ ${timeLeft} secondi`;
+            if(timeLeft <= 0) clearInterval(memoryTimerInterval);
+        }, 1000);
+        
+        console.log('🧠 Mostra tutte le carte');
+    });
+
+    socket.on('memory_cover_all', () => {
+        const grid = document.getElementById('memory-grid');
+        const cards = grid.children;
+        
+        for(let i = 0; i < cards.length; i++) {
+            cards[i].className = 'flex items-center justify-center bg-gray-700 rounded-2xl border-4 border-gray-500 text-6xl font-black text-white animate__animated animate__flipOutY';
+            setTimeout(() => {
+                cards[i].textContent = i + 1; // Numero posizione
+                cards[i].className = 'flex items-center justify-center bg-gray-700 rounded-2xl border-4 border-gray-500 text-6xl font-black text-white';
+            }, 300);
+        }
+        
+        document.getElementById('memory-phase-text').textContent = 'CARTE COPERTE!';
+        document.getElementById('memory-timer').textContent = '';
+        
+        if(memoryTimerInterval) clearInterval(memoryTimerInterval);
+        
+        console.log('🧠 Carte coperte');
+    });
+
+    socket.on('memory_reveal_one', (data) => {
+        const grid = document.getElementById('memory-grid');
+        const cards = grid.children;
+        
+        // Rivela la carta scelta
+        const revealedCard = cards[data.position];
+        revealedCard.className = 'flex items-center justify-center bg-yellow-500 rounded-2xl border-4 border-yellow-300 text-8xl animate__animated animate__pulse animate__infinite';
+        revealedCard.textContent = data.image;
+        
+        document.getElementById('memory-phase-text').textContent = `TROVA LA COPPIA DI ${data.image}`;
+        document.getElementById('memory-timer').textContent = `⏱️ ${data.duration} secondi`;
+        
+        // Countdown
+        let timeLeft = data.duration;
+        if(memoryTimerInterval) clearInterval(memoryTimerInterval);
+        memoryTimerInterval = setInterval(() => {
+            timeLeft--;
+            document.getElementById('memory-timer').textContent = `⏱️ ${timeLeft} secondi`;
+            if(timeLeft <= 0) clearInterval(memoryTimerInterval);
+        }, 1000);
+        
+        console.log('🧠 Rivelata carta:', data.image, 'in posizione', data.position);
+    });
+
+    socket.on('memory_show_results', (data) => {
+        if(memoryTimerInterval) clearInterval(memoryTimerInterval);
+        
+        const grid = document.getElementById('memory-grid');
+        const cards = grid.children;
+        
+        // Mostra la carta corretta
+        const correctCard = cards[data.correctPosition];
+        correctCard.className = 'flex items-center justify-center bg-green-500 rounded-2xl border-4 border-green-300 text-8xl animate__animated animate__bounceIn';
+        correctCard.textContent = data.correctImage;
+        
+        // Conta corretti
+        const correctCount = data.results.filter(r => r.correct).length;
+        const totalCount = data.results.length;
+        
+        document.getElementById('memory-phase-text').innerHTML = `
+            <div class="text-5xl text-green-400 mb-4">✅ Posizione ${data.correctPosition + 1}</div>
+            <div class="text-3xl">${correctCount}/${totalCount} squadre corrette!</div>
+        `;
+        document.getElementById('memory-timer').textContent = `+${data.points}pt`;
+        
+        console.log('🧠 Risultati -', correctCount, 'corretti su', totalCount);
+    });
+
+    socket.on('memory_game_end', () => {
+        showView('custom');
+        document.getElementById('custom-text-display').innerHTML = `
+            <div class="text-9xl mb-6">🧠</div>
+            <div class="text-6xl font-black mb-4">MEMORY COMPLETATO!</div>
+            <div class="text-4xl text-yellow-300">Ottimo lavoro!</div>
+        `;
+        console.log('🧠 Memory Game terminato');
+    });
+
+    socket.on('update_round_leaderboard', (data) => {
+        const tbody = document.getElementById('round-results-table');
+        if (!tbody) return;
+        
+        tbody.innerHTML = '';
+        
+        data.results.forEach((team, index) => {
+            const medals = ['🥇', '🥈', '🥉'];
+            const medal = index < 3 ? medals[index] : `${index + 1}°`;
+            
+            tbody.innerHTML += `
+                <tr class="border-b border-white/20 animate__animated animate__fadeInLeft" style="animation-delay: ${index * 0.1}s">
+                    <td class="py-4 px-6 text-5xl">${medal}</td>
+                    <td class="py-4 px-6 font-black text-4xl uppercase">${team.name}</td>
+                    <td class="py-4 px-6 text-right">
+                        <span class="text-5xl font-black text-yellow-400">+${team.roundPoints}</span>
+                        <span class="text-2xl text-gray-400 ml-2">pt</span>
+                    </td>
+                </tr>
+            `;
+        });
+    });
+
+    socket.on('force_reload', () => window.location.reload());
+</script>
+</body>
+</html>

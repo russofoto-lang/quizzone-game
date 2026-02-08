@@ -676,37 +676,58 @@
         }
     });
 
-    // ✅ FIX 1: PAUSA - Mostra solo sfondo, non la scritta "PAUSA"
+    // ✅ PAUSA - Aggiungere notifiche visive
     socket.on('game_paused', () => {
-        showView('custom');
-        document.getElementById('custom-text-display').innerHTML = `
-            <div class="text-9xl mb-6 animate-pulse">☕</div>
-            <div class="text-6xl font-black text-orange-400">PAUSA</div>
+        // Mostra overlay pausa
+        const pauseOverlay = document.getElementById('pause-overlay') || createPauseOverlay();
+        pauseOverlay.classList.remove('hidden');
+    });
+
+    socket.on('game_resumed', () => {
+        const pauseOverlay = document.getElementById('pause-overlay');
+        if (pauseOverlay) pauseOverlay.classList.add('hidden');
+    });
+
+    function createPauseOverlay() {
+        const div = document.createElement('div');
+        div.id = 'pause-overlay';
+        div.className = 'hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50';
+        div.innerHTML = `
+            <div class="text-center">
+                <div class="text-9xl mb-4">⏸️</div>
+                <div class="text-6xl font-black text-yellow-400">PAUSA</div>
+            </div>
         `;
+        document.body.appendChild(div);
+        return div;
+    }
+
+    // PAUSA GIOCO
+    socket.on('game_paused', (data) => {
+        console.log('Ricevuto comando pausa');
+        showView('pausa');
+        const leaderboard = document.getElementById('pause-leaderboard');
+        leaderboard.innerHTML = '';
+        
+        if(data.teams && data.teams.length > 0) {
+            data.teams.slice(0, 5).forEach((team, idx) => {
+                const medals = ['🥇', '🥈', '🥉'];
+                const medal = medals[idx] || `${idx + 1}°`;
+                leaderboard.innerHTML += `
+                    <div class="flex justify-between items-center bg-white/10 rounded-xl p-4">
+                        <span><span class="text-4xl mr-3">${medal}</span> <span class="font-bold">${team.name}</span></span>
+                        <span class="font-black text-yellow-400">${team.score} pt</span>
+                    </div>
+                `;
+            });
+        } else {
+            leaderboard.innerHTML = '<p class="text-white/60">Nessuna squadra registrata</p>';
+        }
     });
 
     socket.on('game_resumed', () => {
         console.log('Gioco ripreso');
         showView('logo');
-    });
-
-    // ✅ FIX 2: Reset completo del display
-    socket.on('reset_display_ui', () => {
-        // Reset completo del display
-        showView('logo');
-        document.getElementById('q-text').innerText = 'Caricamento domanda...';
-        document.getElementById('opts').innerHTML = '';
-        document.getElementById('opts').classList.add('hidden');
-        document.getElementById('solution').classList.add('hidden');
-        document.getElementById('timer-display-container').classList.add('hidden');
-        document.getElementById('buzzer-overlay').classList.add('hidden');
-        
-        if(timerInterval) {
-            clearInterval(timerInterval);
-            timerInterval = null;
-        }
-        
-        console.log('🔄 Display resettato');
     });
 
     function renderRoundList(data) {
@@ -1261,31 +1282,6 @@
             <div class="text-4xl text-yellow-300">Ottimo lavoro!</div>
         `;
         console.log('🧠 Memory Game terminato');
-    });
-
-    // ✅ FIX 3: Gestione classifica round con punti positivi/negativi
-    socket.on('update_round_leaderboard', (data) => {
-        const tbody = document.getElementById('round-results-table');
-        if (!tbody) return;
-        
-        tbody.innerHTML = '';
-        
-        data.results.forEach((team, index) => {
-            const medals = ['🥇', '🥈', '🥉'];
-            const medal = index < 3 ? medals[index] : `${index + 1}°`;
-            const pointsClass = team.roundPoints > 0 ? 'text-green-400' : team.roundPoints < 0 ? 'text-red-400' : 'text-gray-400';
-            
-            tbody.innerHTML += `
-                <tr class="border-b border-white/20 animate__animated animate__fadeInLeft" style="animation-delay: ${index * 0.1}s">
-                    <td class="py-4 px-6 text-5xl">${medal}</td>
-                    <td class="py-4 px-6 font-black text-4xl uppercase">${team.name}</td>
-                    <td class="py-4 px-6 text-right">
-                        <span class="text-5xl font-black ${pointsClass}">${team.roundPoints > 0 ? '+' : ''}${team.roundPoints}</span>
-                        <span class="text-2xl text-gray-400 ml-2">pt</span>
-                    </td>
-                </tr>
-            `;
-        });
     });
 
     socket.on('force_reload', () => window.location.reload());

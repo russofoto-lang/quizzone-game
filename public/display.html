@@ -520,7 +520,7 @@
     </div>
 
     <!-- VISTA MEMORY GAME -->
-    <div id="view-memory" class="view-section hidden absolute inset-0 bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900 z-50 flex flex-col items-center justify-center p-8">
+    <div id="view-memory" class="view-section hidden absolute inset-0 bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900 z-50 flex flex-col items-center justify-center p-8 overflow-y-auto">
         <!-- Header -->
         <div class="text-center mb-8">
             <h1 class="text-7xl font-black text-yellow-400 mb-4">🧠 MEMORY GAME</h1>
@@ -551,6 +551,7 @@
     let questionStartTime = 0;
     let maxTime = 20;
     let memoryTimerInterval = null;
+    let currentCorrectAnswer = null; // VARIABILE PER MEMORIZZARE RISPOSTA CORRETTA
     
     function showView(id) {
         document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
@@ -629,6 +630,13 @@
                 }, 1000);
             }, 17000); // Dopo 17 secondi inizia countdown 3-2-1
         }
+        
+        // PODIO - mostra classifica round
+        if(data.view === 'podio' && data.data) {
+            console.log('🎉 PODIO - Mostra classifica round');
+            showView('classifica_round');
+            renderRoundList(data.data);
+        }
     });
 
     // CONFETTI ANIMATION
@@ -650,29 +658,16 @@
 
     // ✅ FIX: Riceve soluzione SOLO il display
     socket.on('mostra_soluzione_display', (data) => {
-        // Nascondi tutto
-        document.getElementById('game-screen').classList.add('hidden');
-        document.getElementById('qr-screen').classList.add('hidden');
-        document.getElementById('benvenuto-screen').classList.add('hidden');
-        // ... (nascondi altri screen se esistono)
+        console.log('✅ SOLUZIONE ricevuta sul display:', data.soluzione);
+        showView('gioco');
+        stopTimer();
+        document.getElementById('solution').classList.remove('hidden');
+        document.getElementById('sol-text').innerText = data.soluzione;
+        document.getElementById('buzzer-overlay').classList.add('hidden');
+        document.getElementById('timer-display-container').classList.add('hidden');
         
-        // Mostra schermata soluzione
-        const soluzioneScreen = document.getElementById('soluzione-screen') || createSoluzioneScreen();
-        soluzioneScreen.classList.remove('hidden');
-        
-        document.getElementById('soluzione-text').textContent = data.soluzione;
-        
-        function createSoluzioneScreen() {
-            const div = document.createElement('div');
-            div.id = 'soluzione-screen';
-            div.className = 'hidden flex flex-col items-center justify-center h-screen bg-gradient-to-br from-yellow-600 to-orange-600';
-            div.innerHTML = `
-                <div class="text-6xl font-black text-white mb-8">✅ RISPOSTA CORRETTA</div>
-                <div id="soluzione-text" class="text-8xl font-black text-white bg-black/30 px-16 py-8 rounded-3xl border-8 border-white"></div>
-            `;
-            document.body.appendChild(div);
-            return div;
-        }
+        // Log per debug
+        console.log('📢 Soluzione mostrata sul display:', data.soluzione);
     });
 
     // ✅ PAUSA - Aggiungere notifiche visive
@@ -759,7 +754,21 @@
 
     // NUOVA DOMANDA
     socket.on('nuova_domanda', (d) => {
-        console.log('Nuova domanda:', d.modalita);
+        console.log('📝 NUOVA DOMANDA ricevuta:');
+        console.log('🔤 Domanda:', d.domanda);
+        console.log('🏷️ Categoria:', d.categoria);
+        console.log('🎮 Modalità:', d.modalita);
+        
+        // ✅ SALVA LA RISPOSTA CORRETTA PER DEBUG
+        currentCorrectAnswer = d.corretta; // Indice della risposta corretta
+        console.log('✅ RISPOSTA CORRETTA (indice):', currentCorrectAnswer);
+        
+        if (d.risposte && currentCorrectAnswer !== undefined && d.risposte[currentCorrectAnswer]) {
+            console.log('✅ RISPOSTA CORRETTA (testo):', d.risposte[currentCorrectAnswer]);
+        }
+        
+        console.log('📋 Risposte disponibili:', d.risposte);
+        
         showView('gioco');
         stopTimer();
         
@@ -793,7 +802,9 @@
         if(d.risposte && d.modalita !== 'buzzer' && d.modalita !== 'stima' && d.modalita !== 'anagramma') { 
             o.classList.remove('hidden'); 
             d.risposte.forEach((r, idx) => {
-                o.innerHTML += `<div class="answer-option bg-white/10 p-4 rounded-2xl border-2 border-white/10 shadow-lg font-bold">${String.fromCharCode(65+idx)}: ${r}</div>`;
+                const isCorrect = idx === currentCorrectAnswer;
+                const correctIndicator = isCorrect ? ' ✅' : '';
+                o.innerHTML += `<div class="answer-option bg-white/10 p-4 rounded-2xl border-2 border-white/10 shadow-lg font-bold">${String.fromCharCode(65+idx)}: ${r}${correctIndicator}</div>`;
             });
         
         // ✅ PATCH 2: Calcola offset di rete
@@ -891,7 +902,7 @@
                 `;
             });
         } else {
-            queueDiv.innerHTML = '<p class="text-white/60 text-3xl">In attesa di prenotazioni...</p>';
+            queueDiv.innerHTML = '<p class="text-white/60 text-3xl">In attenza di prenotazioni...</p>';
         }
     });
 
@@ -901,6 +912,7 @@
 
     // SOLUZIONE
     socket.on('mostra_soluzione', (d) => {
+        console.log('✅ MOSTRA_SOLUZIONE ricevuta sul display:', d.soluzione);
         stopTimer();
         showView('gioco');
         document.getElementById('solution').classList.remove('hidden');
@@ -1284,6 +1296,18 @@
     });
 
     socket.on('force_reload', () => window.location.reload());
+    
+    // ✅ AGGIUNTA: Evento PODIO specifico
+    socket.on('mostra_podio', (data) => {
+        console.log('🏆 PODIO ricevuto:', data);
+        showView('classifica_round');
+        renderRoundList(data);
+    });
+    
+    // ✅ AGGIUNTA: Log per debug di tutti gli eventi (opzionale)
+    socket.onAny((eventName, ...args) => {
+        console.log(`📡 EVENTO RICEVUTO: ${eventName}`, args);
+    });
 </script>
 </body>
 </html>

@@ -119,6 +119,12 @@
             <div id="buzzer-monitor" class="hidden overflow-y-auto h-48 space-y-1 text-sm"></div>
         </div>
 
+        <!-- Risposta Corretta Preview -->
+        <div id="correct-answer-preview" class="hidden bg-green-900/50 rounded-lg p-3 border border-green-500 mb-2">
+            <div class="text-sm font-bold text-green-400 mb-1 uppercase">✅ Risposta Corretta</div>
+            <div id="correct-answer-text" class="text-lg font-black text-white"></div>
+        </div>
+
         <!-- Classifica 2 Colonne - RIDOTTA -->
         <div class="flex-1 bg-gray-900/50 rounded-lg p-2 border border-gray-800 overflow-hidden">
             <div class="text-sm font-bold text-yellow-400 mb-1 uppercase">📊 Classifica</div>
@@ -141,7 +147,7 @@
                     <div class="text-lg">🎮</div>
                     <div>Game</div>
                 </div>
-                <div onclick="mostraPodio()" class="btn-scene text-center text-xs font-bold">
+                <div onclick="regia('classifica_round')" class="btn-scene text-center text-xs font-bold">
                     <div class="text-lg">🏆</div>
                     <div>Pod</div>
                 </div>
@@ -409,10 +415,7 @@
     let isPaused = false, finaleActive = false, finaleQuestionCount = 0;
     let totalQuestionsAsked = 0, allInPrepared = false, totalTeams = 0;
 
-    socket.on('connect', () => { 
-        console.log("🖥️ Admin connesso al server");
-        socket.emit('admin_connect'); 
-    });
+    socket.on('connect', () => { socket.emit('admin_connect'); });
     
     socket.on('init_data', (d) => { 
         dbStructure = d; 
@@ -471,12 +474,6 @@
 
     function selectQuestion(index) {
         selectedQ = currentQuestions[index];
-        console.log('📝 Domanda selezionata:', selectedQ.domanda);
-        console.log('✅ Risposta corretta (indice):', selectedQ.corretta);
-        if(selectedQ.risposte && selectedQ.corretta !== undefined) {
-            console.log('✅ Risposta corretta (testo):', selectedQ.risposte[selectedQ.corretta]);
-        }
-        
         document.querySelectorAll('#questions-container > div').forEach((el, i) => {
             el.className = i === index ? 
                 'p-2 bg-blue-600 rounded mb-1 cursor-pointer border-2 border-blue-400' : 
@@ -491,28 +488,13 @@
         totalQuestionsAsked++;
         document.getElementById('question-counter').textContent = `Q: ${totalQuestionsAsked}`;
         
-        // ✅ LOG RISPOSTA CORRETTA IN CONSOLE
-        console.log('🎯 LANCIO DOMANDA:');
-        console.log('📝 Domanda:', selectedQ.domanda);
-        console.log('🎮 Modalità:', m);
-        console.log('✅ Risposta corretta (indice):', selectedQ.corretta);
-        if(selectedQ.risposte && selectedQ.corretta !== undefined) {
-            console.log('✅ Risposta corretta (testo):', selectedQ.risposte[selectedQ.corretta]);
-        }
-        
         if(finaleActive) {
             finaleQuestionCount++;
             updateFinaleProgress();
             socket.emit('invia_domanda_finale', {...selectedQ, modalita: m});
             if(finaleQuestionCount >= 5) activateStep(6);
         } else {
-            // ✅ INVIA CORRETTA AL DISPLAY
-            socket.emit('invia_domanda', {
-                ...selectedQ, 
-                modalita: m,
-                corretta: selectedQ.corretta, // ✅ Invia l'indice della risposta corretta
-                serverTimestamp: Date.now() // ✅ Timestamp per sync
-            });
+            socket.emit('invia_domanda', {...selectedQ, modalita: m});
         }
     }
 
@@ -620,51 +602,42 @@
     }
 
     function assignPoints(teamId, points) {
-        console.log(`🎯 Assegna ${points} punti a ${teamId}`);
         socket.emit('admin_punti_manuali', { id: teamId, punti: points });
-        
-        // ✅ FEEDBACK VISIVO IMMEDIATO
-        alert(`✅ ${points > 0 ? '+' : ''}${points} punti assegnati!`);
+        console.log(`Assegnati ${points} punti a ${teamId}`);
     }
 
-    socket.on('update_teams', (t) => {
-        totalTeams = t.length;
-        updateTeams(t);
-    });
-    
-    function updateTeams(t) {
-        t.sort((a,b) => b.score - a.score);
-        
-        // ✅ PATCH 6: Filtra preview
-        const realTeams = t.filter(x => !x.isPreview);
+    socket.on('update_teams', (teams) => {
+        totalTeams = teams.length;
         
         const lb = document.getElementById('leaderboard-center');
         lb.innerHTML = '';
         
-        realTeams.forEach((x, i) => {
-            const medals = ['🥇', '🥈', '🥉'];
-            const medal = medals[i] || `${i+1}°`;
-            
-            const div = document.createElement('div');
-            div.className = 'bg-gray-800/50 rounded px-1.5 py-1 flex items-center justify-between gap-1';
-            div.innerHTML = `
-                <span class="text-[10px] flex-shrink-0">${medal}</span>
-                <span class="font-bold text-xs truncate flex-1">${x.name}</span>
-                <span class="font-black text-yellow-400 text-xs flex-shrink-0">${x.score}</span>
-                <button onclick="adjustPoints('${x.id}', 50)" class="bg-green-600 hover:bg-green-500 text-white text-[9px] px-2 py-1 rounded font-bold flex-shrink-0">+</button>
-                <button onclick="adjustPoints('${x.id}', -50)" class="bg-red-600 hover:bg-red-500 text-white text-[9px] px-2 py-1 rounded font-bold flex-shrink-0">-</button>
-            `;
-            lb.appendChild(div);
-        });
-    }
-    
-    function adjustPoints(teamId, points) {
-        console.log(`🎯 Regola punti: ${points > 0 ? '+' : ''}${points} a ${teamId}`);
-        socket.emit('admin_punti_manuali', { id: teamId, punti: points });
+        const sorted = teams.sort((a, b) => b.score - a.score);
         
-        // ✅ FEEDBACK VISIVO
-        const teamName = dbStructure.teams.find(t => t.id === teamId)?.name || 'Squadra';
-        alert(`✅ ${teamName}: ${points > 0 ? '+' : ''}${points} punti`);
+        sorted.forEach((t, i) => {
+            const medals = ['🥇', '🥈', '🥉'];
+            const medal = i < 3 ? medals[i] : `${i + 1}°`;
+            
+            lb.innerHTML += `
+                <div class="bg-gray-800/70 rounded-lg p-2 flex items-center justify-between border border-gray-700">
+                    <div class="flex items-center gap-2 flex-1 min-w-0">
+                        <span class="text-xl">${medal}</span>
+                        <span class="font-bold text-white text-sm truncate">${t.name}</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-yellow-400 font-black text-sm">${t.score}</span>
+                        <button onclick="adjustPoints('${t.id}', 50)" class="bg-green-600 hover:bg-green-500 text-white font-bold px-2 py-1 rounded text-xs">+</button>
+                        <button onclick="adjustPoints('${t.id}', -50)" class="bg-red-600 hover:bg-red-500 text-white font-bold px-2 py-1 rounded text-xs">−</button>
+                    </div>
+                </div>
+            `;
+        });
+    });
+
+    // ✅ FIX 2: Funzione per aggiungere/togliere punti
+    function adjustPoints(teamId, points) {
+        socket.emit('assign_points', { teamId: teamId, points: points });
+        console.log(`💰 ${points > 0 ? '+' : ''}${points} punti a ${teamId}`);
     }
 
     // ════════════════════════════════════════════════════════════════
@@ -922,36 +895,10 @@
         }
     }
 
-    function regia(v) { 
-        console.log(`📺 Regia: ${v}`);
-        socket.emit('regia_cmd', v); 
-    }
-    
-    function mostraPodio() {
-        console.log('🏆 Mostra podio (classifica round)');
-        // ✅ Inviamo sia il comando regia che l'evento specifico per il display
-        socket.emit('mostra_podio');
-        socket.emit('regia_cmd', 'classifica_round');
-    }
-    
-    function resetDisplays() { 
-        if(confirm("Reset tutti i display?")) {
-            console.log('🔄 Reset displays');
-            socket.emit('reset_displays'); 
-        }
-    }
-    
-    function resetGame() { 
-        if(confirm("⚠️ RESET TOTALE? Tutti i punteggi andranno persi!")) {
-            console.log('🔄 Reset totale gioco');
-            socket.emit('reset_game'); 
-        }
-    }
-    
-    function showWinnerButton() { 
-        console.log('👑 Mostra vincitore');
-        socket.emit('show_winner'); 
-    }
+    function regia(v) { socket.emit('regia_cmd', v); }
+    function resetDisplays() { if(confirm("Reset?")) socket.emit('reset_displays'); }
+    function resetGame() { if(confirm("⚠️ RESET TOTALE?")) socket.emit('reset_game'); }
+    function showWinnerButton() { socket.emit('show_winner'); }
     
     function mostraSoluzioneSuDisplay() {
         if(selectedQ && selectedQ.corretta !== undefined) {
@@ -959,16 +906,9 @@
             if(typeof selectedQ.corretta === 'number' && selectedQ.risposte) {
                 soluzione = selectedQ.risposte[selectedQ.corretta];
             }
-            console.log('✅ Mostra soluzione sul display:', soluzione);
-            
-            // ✅ INVIA SIA AI CELLULARI CHE AL DISPLAY
             socket.emit('mostra_soluzione', { soluzione: soluzione });
-            socket.emit('mostra_soluzione_display', { soluzione: soluzione });
-            
-            // ✅ FEEDBACK VISIVO
-            alert(`📺 Soluzione inviata: "${soluzione}"`);
         } else {
-            alert('❌ Seleziona una domanda con risposta corretta!');
+            alert('❌ Seleziona domanda!');
         }
     }
 
@@ -979,13 +919,11 @@
             btn.innerHTML = '⏸️ PAUSA';
             btn.className = 'px-4 py-2 bg-orange-600 hover:bg-orange-500 rounded-lg font-bold text-sm';
             isPaused = false;
-            console.log('▶️ Gioco ripreso');
         } else {
             socket.emit('pause_game');
             btn.innerHTML = '▶️ RIPRENDI';
             btn.className = 'px-4 py-2 bg-green-600 hover:bg-green-500 rounded-lg font-bold text-sm';
             isPaused = true;
-            console.log('⏸️ Gioco in pausa');
         }
     }
 
@@ -1053,6 +991,22 @@
     function refreshPreview() {
         document.getElementById('mobile-preview').src = window.location.origin + '/preview';
     }
+
+    // ✅ FIX 5: Ricevi e mostra la risposta corretta in anticipo
+    socket.on('show_correct_answer_preview', (data) => {
+        const preview = document.getElementById('correct-answer-preview');
+        const text = document.getElementById('correct-answer-text');
+        
+        text.textContent = `${data.corretta}`;
+        preview.classList.remove('hidden');
+        
+        console.log('✅ Risposta corretta:', data.corretta);
+    });
+
+    // Nascondi quando cambia domanda
+    socket.on('nuova_domanda', () => {
+        document.getElementById('correct-answer-preview').classList.add('hidden');
+    });
 
     window.addEventListener('DOMContentLoaded', () => {
         document.getElementById('mobile-preview').src = window.location.origin + '/preview';

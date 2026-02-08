@@ -364,7 +364,7 @@
                         <button onclick="stopMemoryGame()" class="btn-danger text-white font-bold py-2 rounded text-sm">
                             🛑 Stop
                         </button>
-                    </div>
+                        </div>
                 </div>
             </div>
         </div>
@@ -606,41 +606,31 @@
         console.log(`Assegnati ${points} punti a ${teamId}`);
     }
 
-    
-socket.on('update_teams', (teams) => {
-    totalTeams = teams.length;
-    const lb = document.getElementById('leaderboard-center');
-    lb.innerHTML = '';
-    const sorted = teams.sort((a, b) => b.score - a.score);
-    sorted.forEach((t, i) => {
-        const medals = ['🥇', '🥈', '🥉'];
-        const medal = i < 3 ? medals[i] : `${i + 1}°`;
-        lb.innerHTML += `<div class="bg-gray-800/70 rounded-lg p-2 flex items-center justify-between border border-gray-700">
-            <div class="flex items-center gap-2 flex-1 min-w-0">
-                <span class="text-xl">${medal}</span>
-                <span class="font-bold text-white text-sm truncate">${t.name}</span>
-            </div>
-            <div class="flex items-center gap-2">
-                <span class="text-yellow-400 font-black text-sm">${t.score}</span>
-                <button onclick="adjustPoints('${t.id}', 50)" class="bg-green-600 hover:bg-green-500 text-white font-bold px-2 py-1 rounded text-xs">+</button>
-                <button onclick="adjustPoints('${t.id}', -50)" class="bg-red-600 hover:bg-red-500 text-white font-bold px-2 py-1 rounded text-xs">−</button>
-            </div>
-        </div>`;
-    });
-});
-
-// ✅ Funzione per aggiungere/togliere punti
-function adjustPoints(teamId, points) {
-    socket.emit('assign_points', {
-        teamId: teamId,
-        points: points
-    });
-    console.log(`💰 ${points > 0 ? '+' : ''}${points} punti a ${teamId}`);
-}
-
+    socket.on('update_teams', (teams) => {
+        totalTeams = teams.length;
+        const lb = document.getElementById('leaderboard-center');
+        lb.innerHTML = '';
+        const sorted = teams.sort((a, b) => b.score - a.score);
+        sorted.forEach((t, i) => {
+            const medals = ['🥇', '🥈', '🥉'];
+            const medal = i < 3 ? medals[i] : `${i + 1}°`;
+            lb.innerHTML += `
+                <div class="bg-gray-800/70 rounded-lg p-2 flex items-center justify-between border border-gray-700">
+                    <div class="flex items-center gap-2 flex-1 min-w-0">
+                        <span class="text-xl">${medal}</span>
+                        <span class="font-bold text-white text-sm truncate">${t.name}</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-yellow-400 font-black text-sm">${t.score}</span>
+                        <button onclick="adjustPoints('${t.id}', 50)" class="bg-green-600 hover:bg-green-500 text-white font-bold px-2 py-1 rounded text-xs">+</button>
+                        <button onclick="adjustPoints('${t.id}', -50)" class="bg-red-600 hover:bg-red-500 text-white font-bold px-2 py-1 rounded text-xs">−</button>
+                    </div>
+                </div>
+            `;
+        });
     });
 
-    // ✅ FIX 2: Funzione per aggiungere/togliere punti
+    // ✅ Funzione per aggiungere/togliere punti
     function adjustPoints(teamId, points) {
         socket.emit('assign_points', { teamId: teamId, points: points });
         console.log(`💰 ${points > 0 ? '+' : ''}${points} punti a ${teamId}`);
@@ -998,20 +988,26 @@ function adjustPoints(teamId, points) {
         document.getElementById('mobile-preview').src = window.location.origin + '/preview';
     }
 
-    // ✅ FIX 5: Ricevi e mostra la risposta corretta in anticipo
+    // ✅ Ricevi e mostra la risposta corretta in anticipo
     socket.on('show_correct_answer_preview', (data) => {
         const preview = document.getElementById('correct-answer-preview');
         const text = document.getElementById('correct-answer-text');
-        
         text.textContent = `${data.corretta}`;
         preview.classList.remove('hidden');
-        
         console.log('✅ Risposta corretta:', data.corretta);
     });
 
     // Nascondi quando cambia domanda
     socket.on('nuova_domanda', () => {
         document.getElementById('correct-answer-preview').classList.add('hidden');
+    });
+
+    // ✅ Ricevi dati delle domande all'avvio
+    socket.on('questions_data', (data) => {
+        dbStructure.categories = data.categories;
+        dbStructure.questions = data.questions;
+        populateCategories();
+        console.log('📚 Categorie caricate:', data.categories);
     });
 
     window.addEventListener('DOMContentLoaded', () => {
@@ -1063,28 +1059,6 @@ function adjustPoints(teamId, points) {
             if(btn) btn.click();
         }, 100);
     });
-
-// ✅ Ricevi e mostra la risposta corretta in anticipo
-socket.on('show_correct_answer_preview', (data) => {
-    const preview = document.getElementById('correct-answer-preview');
-    const text = document.getElementById('correct-answer-text');
-    text.textContent = `${data.corretta}`;
-    preview.classList.remove('hidden');
-    console.log('✅ Risposta corretta:', data.corretta);
-});
-
-// Nascondi quando cambia domanda
-socket.on('nuova_domanda', () => {
-    document.getElementById('correct-answer-preview').classList.add('hidden');
-});
-
-// ✅ Ricevi dati delle domande all'avvio
-socket.on('questions_data', (data) => {
-    dbStructure.categories = data.categories;
-    dbStructure.questions = data.questions;
-    populateCategories();
-    console.log('📚 Categorie caricate:', data.categories);
-});
 </script>
 
 </body>

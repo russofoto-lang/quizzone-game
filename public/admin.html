@@ -590,54 +590,57 @@
     function resetBuzzer() { 
         socket.emit('buzzer_reset'); 
     }
-
+    
     function openBuzzerStandalone() { 
-        // ✅ FIX: Invia domanda buzzer standalone
-        socket.emit('invia_domanda', { 
-            domanda: '🎵 Premi quando sai la risposta!',
-            risposte: [],
-            modalita: 'buzzer'
-        });
-        gameState.buzzerStandalone = true;
+        socket.emit('start_buzzer', { domanda: '🎵 Premi quando sai la risposta!' });
         console.log('🎵 Buzzer standalone attivato');
     }
-
+    
     function closeBuzzer() { 
         socket.emit('buzzer_close');
         console.log('🔒 Buzzer chiuso');
     }
 
-    // ✅ FIX: Rimuovi la funzione assignPoints duplicata e usa solo adjustPoints
+    function assignPoints(teamId, points) {
+        socket.emit('admin_punti_manuali', { id: teamId, punti: points });
+        console.log(`Assegnati ${points} punti a ${teamId}`);
+    }
 
-    socket.on('update_teams', (teams) => {
-        totalTeams = teams.length;
+    
+socket.on('update_teams', (teams) => {
+    totalTeams = teams.length;
+    const lb = document.getElementById('leaderboard-center');
+    lb.innerHTML = '';
+    const sorted = teams.sort((a, b) => b.score - a.score);
+    sorted.forEach((t, i) => {
+        const medals = ['🥇', '🥈', '🥉'];
+        const medal = i < 3 ? medals[i] : `${i + 1}°`;
+        lb.innerHTML += `<div class="bg-gray-800/70 rounded-lg p-2 flex items-center justify-between border border-gray-700">
+            <div class="flex items-center gap-2 flex-1 min-w-0">
+                <span class="text-xl">${medal}</span>
+                <span class="font-bold text-white text-sm truncate">${t.name}</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="text-yellow-400 font-black text-sm">${t.score}</span>
+                <button onclick="adjustPoints('${t.id}', 50)" class="bg-green-600 hover:bg-green-500 text-white font-bold px-2 py-1 rounded text-xs">+</button>
+                <button onclick="adjustPoints('${t.id}', -50)" class="bg-red-600 hover:bg-red-500 text-white font-bold px-2 py-1 rounded text-xs">−</button>
+            </div>
+        </div>`;
+    });
+});
 
-        const lb = document.getElementById('leaderboard-center');
-        lb.innerHTML = '';
+// ✅ Funzione per aggiungere/togliere punti
+function adjustPoints(teamId, points) {
+    socket.emit('assign_points', {
+        teamId: teamId,
+        points: points
+    });
+    console.log(`💰 ${points > 0 ? '+' : ''}${points} punti a ${teamId}`);
+}
 
-        const sorted = teams.sort((a, b) => b.score - a.score);
-
-        sorted.forEach((t, i) => {
-            const medals = ['🥇', '🥈', '🥉'];
-            const medal = i < 3 ? medals[i] : `${i + 1}°`;
-
-            lb.innerHTML += `
-                <div class="bg-gray-800/70 rounded-lg p-2 flex items-center justify-between border border-gray-700">
-                    <div class="flex items-center gap-2 flex-1 min-w-0">
-                        <span class="text-xl">${medal}</span>
-                        <span class="font-bold text-white text-sm truncate">${t.name}</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <span class="text-yellow-400 font-black text-sm">${t.score}</span>
-                        <button onclick="adjustPoints('${t.id}', 50)" class="bg-green-600 hover:bg-green-500 text-white font-bold px-2 py-1 rounded text-xs">+</button>
-                        <button onclick="adjustPoints('${t.id}', -50)" class="bg-red-600 hover:bg-red-500 text-white font-bold px-2 py-1 rounded text-xs">−</button>
-                    </div>
-                </div>
-            `;
-        });
     });
 
-    // ✅ Funzione UNICA per aggiungere/togliere punti
+    // ✅ FIX 2: Funzione per aggiungere/togliere punti
     function adjustPoints(teamId, points) {
         socket.emit('assign_points', { teamId: teamId, points: points });
         console.log(`💰 ${points > 0 ? '+' : ''}${points} punti a ${teamId}`);
@@ -668,56 +671,54 @@
         console.log('⏹️ Karaoke fermato');
     }
 
-    // ════════════════════════════════════════════════════════════════
-    // 🎰 RUOTA DELLA FORTUNA
-    // ════════════════════════════════════════════════════════════════
+    // Ruota della Fortuna Functions
     let ruotaWinner = null;
 
     function ruotaStep(step) {
         switch(step) {
             case 1:
                 // Spiega regole
-                socket.emit('wheel_start', { 
-                    segments: ['100', '200', '300', '500', 'JOLLY', 'PERDI TUTTO'] 
-                });
-                console.log('🎰 Ruota avviata');
+                socket.emit('ruota_step', { step: 'explain' });
+                console.log('🎰 Spiegazione Ruota');
                 break;
             case 2:
-                // Gira ruota
-                socket.emit('wheel_spin');
+                // Gira ruota e estrae squadra
+                socket.emit('ruota_step', { step: 'spin' });
                 console.log('🎰 Ruota gira...');
                 break;
             case 3:
-                // Mostra risultato
+                // Mostra scelta al telefono
                 if(!ruotaWinner) {
                     alert('⚠️ Prima gira la ruota!');
                     return;
                 }
-                console.log('🎰 Risultato mostrato');
+                socket.emit('ruota_step', { step: 'choice', teamId: ruotaWinner.id });
+                console.log('🎰 Mostra scelta a:', ruotaWinner.name);
                 break;
             case 4:
-                // Lancia domanda
+                // Lancia domanda sfida
                 if(!selectedQ) {
                     alert('⚠️ Seleziona una domanda prima!');
                     return;
                 }
-                socket.emit('invia_domanda', {...selectedQ, modalita: 'quiz'});
-                console.log('🎰 Domanda lanciata');
+                socket.emit('ruota_step', { step: 'challenge', question: selectedQ });
+                console.log('🎰 Domanda sfida lanciata');
                 break;
         }
     }
 
-    socket.on('wheel_result', (data) => {
+    // Riceve squadra estratta dalla ruota
+    socket.on('ruota_winner', (data) => {
         ruotaWinner = data;
         document.getElementById('ruota-winner-display').classList.remove('hidden');
-        document.getElementById('ruota-winner-name').textContent = data.segment;
-        console.log('🎰 Risultato:', data.segment);
+        document.getElementById('ruota-winner-name').textContent = data.name;
+        console.log('🎰 Estratto:', data.name);
     });
 
     // ════════════════════════════════════════════════════════════════
     // 🔥 DUELLO RUBA-PUNTI Functions
     // ════════════════════════════════════════════════════════════════
-
+    
     let duelloAttaccante = null;
     let duelloDifensore = null;
     let duelloCategoria = null;
@@ -725,10 +726,12 @@
     function duelloStep(step) {
         switch(step) {
             case 1:
+                // Avvia duello - estrae attaccante
                 socket.emit('duello_start');
                 console.log('🔥 Duello avviato');
                 break;
             case 2:
+                // Mostra scelta avversario
                 if(!duelloAttaccante) {
                     alert('⚠️ Prima avvia il duello!');
                     return;
@@ -737,6 +740,7 @@
                 console.log('🔥 Mostra scelta avversario');
                 break;
             case 3:
+                // Mostra scelta categoria
                 if(!duelloDifensore) {
                     alert('⚠️ Prima scegli l\'avversario!');
                     return;
@@ -745,6 +749,7 @@
                 console.log('🔥 Mostra scelta categoria');
                 break;
             case 4:
+                // Lancia domanda duello
                 if(!duelloCategoria) {
                     alert('⚠️ Prima scegli la categoria!');
                     return;
@@ -764,43 +769,57 @@
         console.log('🔥 Risposta:', correct ? 'CORRETTA' : 'SBAGLIATA');
     }
 
-    // ✅ FIX: Nome evento corretto
-    socket.on('duello_started', (data) => {
+    // Riceve attaccante estratto
+    socket.on('duello_attaccante', (data) => {
         duelloAttaccante = data.attaccante;
         document.getElementById('duello-attaccante-display').classList.remove('hidden');
         document.getElementById('duello-attaccante-name').textContent = data.attaccante.name;
+        
+        // Abilita step 2
         document.getElementById('duello-step-2').classList.remove('opacity-40', 'pointer-events-none');
+        
         console.log('🔥 Attaccante:', data.attaccante.name);
     });
 
+    // Riceve difensore scelto
     socket.on('duello_difensore_scelto', (data) => {
         duelloDifensore = data.difensore;
         document.getElementById('duello-difensore-display').classList.remove('hidden');
         document.getElementById('duello-difensore-name').textContent = data.difensore.name;
+        
+        // Abilita step 3
         document.getElementById('duello-step-3').classList.remove('opacity-40', 'pointer-events-none');
+        
         console.log('🔥 Difensore:', data.difensore.name);
     });
 
+    // Riceve categoria scelta
     socket.on('duello_categoria_scelta', (data) => {
         duelloCategoria = data.category;
         document.getElementById('duello-categoria-display').classList.remove('hidden');
         document.getElementById('duello-categoria-name').textContent = data.category.toUpperCase();
+        
+        // Abilita step 4 e mostra scoreboard
         document.getElementById('duello-step-4').classList.remove('opacity-40', 'pointer-events-none');
         document.getElementById('duello-scoreboard').classList.remove('hidden');
+        
         console.log('🔥 Categoria:', data.category);
     });
 
+    // In attesa risposta (chi ha premuto buzzer)
     socket.on('duello_waiting_answer', (data) => {
         document.getElementById('duello-answer-buttons').classList.remove('hidden');
         document.getElementById('duello-current-answerer').textContent = data.teamName;
-        console.log('🔥 Risponde:', data.teamName, '| Corretta:', data.correctAnswer);
+        console.log('🔥 Risponde:', data.teamName, '| Risposta corretta:', data.correctAnswer);
     });
 
+    // L'altro può rispondere (dopo sbagliata)
     socket.on('duello_other_can_answer', (data) => {
         document.getElementById('duello-current-answerer').textContent = data.teamName;
-        console.log('🔥 Ora risponde:', data.teamName, '| Corretta:', data.correctAnswer);
+        console.log('🔥 Ora risponde:', data.teamName, '| Risposta corretta:', data.correctAnswer);
     });
 
+    // Punto segnato
     socket.on('duello_point_scored', (data) => {
         document.getElementById('duello-score-att').textContent = data.scoreAttaccante;
         document.getElementById('duello-score-dif').textContent = data.scoreDifensore;
@@ -808,38 +827,36 @@
         console.log('🔥 Score:', data.scoreAttaccante, '-', data.scoreDifensore);
     });
 
+    // Prossima domanda
     socket.on('duello_next_question', () => {
-        alert('✅ Punto segnato! Lancia la prossima domanda');
+        alert('✅ Punto segnato! Lancia la prossima domanda (2 o 3)');
         console.log('🔥 Pronto per prossima domanda');
     });
 
+    // Fine duello
     socket.on('duello_end', (data) => {
-        const msg = data.attaccanteWins ? 
-            `🏆 ${data.winner.name} VINCE!\n+250pt, ${data.loser.name} -250pt` :
-            `🛡️ ${data.winner.name} DIFENDE!\n+100pt bonus`;
-        alert(msg);
-
-        // Reset UI
+        alert(`🏆 ${data.winner.name} VINCE IL DUELLO!\n\n${data.pointsChange}`);
+        
+        // Reset UI duello
         duelloAttaccante = null;
         duelloDifensore = null;
         duelloCategoria = null;
-
+        
         document.getElementById('duello-attaccante-display').classList.add('hidden');
         document.getElementById('duello-difensore-display').classList.add('hidden');
         document.getElementById('duello-categoria-display').classList.add('hidden');
         document.getElementById('duello-scoreboard').classList.add('hidden');
         document.getElementById('duello-answer-buttons').classList.add('hidden');
-
+        
         document.getElementById('duello-step-2').classList.add('opacity-40', 'pointer-events-none');
         document.getElementById('duello-step-3').classList.add('opacity-40', 'pointer-events-none');
         document.getElementById('duello-step-4').classList.add('opacity-40', 'pointer-events-none');
-
+        
         document.getElementById('duello-score-att').textContent = '0';
         document.getElementById('duello-score-dif').textContent = '0';
-
+        
         console.log('🔥 Duello terminato');
     });
-
 
     // ════════════════════════════════════════════════════════════════
     // 🧠 MEMORY GAME - ADMIN
@@ -997,15 +1014,6 @@
         document.getElementById('correct-answer-preview').classList.add('hidden');
     });
 
-// ✅ Ricevi dati delle domande all'avvio
-socket.on('questions_data', (data) => {
-    dbStructure.categories = data.categories;
-    dbStructure.questions = data.questions;
-    populateCategories();
-    console.log('📚 Categorie caricate:', data.categories);
-});
-
-
     window.addEventListener('DOMContentLoaded', () => {
         document.getElementById('mobile-preview').src = window.location.origin + '/preview';
     });
@@ -1055,6 +1063,28 @@ socket.on('questions_data', (data) => {
             if(btn) btn.click();
         }, 100);
     });
+
+// ✅ Ricevi e mostra la risposta corretta in anticipo
+socket.on('show_correct_answer_preview', (data) => {
+    const preview = document.getElementById('correct-answer-preview');
+    const text = document.getElementById('correct-answer-text');
+    text.textContent = `${data.corretta}`;
+    preview.classList.remove('hidden');
+    console.log('✅ Risposta corretta:', data.corretta);
+});
+
+// Nascondi quando cambia domanda
+socket.on('nuova_domanda', () => {
+    document.getElementById('correct-answer-preview').classList.add('hidden');
+});
+
+// ✅ Ricevi dati delle domande all'avvio
+socket.on('questions_data', (data) => {
+    dbStructure.categories = data.categories;
+    dbStructure.questions = data.questions;
+    populateCategories();
+    console.log('📚 Categorie caricate:', data.categories);
+});
 </script>
 
 </body>

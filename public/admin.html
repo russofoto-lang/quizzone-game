@@ -1008,6 +1008,15 @@
         document.getElementById('correct-answer-preview').classList.add('hidden');
     });
 
+// ✅ Ricevi dati delle domande all'avvio
+socket.on('questions_data', (data) => {
+    dbStructure.categories = data.categories;
+    dbStructure.questions = data.questions;
+    populateCategories();
+    console.log('📚 Categorie caricate:', data.categories);
+});
+
+
     window.addEventListener('DOMContentLoaded', () => {
         document.getElementById('mobile-preview').src = window.location.origin + '/preview';
     });

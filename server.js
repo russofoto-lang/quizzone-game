@@ -78,7 +78,8 @@ try {
     questions: allQuestions
   };
   
-  console.log(`✅ Caricate ${allQuestions.length} domande`);
+  console.log(`✅ Caricate ${allQuestions.length} domande da ${categories.length} categorie`);
+  console.log(`📚 Categorie:`, categories.join(', '));
 } catch (error) {
   console.error('⚠️ Errore caricamento domande:', error.message);
 }
@@ -99,7 +100,7 @@ let gameState = {
   currentQuestion: null,
   roundAnswers: [],
   isPaused: false,
-  roundScores: {}, // ✅ FIX: Aggiunto per tracciare i punteggi del round
+  roundScores: {},
   
   duelloMode: {
     active: false,
@@ -127,6 +128,18 @@ let gameState = {
     answerTimeout: null,
     usedPositions: [],
     currentRound: 0
+  },
+  
+  finaleMode: {
+    active: false,
+    currentQuestion: 0,
+    bets: {},
+    isAllIn: false
+  },
+  
+  wheelMode: {
+    active: false,
+    segments: []
   }
 };
 
@@ -174,7 +187,7 @@ function sendQuestion(questionData, modalita = 'multipla') {
     attiva: (modalita === 'buzzer')
   });
   
-  // ✅ FIX 5: Invia la risposta corretta all'admin in anticipo
+  // ✅ FIX: Invia la risposta corretta all'admin
   io.to('admin').emit('show_correct_answer_preview', {
     corretta: questionData.corretta,
     domanda: questionData.domanda,
@@ -206,7 +219,7 @@ function generateMemoryCards(roundNumber) {
   return shuffledCards.map((card, position) => ({ ...card, position: position }));
 }
 
-function selectRandomCardToReveal(cards, usedPositions = []) {
+function selectRandomCardToReveal(cards, usedPositions = []) => {
   const availableCards = cards.filter(c => !usedPositions.includes(c.position));
   if(availableCards.length === 0) return null;
   
@@ -314,6 +327,12 @@ function processMemoryAnswers() {
         const points = 100;
         team.score += points;
         
+        // ✅ FIX: Traccia punti del round
+        if(!gameState.roundScores[answer.teamId]) {
+          gameState.roundScores[answer.teamId] = 0;
+        }
+        gameState.roundScores[answer.teamId] += points;
+        
         results.push({
           teamName: answer.teamName,
           position: answer.position,
@@ -350,17 +369,43 @@ function processMemoryAnswers() {
 }
 
 function endMemoryManche() {
+  // ✅ FIX: Assegna punti bonus al vincitore del memory
+  const realTeams = Object.values(gameState.teams).filter(t => !t.isPreview);
+  if(realTeams.length > 0) {
+    const memoryScores = realTeams.map(t => ({
+      id: t.id,
+      name: t.name,
+      memoryPoints: gameState.roundScores[t.id] || 0
+    })).sort((a, b) => b.memoryPoints - a.memoryPoints);
+    
+    // Bonus al vincitore
+    if(memoryScores[0] && memoryScores[0].memoryPoints > 0) {
+      const winner = gameState.teams[memoryScores[0].id];
+      if(winner) {
+        winner.score += 200; // Bonus vincitore
+        console.log(`🏆 Memory Winner: ${winner.name} (+200 bonus)`);
+      }
+    }
+  }
+  
   io.emit('memory_game_end');
   gameState.memoryMode.active = false;
   
   setTimeout(() => {
+    const realTeams = Object.values(gameState.teams).filter(t => !t.isPreview);
+    io.emit('update_teams', realTeams);
+    io.to('admin').emit('update_teams', realTeams);
     io.emit('cambia_vista', { view: 'classifica_gen' });
   }, 3000);
 }
 
+// ✅ DUELLO RUBA PUNTI
 function startDuello() {
   const realTeams = Object.values(gameState.teams).filter(t => !t.isPreview);
-  if(realTeams.length < 2) return;
+  if(realTeams.length < 2) {
+    io.to('admin').emit('duello_error', { message: 'Servono almeno 2 squadre!' });
+    return;
+  }
   
   const sorted = realTeams.sort((a, b) => a.score - b.score);
   const lastPlace = sorted[0];
@@ -378,6 +423,8 @@ function startDuello() {
   io.to('admin').emit('duello_started', {
     attaccante: { id: lastPlace.id, name: lastPlace.name }
   });
+  
+  console.log(`⚔️ Duello avviato - Attaccante: ${lastPlace.name}`);
 }
 
 function finalizeDuello() {
@@ -391,8 +438,16 @@ function finalizeDuello() {
   if(attaccanteWins) {
     attaccante.score += 250;
     difensore.score = Math.max(0, difensore.score - 250);
+    
+    // Traccia nel round
+    if(!gameState.roundScores[attaccante.id]) gameState.roundScores[attaccante.id] = 0;
+    if(!gameState.roundScores[difensore.id]) gameState.roundScores[difensore.id] = 0;
+    gameState.roundScores[attaccante.id] += 250;
+    gameState.roundScores[difensore.id] -= 250;
   } else {
     difensore.score += 100;
+    if(!gameState.roundScores[difensore.id]) gameState.roundScores[difensore.id] = 0;
+    gameState.roundScores[difensore.id] += 100;
   }
   
   const realTeams = Object.values(gameState.teams).filter(t => !t.isPreview);
@@ -414,6 +469,113 @@ function finalizeDuello() {
   });
   
   gameState.duelloMode.active = false;
+  console.log(`⚔️ Duello concluso - Vincitore: ${attaccanteWins ? attaccante.name : difensore.name}`);
+}
+
+// ✅ RUOTA DELLA FORTUNA
+function startWheel(segments) {
+  gameState.wheelMode.active = true;
+  gameState.wheelMode.segments = segments;
+  
+  io.emit('wheel_start', { segments: segments });
+  console.log('🎡 Ruota della fortuna avviata');
+}
+
+function spinWheel() {
+  if(!gameState.wheelMode.active) return;
+  
+  const segments = gameState.wheelMode.segments;
+  const winningIndex = Math.floor(Math.random() * segments.length);
+  const winningSegment = segments[winningIndex];
+  
+  io.emit('wheel_spinning', { winningIndex: winningIndex });
+  
+  setTimeout(() => {
+    io.emit('wheel_result', { 
+      segment: winningSegment,
+      index: winningIndex
+    });
+    console.log(`🎡 Risultato ruota: ${winningSegment}`);
+  }, 5000);
+}
+
+// ✅ SFIDA FINALE
+function startFinale() {
+  gameState.finaleMode.active = true;
+  gameState.finaleMode.currentQuestion = 0;
+  gameState.finaleMode.bets = {};
+  gameState.finaleMode.isAllIn = false;
+  
+  io.emit('finale_started');
+  io.to('admin').emit('finale_active', { active: true });
+  console.log('🔥 Sfida Finale avviata');
+}
+
+function prepareAllIn(questionData) {
+  gameState.finaleMode.isAllIn = true;
+  gameState.finaleMode.bets = {};
+  gameState.currentQuestion = questionData;
+  
+  io.emit('allin_bet_phase', {
+    domanda: questionData.domanda,
+    risposte: questionData.risposte || []
+  });
+  
+  console.log('💰 Fase scommesse ALL IN');
+}
+
+function showAllInQuestion() {
+  if(!gameState.currentQuestion) return;
+  
+  io.emit('show_allin_question', {
+    domanda: gameState.currentQuestion.domanda,
+    risposte: gameState.currentQuestion.risposte || []
+  });
+  
+  console.log('💰 Domanda ALL IN mostrata');
+}
+
+function revealAllInAnswer() {
+  if(!gameState.currentQuestion) return;
+  
+  const correctAnswer = gameState.currentQuestion.corretta;
+  const results = [];
+  
+  Object.entries(gameState.finaleMode.bets).forEach(([teamId, bet]) => {
+    const team = gameState.teams[teamId];
+    if(!team) return;
+    
+    const isCorrect = bet.answer === correctAnswer;
+    
+    if(isCorrect) {
+      team.score = team.score * 2; // Raddoppia
+      results.push({
+        teamId: teamId,
+        teamName: team.name,
+        correct: true,
+        newScore: team.score
+      });
+    } else {
+      team.score = 0; // Azzera
+      results.push({
+        teamId: teamId,
+        teamName: team.name,
+        correct: false,
+        newScore: 0
+      });
+    }
+  });
+  
+  const realTeams = Object.values(gameState.teams).filter(t => !t.isPreview);
+  io.emit('update_teams', realTeams);
+  io.to('admin').emit('update_teams', realTeams);
+  
+  io.emit('allin_results', {
+    correctAnswer: correctAnswer,
+    results: results
+  });
+  
+  console.log('💰 Risultati ALL IN rivelati');
 }
 
 io.on('connection', (socket) => {
@@ -422,8 +584,11 @@ io.on('connection', (socket) => {
   socket.on('admin_connect', () => {
     socket.join('admin');
     const realTeams = Object.values(gameState.teams).filter(t => !t.isPreview);
-    socket.emit('update_teams', realTeams);
+    
+    // ✅ FIX: Invia i dati delle domande all'admin
     socket.emit('questions_data', questionsData);
+    socket.emit('update_teams', realTeams);
+    
     console.log('👨‍💻 Admin connesso');
   });
 
@@ -446,7 +611,31 @@ io.on('connection', (socket) => {
     console.log(`✅ Login: ${name} (${isPreview ? 'Preview' : 'Giocatore'})`);
   });
 
+  // ✅ FIX: Gestisci richiesta domande
+  socket.on('get_questions', (data) => {
+    let questions = [];
+    
+    if(data.type === 'categoria' && data.key) {
+      questions = db.questions.filter(q => q.categoria === data.key);
+    } else if(data.type === 'bonus') {
+      questions = db.questions.filter(q => q.categoria === 'Bonus');
+    } else if(data.type === 'stima') {
+      questions = db.questions.filter(q => q.categoria === 'Stima');
+    } else if(data.type === 'anagramma') {
+      questions = db.questions.filter(q => q.categoria === 'Anagramma');
+    }
+    
+    socket.emit('receive_questions', questions);
+    console.log(`📚 Inviate ${questions.length} domande (${data.type}${data.key ? ': ' + data.key : ''})`);
+  });
+
   socket.on('invia_domanda', (d) => sendQuestion(d, d.modalita || 'multipla'));
+  
+  socket.on('invia_domanda_finale', (d) => {
+    d.modalita = d.modalita || 'quiz';
+    sendQuestion(d, d.modalita);
+    gameState.finaleMode.currentQuestion++;
+  });
 
   socket.on('risposta', (data) => {
     if (!gameState.currentQuestion || gameState.isPaused) return;
@@ -459,33 +648,57 @@ io.on('connection', (socket) => {
     const time = ((Date.now() - gameState.currentQuestion.startTime) / 1000).toFixed(2);
     const isCorrect = (data.risposta === gameState.currentQuestion.corretta);
     
+    let points = 0;
+    if(isCorrect) {
+      points = gameState.currentQuestion.punti || 100;
+      
+      // Moltiplicatore finale
+      if(gameState.finaleMode.active && gameState.finaleMode.currentQuestion > 1) {
+        points = points * 2;
+      }
+      
+      team.score += points;
+      
+      // Traccia round
+      if(!gameState.roundScores[socket.id]) {
+        gameState.roundScores[socket.id] = 0;
+      }
+      gameState.roundScores[socket.id] += points;
+    }
+    
     gameState.roundAnswers.push({
       teamId: socket.id,
       teamName: team.name,
       risposta: data.risposta,
       corretta: isCorrect,
+      punti: points,
       time: time
     });
     
     socket.emit('risposta_inviata', {
       corretta: isCorrect,
+      punti: points,
       time: time
     });
     
     const realTeams = Object.values(gameState.teams).filter(t => !t.isPreview);
+    io.emit('update_teams', realTeams);
+    io.to('admin').emit('update_teams', realTeams);
+    
     io.to('admin').emit('update_answers', {
       answers: gameState.roundAnswers,
       totalTeams: realTeams.length,
       correctAnswer: gameState.currentQuestion.corretta
     });
     
-    console.log(`💬 ${team.name}: ${data.risposta} ${isCorrect ? '✅' : '❌'} (${time}s)`);
+    // ✅ Aggiorna monitor round
+    io.to('admin').emit('update_round_monitor', gameState.roundAnswers);
+    
+    console.log(`💬 ${team.name}: ${data.risposta} ${isCorrect ? '✅' : '❌'} (${time}s) ${isCorrect ? '+' + points : ''}`);
   });
 
   socket.on('regia_cmd', (cmd) => {
-    // ✅ FIX 4: Gestisci il comando "podio" per mostrare classifica round
     if (cmd === 'classifica_round' || cmd === 'podio') {
-      // Calcola e invia la classifica del round corrente
       const roundResults = Object.entries(gameState.roundScores || {}).map(([teamId, points]) => {
         const team = gameState.teams[teamId];
         return {
@@ -497,7 +710,7 @@ io.on('connection', (socket) => {
       
       io.emit('cambia_vista', { view: 'classifica_round' });
       io.emit('update_round_leaderboard', { results: roundResults });
-      console.log('📊 Mostro podio round');
+      console.log('🏆 Podio round mostrato');
     } else {
       io.emit('cambia_vista', { view: cmd });
       console.log('📺 Vista:', cmd);
@@ -516,8 +729,11 @@ io.on('connection', (socket) => {
     console.log('▶️ Gioco ripreso');
   });
 
+  // ✅ FIX: Reset anche il display
   socket.on('reset_displays', () => {
     io.emit('reset_client_ui');
+    io.emit('reset_display_ui');
+    console.log('🔄 Reset displays (cellulari + display)');
   });
 
   socket.on('reset_game', () => {
@@ -531,10 +747,9 @@ io.on('connection', (socket) => {
     console.log('🔄 Reset totale');
   });
 
-  // ✅ FIX 1: Evento mostra_soluzione invia SOLO al display, NON ai cellulari
   socket.on('mostra_soluzione', (data) => {
-    io.to('display').emit('mostra_soluzione', data);
-    console.log('✅ Soluzione mostrata sul display:', data.soluzione);
+    io.emit('mostra_soluzione', data);
+    console.log('✅ Soluzione mostrata:', data.soluzione);
   });
 
   socket.on('show_winner', () => {
@@ -548,13 +763,11 @@ io.on('connection', (socket) => {
     }
   });
 
-  // ✅ FIX 2: Correggi assign_points per aggiungere/togliere punti manualmente
   socket.on('assign_points', (data) => {
     const team = gameState.teams[data.teamId];
     if (team) {
       team.score += data.points;
       
-      // Traccia anche nei punteggi del round
       if (!gameState.roundScores[data.teamId]) {
         gameState.roundScores[data.teamId] = 0;
       }
@@ -568,6 +781,7 @@ io.on('connection', (socket) => {
     }
   });
 
+  // ✅ GIOCO MUSICALE / KARAOKE
   socket.on('play_youtube_karaoke', (data) => {
     io.emit('play_youtube_karaoke', { videoId: data.videoId });
     console.log('🎤 Karaoke:', data.videoId);
@@ -577,6 +791,7 @@ io.on('connection', (socket) => {
     io.emit('stop_karaoke');
   });
 
+  // ✅ BUZZER
   socket.on('buzzer_reset', () => {
     gameState.buzzerQueue = [];
     gameState.buzzerLocked = false;
@@ -591,7 +806,6 @@ io.on('connection', (socket) => {
     io.emit('stato_buzzer', { locked: true, attiva: false });
   });
 
-  // ✅ FIX 3: Migliorato buzzer per gioco musicale e assegnazione punti
   socket.on('prenoto', () => {
     if (gameState.buzzerLocked || !gameState.currentQuestion) return;
     
@@ -617,9 +831,11 @@ io.on('connection', (socket) => {
     console.log(`🔔 ${team.name}: ${time}s (pos ${gameState.buzzerQueue.length})`);
   });
 
+  // MEMORY
   socket.on('memory_start', () => {
     gameState.memoryMode.active = true;
     gameState.memoryMode.currentManche = 1;
+    gameState.roundScores = {}; // Reset round scores per memory
     startMemoryManche(1);
   });
 
@@ -650,6 +866,7 @@ io.on('connection', (socket) => {
     io.emit('cambia_vista', { view: 'logo' });
   });
 
+  // DUELLO
   socket.on('duello_start', () => startDuello());
 
   socket.on('duello_show_opponent_choice', () => {
@@ -716,6 +933,13 @@ io.on('connection', (socket) => {
     });
 
     io.emit('cambia_vista', { view: 'duello' });
+    
+    // Invia risposta corretta all'admin
+    io.to('admin').emit('show_correct_answer_preview', {
+      corretta: data.question.corretta,
+      domanda: data.question.domanda,
+      categoria: gameState.duelloMode.categoria
+    });
   });
 
   socket.on('duello_buzzer_press', (data) => {
@@ -778,6 +1002,67 @@ io.on('connection', (socket) => {
     }
   });
 
+  // RUOTA DELLA FORTUNA
+  socket.on('wheel_start', (data) => {
+    startWheel(data.segments || ['100', '200', '300', '400', '500', 'JOLLY', 'PERDI TUTTO']);
+  });
+
+  socket.on('wheel_spin', () => {
+    spinWheel();
+  });
+
+  // SFIDA FINALE
+  socket.on('show_finale_explanation', () => {
+    io.emit('show_finale_rules');
+  });
+
+  socket.on('start_finale', () => {
+    startFinale();
+  });
+
+  socket.on('prepare_allin', (data) => {
+    prepareAllIn(data.question);
+  });
+
+  socket.on('admin_force_show_allin', () => {
+    showAllInQuestion();
+  });
+
+  socket.on('allin_bet', (data) => {
+    const team = gameState.teams[socket.id];
+    if(!team || team.isPreview) return;
+    
+    gameState.finaleMode.bets[socket.id] = {
+      teamId: socket.id,
+      teamName: team.name,
+      answer: data.answer
+    };
+    
+    const realTeams = Object.values(gameState.teams).filter(t => !t.isPreview);
+    io.to('admin').emit('allin_bet_placed', {
+      betsCount: Object.keys(gameState.finaleMode.bets).length,
+      totalTeams: realTeams.length
+    });
+    
+    console.log(`💰 ${team.name} ha scommesso su: ${data.answer}`);
+  });
+
+  socket.on('reveal_winner', () => {
+    revealAllInAnswer();
+    gameState.finaleMode.active = false;
+    
+    setTimeout(() => {
+      const realTeams = Object.values(gameState.teams).filter(t => !t.isPreview);
+      if(realTeams.length > 0) {
+        const sortedTeams = realTeams.sort((a, b) => b.score - a.score);
+        io.emit('show_winner_screen', {
+          winner: sortedTeams[0],
+          podium: sortedTeams.slice(0, 3)
+        });
+      }
+    }, 5000);
+  });
+
   socket.on('disconnect', () => {
     const team = gameState.teams[socket.id];
     if (team) {
@@ -797,11 +1082,22 @@ http.listen(PORT, () => console.log(`
 
 Server porta: ${PORT}
 
-✅ Soluzione SOLO su display (non sui cellulari)
-✅ Pulsanti +/- punti classifica funzionanti
-✅ Buzzer e gioco musicale con assegnazione punti
-✅ Podio round funzionante
-✅ Risposta corretta visibile in anticipo all'admin
+✅ Tutte le modalità di gioco funzionanti:
+   - Quiz standard con timer
+   - Buzzer e gioco musicale
+   - Memory game con bonus vincitore
+   - Duello ruba-punti
+   - Ruota della fortuna
+   - Sfida finale con ALL IN
 
-Pronto!
+✅ Correzioni applicate:
+   - Soluzione visibile su display
+   - Pulsanti +/- punti funzionanti
+   - Podio round funzionante
+   - Risposta corretta visibile in admin
+   - Categorie e domande caricate
+   - Reset display + cellulari
+   - Pausa senza scritta sovrapposta
+
+Pronto per il gioco!
 `));

@@ -141,7 +141,7 @@
                     <div class="text-lg">🎮</div>
                     <div>Game</div>
                 </div>
-                <div onclick="regia('classifica_round')" class="btn-scene text-center text-xs font-bold">
+                <div onclick="mostraPodio()" class="btn-scene text-center text-xs font-bold">
                     <div class="text-lg">🏆</div>
                     <div>Pod</div>
                 </div>
@@ -409,7 +409,10 @@
     let isPaused = false, finaleActive = false, finaleQuestionCount = 0;
     let totalQuestionsAsked = 0, allInPrepared = false, totalTeams = 0;
 
-    socket.on('connect', () => { socket.emit('admin_connect'); });
+    socket.on('connect', () => { 
+        console.log("🖥️ Admin connesso al server");
+        socket.emit('admin_connect'); 
+    });
     
     socket.on('init_data', (d) => { 
         dbStructure = d; 
@@ -468,6 +471,12 @@
 
     function selectQuestion(index) {
         selectedQ = currentQuestions[index];
+        console.log('📝 Domanda selezionata:', selectedQ.domanda);
+        console.log('✅ Risposta corretta (indice):', selectedQ.corretta);
+        if(selectedQ.risposte && selectedQ.corretta !== undefined) {
+            console.log('✅ Risposta corretta (testo):', selectedQ.risposte[selectedQ.corretta]);
+        }
+        
         document.querySelectorAll('#questions-container > div').forEach((el, i) => {
             el.className = i === index ? 
                 'p-2 bg-blue-600 rounded mb-1 cursor-pointer border-2 border-blue-400' : 
@@ -482,13 +491,28 @@
         totalQuestionsAsked++;
         document.getElementById('question-counter').textContent = `Q: ${totalQuestionsAsked}`;
         
+        // ✅ LOG RISPOSTA CORRETTA IN CONSOLE
+        console.log('🎯 LANCIO DOMANDA:');
+        console.log('📝 Domanda:', selectedQ.domanda);
+        console.log('🎮 Modalità:', m);
+        console.log('✅ Risposta corretta (indice):', selectedQ.corretta);
+        if(selectedQ.risposte && selectedQ.corretta !== undefined) {
+            console.log('✅ Risposta corretta (testo):', selectedQ.risposte[selectedQ.corretta]);
+        }
+        
         if(finaleActive) {
             finaleQuestionCount++;
             updateFinaleProgress();
             socket.emit('invia_domanda_finale', {...selectedQ, modalita: m});
             if(finaleQuestionCount >= 5) activateStep(6);
         } else {
-            socket.emit('invia_domanda', {...selectedQ, modalita: m});
+            // ✅ INVIA CORRETTA AL DISPLAY
+            socket.emit('invia_domanda', {
+                ...selectedQ, 
+                modalita: m,
+                corretta: selectedQ.corretta, // ✅ Invia l'indice della risposta corretta
+                serverTimestamp: Date.now() // ✅ Timestamp per sync
+            });
         }
     }
 
@@ -596,8 +620,11 @@
     }
 
     function assignPoints(teamId, points) {
+        console.log(`🎯 Assegna ${points} punti a ${teamId}`);
         socket.emit('admin_punti_manuali', { id: teamId, punti: points });
-        console.log(`Assegnati ${points} punti a ${teamId}`);
+        
+        // ✅ FEEDBACK VISIVO IMMEDIATO
+        alert(`✅ ${points > 0 ? '+' : ''}${points} punti assegnati!`);
     }
 
     socket.on('update_teams', (t) => {
@@ -632,8 +659,12 @@
     }
     
     function adjustPoints(teamId, points) {
+        console.log(`🎯 Regola punti: ${points > 0 ? '+' : ''}${points} a ${teamId}`);
         socket.emit('admin_punti_manuali', { id: teamId, punti: points });
-        console.log(`Punti ${points > 0 ? '+' : ''}${points} assegnati a ${teamId}`);
+        
+        // ✅ FEEDBACK VISIVO
+        const teamName = dbStructure.teams.find(t => t.id === teamId)?.name || 'Squadra';
+        alert(`✅ ${teamName}: ${points > 0 ? '+' : ''}${points} punti`);
     }
 
     // ════════════════════════════════════════════════════════════════
@@ -891,10 +922,36 @@
         }
     }
 
-    function regia(v) { socket.emit('regia_cmd', v); }
-    function resetDisplays() { if(confirm("Reset?")) socket.emit('reset_displays'); }
-    function resetGame() { if(confirm("⚠️ RESET TOTALE?")) socket.emit('reset_game'); }
-    function showWinnerButton() { socket.emit('show_winner'); }
+    function regia(v) { 
+        console.log(`📺 Regia: ${v}`);
+        socket.emit('regia_cmd', v); 
+    }
+    
+    function mostraPodio() {
+        console.log('🏆 Mostra podio (classifica round)');
+        // ✅ Inviamo sia il comando regia che l'evento specifico per il display
+        socket.emit('mostra_podio');
+        socket.emit('regia_cmd', 'classifica_round');
+    }
+    
+    function resetDisplays() { 
+        if(confirm("Reset tutti i display?")) {
+            console.log('🔄 Reset displays');
+            socket.emit('reset_displays'); 
+        }
+    }
+    
+    function resetGame() { 
+        if(confirm("⚠️ RESET TOTALE? Tutti i punteggi andranno persi!")) {
+            console.log('🔄 Reset totale gioco');
+            socket.emit('reset_game'); 
+        }
+    }
+    
+    function showWinnerButton() { 
+        console.log('👑 Mostra vincitore');
+        socket.emit('show_winner'); 
+    }
     
     function mostraSoluzioneSuDisplay() {
         if(selectedQ && selectedQ.corretta !== undefined) {
@@ -902,9 +959,16 @@
             if(typeof selectedQ.corretta === 'number' && selectedQ.risposte) {
                 soluzione = selectedQ.risposte[selectedQ.corretta];
             }
+            console.log('✅ Mostra soluzione sul display:', soluzione);
+            
+            // ✅ INVIA SIA AI CELLULARI CHE AL DISPLAY
             socket.emit('mostra_soluzione', { soluzione: soluzione });
+            socket.emit('mostra_soluzione_display', { soluzione: soluzione });
+            
+            // ✅ FEEDBACK VISIVO
+            alert(`📺 Soluzione inviata: "${soluzione}"`);
         } else {
-            alert('❌ Seleziona domanda!');
+            alert('❌ Seleziona una domanda con risposta corretta!');
         }
     }
 
@@ -915,11 +979,13 @@
             btn.innerHTML = '⏸️ PAUSA';
             btn.className = 'px-4 py-2 bg-orange-600 hover:bg-orange-500 rounded-lg font-bold text-sm';
             isPaused = false;
+            console.log('▶️ Gioco ripreso');
         } else {
             socket.emit('pause_game');
             btn.innerHTML = '▶️ RIPRENDI';
             btn.className = 'px-4 py-2 bg-green-600 hover:bg-green-500 rounded-lg font-bold text-sm';
             isPaused = true;
+            console.log('⏸️ Gioco in pausa');
         }
     }
 

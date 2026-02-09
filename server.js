@@ -134,7 +134,22 @@ let gameState = {
   },
   
   // ✅ FIX COMPLETO: SFIDA FINALE
-  finaleMode: null
+  finaleMode: null,
+  
+  // 💀 IL PATTO COL DESTINO
+  pattoDestinoState: {
+    attivo: false,
+    fase: null, // 'regole' | 'chat' | 'scelta' | 'reveal' | null
+    squadreSelezionate: [], // Array di team IDs
+    scelte: new Map(), // teamId → 'patto' | 'tradimento'
+    messaggiChat: [], // { teamId, playerName, msg, timestamp }
+    startTime: null,
+    timer: null,
+    contatoreUtilizzi: 0,
+    maxUtilizzi: 2,
+    revealStep: 0,
+    revealTimer: null
+  }
 };
 
 const db = {
@@ -564,6 +579,125 @@ function processAllInResults() {
   
   return results;
 }
+
+
+// ============================================
+// 💀 IL PATTO COL DESTINO - FUNZIONI HELPER
+// ============================================
+
+function selezionaSquadrePattoDestino() {
+  const realTeams = Object.values(gameState.teams).filter(t => !t.isPreview);
+  
+  if (realTeams.length === 0) return [];
+  if (realTeams.length <= 3) return realTeams.map(t => t.id);
+  
+  // Ordina per punteggio
+  const sorted = [...realTeams].sort((a, b) => b.score - a.score);
+  
+  // Prime 2 + ultima
+  return [
+    sorted[0].id,
+    sorted[1].id,
+    sorted[sorted.length - 1].id
+  ];
+}
+
+function calcolaPuntiPatto(scelte) {
+  const squadreIds = [...scelte.keys()];
+  const sceltePatto = squadreIds.filter(id => scelte.get(id) === 'patto');
+  const scelteTradi = squadreIds.filter(id => scelte.get(id) === 'tradimento');
+  
+  let risultati = [];
+  let bonusUltima = null;
+  
+  // CASO 1: Tutti PATTO
+  if (scelteTradi.length === 0) {
+    squadreIds.forEach(id => {
+      risultati.push({
+        teamId: id,
+        teamName: gameState.teams[id].name,
+        scelta: 'patto',
+        puntiAssegnati: 150,
+        tipo: 'collaborazione'
+      });
+    });
+  }
+  // CASO 2: Tutti TRADIMENTO
+  else if (sceltePatto.length === 0) {
+    squadreIds.forEach(id => {
+      risultati.push({
+        teamId: id,
+        teamName: gameState.teams[id].name,
+        scelta: 'tradimento',
+        puntiAssegnati: -150,
+        tipo: 'egoismo'
+      });
+    });
+    
+    // Bonus all'ultima squadra NON coinvolta
+    const realTeams = Object.values(gameState.teams).filter(t => !t.isPreview);
+    const sorted = [...realTeams].sort((a, b) => b.score - a.score);
+    const ultimaSquadra = sorted[sorted.length - 1];
+    
+    if (!squadreIds.includes(ultimaSquadra.id)) {
+      bonusUltima = {
+        teamId: ultimaSquadra.id,
+        teamName: ultimaSquadra.name,
+        punti: 150
+      };
+    }
+  }
+  // CASO 3: Misto
+  else {
+    squadreIds.forEach(id => {
+      const scelta = scelte.get(id);
+      risultati.push({
+        teamId: id,
+        teamName: gameState.teams[id].name,
+        scelta: scelta,
+        puntiAssegnati: scelta === 'tradimento' ? 250 : -150,
+        tipo: scelta === 'tradimento' ? 'tradimento_riuscito' : 'tradito'
+      });
+    });
+  }
+  
+  return { risultati, bonusUltima };
+}
+
+function applicaPuntiPatto(risultati, bonusUltima) {
+  risultati.forEach(r => {
+    if (gameState.teams[r.teamId]) {
+      gameState.teams[r.teamId].score += r.puntiAssegnati;
+    }
+  });
+  
+  if (bonusUltima && gameState.teams[bonusUltima.teamId]) {
+    gameState.teams[bonusUltima.teamId].score += bonusUltima.punti;
+  }
+}
+
+function resetPattoDestino() {
+  if (gameState.pattoDestinoState.timer) {
+    clearTimeout(gameState.pattoDestinoState.timer);
+  }
+  if (gameState.pattoDestinoState.revealTimer) {
+    clearTimeout(gameState.pattoDestinoState.revealTimer);
+  }
+  
+  gameState.pattoDestinoState.attivo = false;
+  gameState.pattoDestinoState.fase = null;
+  gameState.pattoDestinoState.squadreSelezionate = [];
+  gameState.pattoDestinoState.scelte = new Map();
+  gameState.pattoDestinoState.messaggiChat = [];
+  gameState.pattoDestinoState.startTime = null;
+  gameState.pattoDestinoState.timer = null;
+  gameState.pattoDestinoState.revealStep = 0;
+  gameState.pattoDestinoState.revealTimer = null;
+}
+
+// ============================================
+// FINE FUNZIONI PATTO COL DESTINO
+// ============================================
 
 io.on('connection', (socket) => {
   console.log(`? Connessione: ${socket.id}`);
@@ -1492,6 +1626,197 @@ io.on('connection', (socket) => {
       });
     }
   });
+
+  // ============================================
+  // 💀 IL PATTO COL DESTINO - SOCKET HANDLERS
+  // ============================================
+  
+  socket.on('admin_mostra_regole_patto', () => {
+    gameState.pattoDestinoState.fase = 'regole';
+    io.emit('patto_regole_display');
+  });
+  
+  socket.on('admin_avvia_patto_destino', () => {
+    if (gameState.pattoDestinoState.contatoreUtilizzi >= gameState.pattoDestinoState.maxUtilizzi) {
+      io.to('admin').emit('patto_max_utilizzi_raggiunto');
+      return;
+    }
+    
+    const squadreIds = selezionaSquadrePattoDestino();
+    if (squadreIds.length < 2) {
+      io.to('admin').emit('patto_squadre_insufficienti');
+      return;
+    }
+    
+    gameState.pattoDestinoState.attivo = true;
+    gameState.pattoDestinoState.squadreSelezionate = squadreIds;
+    gameState.pattoDestinoState.scelte = new Map();
+    gameState.pattoDestinoState.messaggiChat = [];
+    gameState.pattoDestinoState.contatoreUtilizzi++;
+    
+    // Invia contatore aggiornato all'admin
+    io.to('admin').emit('patto_update_utilizzi', {
+      utilizzi: gameState.pattoDestinoState.contatoreUtilizzi,
+      max: gameState.pattoDestinoState.maxUtilizzi
+    });
+    
+    // FASE 1: Chat Segreta (30s)
+    gameState.pattoDestinoState.fase = 'chat';
+    gameState.pattoDestinoState.startTime = Date.now();
+    
+    const squadreCoinvolte = squadreIds.map(id => ({
+      id: id,
+      name: gameState.teams[id].name,
+      color: gameState.teams[id].color
+    }));
+    
+    io.emit('patto_fase_chat_start', {
+      squadreCoinvolte: squadreCoinvolte,
+      tempoChat: 30
+    });
+    
+    // Timer per passare alla fase scelta
+    gameState.pattoDestinoState.timer = setTimeout(() => {
+      avviaFaseSceltaPatto();
+    }, 30000);
+  });
+  
+  socket.on('patto_send_chat_message', (data) => {
+    if (!gameState.pattoDestinoState.attivo || gameState.pattoDestinoState.fase !== 'chat') return;
+    
+    const team = gameState.teams[socket.id];
+    if (!team || !gameState.pattoDestinoState.squadreSelezionate.includes(socket.id)) return;
+    
+    const messaggio = {
+      teamId: socket.id,
+      playerName: team.name,
+      msg: data.msg,
+      timestamp: Date.now()
+    };
+    
+    gameState.pattoDestinoState.messaggiChat.push(messaggio);
+    
+    // Invia solo alle 3 squadre coinvolte
+    gameState.pattoDestinoState.squadreSelezionate.forEach(teamId => {
+      io.to(teamId).emit('patto_chat_message', messaggio);
+    });
+  });
+  
+  function avviaFaseSceltaPatto() {
+    gameState.pattoDestinoState.fase = 'scelta';
+    gameState.pattoDestinoState.startTime = Date.now();
+    
+    io.emit('patto_fase_scelta_start', { tempoScelta: 25 });
+    
+    gameState.pattoDestinoState.timer = setTimeout(() => {
+      avviaRevealPatto();
+    }, 25000);
+  }
+  
+  socket.on('patto_invia_scelta', (data) => {
+    if (!gameState.pattoDestinoState.attivo || gameState.pattoDestinoState.fase !== 'scelta') return;
+    if (!gameState.pattoDestinoState.squadreSelezionate.includes(socket.id)) return;
+    if (gameState.pattoDestinoState.scelte.has(socket.id)) return; // Già scelto
+    
+    gameState.pattoDestinoState.scelte.set(socket.id, data.scelta);
+    
+    // Notifica l'admin e il giocatore
+    io.to('admin').emit('patto_scelta_ricevuta', {
+      teamId: socket.id,
+      teamName: gameState.teams[socket.id].name
+    });
+    
+    io.to(socket.id).emit('patto_scelta_confermata');
+    
+    // Se tutti hanno scelto, passa subito al reveal
+    if (gameState.pattoDestinoState.scelte.size === gameState.pattoDestinoState.squadreSelezionate.length) {
+      clearTimeout(gameState.pattoDestinoState.timer);
+      avviaRevealPatto();
+    }
+  });
+  
+  function avviaRevealPatto() {
+    gameState.pattoDestinoState.fase = 'reveal';
+    gameState.pattoDestinoState.revealStep = 0;
+    
+    // Se qualcuno non ha scelto, assegna PATTO di default
+    gameState.pattoDestinoState.squadreSelezionate.forEach(teamId => {
+      if (!gameState.pattoDestinoState.scelte.has(teamId)) {
+        gameState.pattoDestinoState.scelte.set(teamId, 'patto');
+      }
+    });
+    
+    // 3s di suspense iniziale
+    io.emit('patto_reveal_suspense');
+    
+    setTimeout(() => {
+      revealStepByStep();
+    }, 3000);
+  }
+  
+  function revealStepByStep() {
+    if (gameState.pattoDestinoState.revealStep >= gameState.pattoDestinoState.squadreSelezionate.length) {
+      // Reveal completato, calcola risultato
+      setTimeout(() => {
+        calcolaRisultatoFinale();
+      }, 2000);
+      return;
+    }
+    
+    const teamId = gameState.pattoDestinoState.squadreSelezionate[gameState.pattoDestinoState.revealStep];
+    const scelta = gameState.pattoDestinoState.scelte.get(teamId);
+    const team = gameState.teams[teamId];
+    
+    io.emit('patto_reveal_step', {
+      teamId: teamId,
+      teamName: team.name,
+      teamColor: team.color,
+      scelta: scelta,
+      stepNum: gameState.pattoDestinoState.revealStep + 1,
+      totalSteps: gameState.pattoDestinoState.squadreSelezionate.length
+    });
+    
+    gameState.pattoDestinoState.revealStep++;
+    
+    gameState.pattoDestinoState.revealTimer = setTimeout(() => {
+      revealStepByStep();
+    }, 1500);
+  }
+  
+  function calcolaRisultatoFinale() {
+    const { risultati, bonusUltima } = calcolaPuntiPatto(gameState.pattoDestinoState.scelte);
+    
+    // Applica i punti
+    applicaPuntiPatto(risultati, bonusUltima);
+    
+    // Aggiorna classifica
+    const realTeams = Object.values(gameState.teams).filter(t => !t.isPreview);
+    const classifica = realTeams.map(t => ({ id: t.id, name: t.name, score: t.score }))
+      .sort((a, b) => b.score - a.score);
+    
+    io.emit('patto_risultato_finale', {
+      risultati: risultati,
+      bonusUltimaSquadra: bonusUltima,
+      nuovaClassifica: classifica
+    });
+    
+    io.emit('update_teams', realTeams);
+    
+    // Reset dopo 10 secondi
+    setTimeout(() => {
+      resetPattoDestino();
+      io.emit('patto_reset');
+    }, 10000);
+  }
+  
+  socket.on('admin_reset_patto', () => {
+    resetPattoDestino();
+    io.emit('patto_reset');
+  });
+  
+  // ============================================
+  // FINE SOCKET HANDLERS PATTO COL DESTINO
+  // ============================================
 
   socket.on('disconnect', () => {
     const team = gameState.teams[socket.id];

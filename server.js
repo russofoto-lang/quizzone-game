@@ -291,7 +291,7 @@ function startMemoryRound() {
       io.emit('memory_reveal_one', {
         position: gameState.memoryMode.revealedCard.position,
         image: gameState.memoryMode.revealedCard.emoji,
-        duration: 10
+        duration: 15
       });
       
       io.to('admin').emit('memory_players_input', {
@@ -301,14 +301,14 @@ function startMemoryRound() {
       });
       
       gameState.memoryMode.mancheStartTime = Date.now();
-      gameState.memoryMode.answerDeadline = Date.now() + 10000;
+      gameState.memoryMode.answerDeadline = Date.now() + 15000;
       
       gameState.memoryMode.answerTimeout = setTimeout(() => {
         processMemoryAnswers();
-      }, 10000);
+      }, 15000);
       
     }, 2000);
-  }, 5000);
+  }, 9000);
 }
 
 function processMemoryAnswers() {
@@ -367,7 +367,7 @@ function processMemoryAnswers() {
   
   setTimeout(() => {
     startMemoryRound();
-  }, 5000);
+  }, 8000);
 }
 
 function endMemoryManche() {

@@ -594,8 +594,6 @@
         </div>
     </div>
 
-</div>
-
     <!-- ====================================== -->
     <!-- 💀 IL PATTO COL DESTINO - VISTE -->
     <!-- ====================================== -->
@@ -830,6 +828,9 @@
     <!-- ====================================== -->
     <!-- FINE VISTE PATTO COL DESTINO -->
     <!-- ====================================== -->
+
+</div>
+
 <script>
     const socket = io();
     let timerInterval = null;
@@ -1894,21 +1895,18 @@
     
     // Mostra regole (2 schermate con avanti manuale)
     socket.on('patto_regole_display', () => {
-        hideAllViews();
-        document.getElementById('view-patto-regole-1').classList.remove('hidden');
+        showView('patto-regole-1');
         
         // Dopo 15 secondi passa automaticamente alla parte 2
         setTimeout(() => {
-            hideAllViews();
-            document.getElementById('view-patto-regole-2').classList.remove('hidden');
+            showView('patto-regole-2');
         }, 15000);
     });
     
     // FASE 1: Chat Segreta
     socket.on('patto_fase_chat_start', (data) => {
-        hideAllViews();
+        showView('patto-chat');
         pattoCurrentPhase = 'chat';
-        document.getElementById('view-patto-chat').classList.remove('hidden');
         
         // Popola squadre coinvolte
         const container = document.getElementById('patto-squadre-coinvolte');
@@ -1928,9 +1926,8 @@
     
     // FASE 2: Scelta Individuale
     socket.on('patto_fase_scelta_start', (data) => {
-        hideAllViews();
+        showView('patto-scelta');
         pattoCurrentPhase = 'scelta';
-        document.getElementById('view-patto-scelta').classList.remove('hidden');
         
         // Avvia timer 25s
         pattoStartTimer(data.tempoScelta, 'scelta');
@@ -1939,8 +1936,7 @@
     // Reveal: Suspense iniziale
     socket.on('patto_reveal_suspense', () => {
         pattoStopTimer();
-        hideAllViews();
-        document.getElementById('view-patto-reveal-suspense').classList.remove('hidden');
+        showView('patto-reveal-suspense');
     });
     
     // Reveal: Step by step
@@ -1948,8 +1944,7 @@
     socket.on('patto_reveal_step', (data) => {
         if (data.stepNum === 1) {
             // Prima rivelazione: passa alla vista reveal e inizia a popolare
-            hideAllViews();
-            document.getElementById('view-patto-reveal').classList.remove('hidden');
+            showView('patto-reveal');
             pattoRevealedTeams = [];
         }
         
@@ -1984,8 +1979,7 @@
     
     // Risultato Finale
     socket.on('patto_risultato_finale', (data) => {
-        hideAllViews();
-        document.getElementById('view-patto-finale').classList.remove('hidden');
+        showView('patto-finale');
         
         // Popola risultati con punti assegnati
         const container = document.getElementById('patto-finale-results');

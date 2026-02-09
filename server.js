@@ -1672,13 +1672,13 @@ io.on('connection', (socket) => {
     
     io.emit('patto_fase_chat_start', {
       squadreCoinvolte: squadreCoinvolte,
-      tempoChat: 30
+      tempoChat: 60
     });
     
     // Timer per passare alla fase scelta
     gameState.pattoDestinoState.timer = setTimeout(() => {
       avviaFaseSceltaPatto();
-    }, 30000);
+    }, 60000);
   });
   
   socket.on('patto_send_chat_message', (data) => {
@@ -1706,11 +1706,11 @@ io.on('connection', (socket) => {
     gameState.pattoDestinoState.fase = 'scelta';
     gameState.pattoDestinoState.startTime = Date.now();
     
-    io.emit('patto_fase_scelta_start', { tempoScelta: 25 });
+    io.emit('patto_fase_scelta_start', { tempoScelta: 30 });
     
     gameState.pattoDestinoState.timer = setTimeout(() => {
       avviaRevealPatto();
-    }, 25000);
+    }, 30000);
   }
   
   socket.on('patto_invia_scelta', (data) => {

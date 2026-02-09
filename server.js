@@ -294,7 +294,7 @@ function startMemoryRound() {
   io.emit('memory_show_all', {
     cards: gameState.memoryMode.cards.map(c => c.emoji),
     grid: gridSize,
-    duration: 8,
+    duration: 6,
     manche: gameState.memoryMode.currentManche,
     round: gameState.memoryMode.currentRound
   });
@@ -306,7 +306,7 @@ function startMemoryRound() {
       io.emit('memory_reveal_one', {
         position: gameState.memoryMode.revealedCard.position,
         image: gameState.memoryMode.revealedCard.emoji,
-        duration: 20
+        duration: 15
       });
       
       io.to('admin').emit('memory_players_input', {
@@ -316,14 +316,14 @@ function startMemoryRound() {
       });
       
       gameState.memoryMode.mancheStartTime = Date.now();
-      gameState.memoryMode.answerDeadline = Date.now() + 20000;
+      gameState.memoryMode.answerDeadline = Date.now() + 15000;
       
       gameState.memoryMode.answerTimeout = setTimeout(() => {
         processMemoryAnswers();
-      }, 20000);
+      }, 15000);
       
-    }, 3000);
-  }, 12000);
+    }, 2200);
+  }, 9000);
 }
 
 function processMemoryAnswers() {
@@ -1672,13 +1672,13 @@ io.on('connection', (socket) => {
     
     io.emit('patto_fase_chat_start', {
       squadreCoinvolte: squadreCoinvolte,
-      tempoChat: 45
+      tempoChat: 40
     });
     
     // Timer per passare alla fase scelta
     gameState.pattoDestinoState.timer = setTimeout(() => {
       avviaFaseSceltaPatto();
-    }, 45000);
+    }, 40000);
   });
   
   socket.on('patto_send_chat_message', (data) => {
@@ -1751,7 +1751,7 @@ io.on('connection', (socket) => {
     
     setTimeout(() => {
       revealStepByStep();
-    }, 4000);
+    }, 3000);
   }
   
   function revealStepByStep() {
@@ -1780,7 +1780,7 @@ io.on('connection', (socket) => {
     
     gameState.pattoDestinoState.revealTimer = setTimeout(() => {
       revealStepByStep();
-    }, 2500);
+    }, 2000);
   }
   
   function calcolaRisultatoFinale() {

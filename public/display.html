@@ -1298,6 +1298,38 @@
         console.log('🧠 Memory Game terminato');
     });
 
+    // ════════════════════════════════════════════════════════════════
+    // 📊 LISTENER PER RISULTATI DEL ROUND
+    // ════════════════════════════════════════════════════════════════
+    socket.on('update_round_leaderboard', (data) => {
+        console.log('📊 Ricevuti risultati round:', data);
+        
+        const tbody = document.getElementById('round-list-body');
+        tbody.innerHTML = '';
+        
+        if (!data.results || data.results.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="p-10 text-center text-gray-500 text-4xl">Nessun punteggio in questo round</td></tr>';
+            return;
+        }
+        
+        // Ordina per punteggio del round (decrescente)
+        const sorted = [...data.results].sort((a, b) => b.roundPoints - a.roundPoints);
+        
+        sorted.forEach((team, i) => {
+            const rowClass = team.roundPoints > 0 ? 'bg-green-500/20 text-green-400' : 'text-white opacity-80';
+            tbody.innerHTML += `
+                <tr class="border-b border-white/5 ${rowClass} animate__animated animate__fadeInLeft" style="animation-delay: ${i*0.1}s">
+                    <td class="p-6 font-mono text-3xl text-indigo-400">${i+1}</td>
+                    <td class="p-6 font-black">${team.name}</td>
+                    <td class="p-6 italic">-</td>
+                    <td class="p-6 text-right font-mono">-</td>
+                    <td class="p-6 text-right font-black text-2xl ${team.roundPoints > 0 ? 'text-green-400' : 'text-gray-400'}">
+                        ${team.roundPoints > 0 ? '+' : ''}${team.roundPoints}
+                    </td>
+                </tr>`;
+        });
+    });
+
     socket.on('force_reload', () => window.location.reload());
 </script>
 </body>

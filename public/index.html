@@ -213,21 +213,18 @@
         }
     });
 
-    // ✅ Feedback risposta inviata
+    // ✅ Feedback risposta inviata - SOLO CONFERMA, SENZA DETTAGLI
     socket.on('risposta_inviata', (data) => {
         stopTimer();
         document.getElementById('opts-grid').classList.add('pointer-events-none', 'opacity-50');
         
-        const icon = data.corretta ? '✅' : '❌';
-        const bgColor = data.corretta ? 'bg-green-600' : 'bg-red-600';
-        const message = data.corretta ? 'CORRETTO!' : 'SBAGLIATO!';
-        
+        // NON mostrare se corretta/sbagliata, tempo o punti sui cellulari
+        // Solo conferma che la risposta è stata ricevuta
         document.getElementById('msg-box').innerHTML = `
-            <div class="${bgColor} p-6 rounded-xl">
-                <div class="text-6xl mb-3">${icon}</div>
-                <h2 class="text-4xl font-black mb-2">${message}</h2>
-                ${data.corretta ? `<p class="text-2xl">+${data.points} punti!</p>` : ''}
-                <p class="text-lg mt-3">Tempo: ${data.time}s</p>
+            <div class="bg-blue-600 p-6 rounded-xl">
+                <div class="text-6xl mb-3">✓</div>
+                <h2 class="text-4xl font-black mb-2">RISPOSTA INVIATA!</h2>
+                <p class="text-lg mt-3">Attendi il risultato sul display...</p>
             </div>
         `;
     });

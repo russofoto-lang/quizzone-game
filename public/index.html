@@ -424,51 +424,121 @@
         `;
     });
     
-    // ALL IN - Mostra bottoni scommessa
-    socket.on('show_allin_betting', (d) => {
-        console.log('📱 Ricevuto evento scommesse ALL IN');
+    // ════════════════════════════════════════════════════════════════
+    // 💰 SFIDA FINALE - ALL IN
+    // ════════════════════════════════════════════════════════════════
+    
+    // ALL IN - Mostra bottoni scommessa (EVENTO CORRETTO)
+    socket.on('finale_allin_betting', (d) => {
+        console.log('📱 Ricevuto evento scommesse ALL IN FINALE:', d);
         resetUI();
-        document.getElementById('msg-box').innerText = "💰 ALL IN - Scommetti!";
+        
+        document.getElementById('msg-box').innerHTML = `
+            <div class="text-center">
+                <div class="text-7xl mb-4 animate-pulse">💰</div>
+                <div class="text-3xl font-black text-yellow-400 mb-2">ALL IN!</div>
+                <div class="text-xl text-white">Punta i tuoi punti sulla risposta</div>
+            </div>
+        `;
+        
         document.getElementById('allin-buttons').classList.remove('hidden');
         document.getElementById('finale-indicator').classList.remove('hidden');
-        document.getElementById('finale-indicator').textContent = `🔥 1/${d.totalFinaleQuestions || 5}`;
+        document.getElementById('finale-indicator').textContent = `🔥 FINALE 1/5`;
+        
+        // Salva la domanda per dopo
+        window.allInQuestion = d.question;
     });
 
-    // ALL IN - Scommessa
+    // ALL IN - Scommessa (CORRETTO: invia bet E risposta insieme)
     function placeBet(amount) {
         // ✅ VIBRAZIONE per conferma scommessa
         vibrate(60);
         
-        socket.emit('place_allin_bet', { amount: amount });
+        if(!window.allInQuestion) {
+            console.error('❌ Nessuna domanda ALL IN caricata');
+            return;
+        }
+        
+        // Salva la scommessa e mostra la domanda
+        window.currentBet = amount;
+        
         document.getElementById('allin-buttons').classList.add('hidden');
-        document.getElementById('msg-box').innerText = `Scommessa: ${amount} punti - In attesa domanda...`;
-    }
-
-    // MOSTRA DOMANDA ALL IN (dopo scommesse)
-    socket.on('show_allin_question', (d) => {
-        console.log('📱 Ricevuta domanda ALL IN');
-        document.getElementById('msg-box').innerText = d.domanda;
+        
+        // Mostra la domanda con le opzioni
+        document.getElementById('msg-box').innerHTML = `
+            <div class="bg-yellow-900/50 p-4 rounded-xl mb-4">
+                <div class="text-sm text-yellow-400">💰 HAI PUNTATO: ${amount} PUNTI</div>
+            </div>
+            <div class="text-2xl font-bold mb-4">${window.allInQuestion.domanda}</div>
+        `;
         
         const g = document.getElementById('opts-grid');
         g.classList.remove('hidden');
         g.innerHTML = '';
         
-        d.risposte.forEach(r => {
+        window.allInQuestion.risposte.forEach(r => {
             const b = document.createElement('button');
-            b.className = "bg-blue-600 rounded-xl p-4 font-bold text-lg shadow-xl active:bg-blue-800 transition-all";
+            b.className = "bg-blue-600 rounded-xl p-6 font-bold text-xl shadow-xl hover:bg-blue-700 transition-all active:scale-95";
             b.innerText = r;
             b.onclick = () => {
-                socket.emit('invia_risposta', r);
-                g.classList.add('opacity-40','pointer-events-none');
-                document.getElementById('msg-box').innerText = "✓ Risposta inviata!";
-                stopTimer();
+                // ✅ FEEDBACK VISIVO E VIBRAZIONE
+                addButtonFeedback(b);
+                
+                // Invia scommessa + risposta al server
+                socket.emit('finale_allin_bet', { 
+                    bet: amount, 
+                    answer: r 
+                });
+                
+                g.classList.add('opacity-50', 'pointer-events-none');
+                b.classList.add('ring-4', 'ring-yellow-400', 'bg-blue-800');
+                
+                document.getElementById('msg-box').innerHTML = `
+                    <div class="bg-green-600 p-6 rounded-xl">
+                        <div class="text-6xl mb-4">✓</div>
+                        <div class="text-3xl font-black mb-2">SCOMMESSA CONFERMATA!</div>
+                        <div class="text-xl">💰 ${amount} punti su "${r}"</div>
+                        <div class="text-lg mt-4 text-yellow-300">Attendi il risultato...</div>
+                    </div>
+                `;
             };
             g.appendChild(b);
         });
+    }
+    
+    // ALL IN - Rivelazione risultati
+    socket.on('finale_allin_reveal', (data) => {
+        console.log('📱 Rivelazione ALL IN:', data);
+        resetUI();
         
-        questionStartTime = d.startTime;
-        maxTime = 20;
-        startTimer();
+        // Trova la mia scommessa
+        const myBet = data.bets.find(b => b.teamId === socket.id);
+        
+        if(myBet) {
+            const isCorrect = myBet.answer === data.correctAnswer;
+            const points = isCorrect ? myBet.bet : -myBet.bet;
+            
+            document.getElementById('msg-box').innerHTML = `
+                <div class="bg-gradient-to-r ${isCorrect ? 'from-green-500 to-emerald-600' : 'from-red-500 to-red-700'} p-8 rounded-3xl">
+                    <div class="text-8xl mb-6">${isCorrect ? '🎉' : '😢'}</div>
+                    <div class="text-4xl font-black mb-4">${isCorrect ? 'CORRETTO!' : 'SBAGLIATO!'}</div>
+                    <div class="text-2xl mb-2">Risposta: ${data.correctAnswer}</div>
+                    <div class="text-5xl font-black mt-4 text-yellow-300">
+                        ${points > 0 ? '+' : ''}${points} PUNTI
+                    </div>
+                </div>
+            `;
+        }
+    });
+    
+    // LEGACY: Mantieni compatibilità con vecchio sistema (se presente)
+    socket.on('show_allin_betting', (d) => {
+        console.log('📱 [LEGACY] Ricevuto evento scommesse ALL IN');
+        resetUI();
+        document.getElementById('msg-box').innerText = "💰 ALL IN - Scommetti!";
+        document.getElementById('allin-buttons').classList.remove('hidden');
+        document.getElementById('finale-indicator').classList.remove('hidden');
+        document.getElementById('finale-indicator').textContent = `🔥 1/${d.totalFinaleQuestions || 5}`;
     });
 
     // BUZZER STANDALONE MODE

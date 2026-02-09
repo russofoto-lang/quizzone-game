@@ -605,10 +605,38 @@
         showView('logo');
     });
 
-    // GESTIONE COMANDI REGIA
+    // ════════════════════════════════════════════════════════════════
+    // 🎰 RUOTA DELLA FORTUNA - DISPLAY COMPLETO
+    // ════════════════════════════════════════════════════════════════
+
+    // Riceve spiegazione ruota
     socket.on('cambia_vista', (data) => {
         console.log('Ricevuto comando regia:', data.view);
         stopTimer();
+        
+        if (data.view === 'ruota_explain') {
+            showView('ruota-explain');
+            console.log('🎰 Mostrata spiegazione ruota');
+            return;
+        }
+        
+        if (data.view === 'ruota_spin') {
+            showView('ruota-spin');
+            console.log('🎰 Mostrata animazione ruota');
+            return;
+        }
+        
+        if (data.view === 'ruota_winner') {
+            showView('ruota-winner');
+            console.log('🎰 Mostrato vincitore ruota');
+            return;
+        }
+        
+        if (data.view === 'gioco') {
+            showView('gioco');
+            console.log('🎰 Mostrata vista gioco per sfida');
+            return;
+        }
         
         showView(data.view);
         
@@ -665,6 +693,97 @@
                 }, 1000);
             }, 17000); // Dopo 17 secondi inizia countdown 3-2-1
         }
+    });
+
+    // Animazione spinning della ruota
+    socket.on('ruota_spin', (data) => {
+        console.log('🎰 Ruota gira con squadre:', data.teams.length);
+        showView('ruota-spin');
+        
+        // Animazione ruota con nomi squadre
+        const wheelName = document.getElementById('wheel-name');
+        let index = 0;
+        const teamNames = data.teams.map(t => t.name);
+        
+        // Animazione veloce dei nomi
+        const interval = setInterval(() => {
+            wheelName.textContent = teamNames[index % teamNames.length];
+            index++;
+        }, 150);
+        
+        // Dopo 5 secondi mostra vincitore
+        setTimeout(() => {
+            clearInterval(interval);
+            wheelName.textContent = data.winner.name;
+            document.getElementById('wheel').classList.remove('animate-spin');
+            document.getElementById('wheel').classList.add('animate-pulse');
+            
+            // Dopo 1 secondo mostra schermata vincitore
+            setTimeout(() => {
+                showView('ruota-winner');
+                document.getElementById('winner-team-name').textContent = data.winner.name;
+            }, 1000);
+        }, 5000);
+    });
+
+    // Mostra vincitore ruota
+    socket.on('ruota_winner', (data) => {
+        console.log('🎰 Vincitore ruota:', data.winner.name);
+        showView('ruota-winner');
+        document.getElementById('winner-team-name').textContent = data.winner.name;
+    });
+
+    // Mostra risultato ruota
+    socket.on('ruota_result', (data) => {
+        console.log('🎰 Risultato ruota:', data.teamName, data.action, data.points);
+        
+        // Mostra messaggio sul display
+        showView('custom');
+        const actionText = data.action === 'safe' ? '50 PUNTI SICURI' : 
+                          data.action === 'challenge_win' ? '+150 PUNTI!' : '-50 PUNTI';
+        const emoji = data.action === 'safe' ? '💰' : 
+                     data.action === 'challenge_win' ? '🎯' : '😢';
+        const colorClass = data.action === 'challenge_lose' ? 'text-red-400' : 'text-green-400';
+        
+        document.getElementById('custom-text-display').innerHTML = `
+            <div class="text-9xl mb-6">${emoji}</div>
+            <div class="text-5xl font-black mb-4">${data.teamName}</div>
+            <div class="text-7xl font-black ${colorClass} mb-4">${data.action === 'challenge_lose' ? '-' : '+'}${Math.abs(data.points)} PUNTI</div>
+            <div class="text-4xl text-yellow-300">${actionText}</div>
+            <div class="text-3xl mt-6">Nuovo totale: ${data.newScore} punti</div>
+        `;
+        
+        // Torna alla classifica dopo 5 secondi
+        setTimeout(() => {
+            showView('classifica_gen');
+        }, 5000);
+    });
+
+    // Mostra domanda per sfida ruota (solo visualizzazione)
+    socket.on('display_question', (d) => {
+        console.log('🎰 Display question (solo visualizzazione):', d.domanda);
+        showView('gioco');
+        stopTimer();
+        
+        document.getElementById('buzzer-overlay').classList.add('hidden');
+        document.getElementById('solution').classList.add('hidden');
+        document.getElementById('cat').innerText = (d.categoria || "RUOTA DELLA FORTUNA").toUpperCase();
+        document.getElementById('q-text').innerHTML = `
+            <div class="text-4xl text-yellow-400 mb-4">🎯 SFIDA PER ${d.forTeam.toUpperCase()}</div>
+            <div class="text-3xl">${d.domanda}</div>
+        `;
+        
+        const o = document.getElementById('opts'); 
+        o.innerHTML = '';
+        
+        if(d.risposte && d.risposte.length > 0) { 
+            o.classList.remove('hidden'); 
+            d.risposte.forEach((r, idx) => {
+                o.innerHTML += `<div class="answer-option bg-white/10 p-6 rounded-2xl border-2 border-white/10 shadow-lg text-3xl font-bold">${String.fromCharCode(65+idx)}: ${r}</div>`;
+            });
+        }
+        
+        document.getElementById('timer-display-container').classList.add('hidden');
     });
 
     // CONFETTI ANIMATION
@@ -987,31 +1106,6 @@
     socket.on('ruota_explain', () => {
         console.log('🎰 Spiegazione Ruota');
         showView('ruota-explain');
-    });
-
-    socket.on('ruota_spin', (data) => {
-        console.log('🎰 Ruota gira con squadre:', data.teams);
-        showView('ruota-spin');
-        
-        // Animazione ruota con nomi squadre
-        const wheelName = document.getElementById('wheel-name');
-        let index = 0;
-        const interval = setInterval(() => {
-            wheelName.textContent = data.teams[index % data.teams.length].name;  // ✅ FIX: Aggiunto .name
-            index++;
-        }, 200);
-        
-        // Dopo 5 secondi mostra vincitore
-        setTimeout(() => {
-            clearInterval(interval);
-            wheelName.textContent = data.winner.name;
-            document.getElementById('wheel').classList.remove('animate-spin');
-            
-            setTimeout(() => {
-                showView('ruota-winner');
-                document.getElementById('winner-team-name').textContent = data.winner.name;
-            }, 1000);
-        }, 5000);
     });
 
     // DISPLAY_QUESTION - Per ruota della fortuna (visualizza solo sul display, no interazione)

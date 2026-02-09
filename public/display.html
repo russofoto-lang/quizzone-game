@@ -596,6 +596,240 @@
 
 </div>
 
+    <!-- ====================================== -->
+    <!-- 💀 IL PATTO COL DESTINO - VISTE -->
+    <!-- ====================================== -->
+    
+    <!-- VISTA REGOLE PARTE 1 -->
+    <div id="view-patto-regole-1" class="view-section hidden absolute inset-0 bg-gradient-to-br from-purple-900 via-indigo-900 to-black z-50 flex flex-col items-center justify-center overflow-y-auto p-6">
+        <div class="glass rounded-[2rem] p-8 max-w-5xl text-center animate__animated animate__fadeIn">
+            <div class="text-7xl mb-4">💀</div>
+            <h1 class="text-6xl font-black text-purple-300 mb-6 tracking-wider uppercase">
+                Il Patto col Destino
+            </h1>
+            
+            <div class="text-left text-white space-y-6 text-2xl leading-relaxed">
+                <div class="bg-purple-900/40 rounded-2xl p-6 border-2 border-purple-400">
+                    <h2 class="text-4xl font-black text-purple-300 mb-4">📋 Come Funziona</h2>
+                    <p class="mb-3">Le <span class="text-yellow-300 font-bold">PRIME 2 squadre</span> e <span class="text-yellow-300 font-bold">l'ULTIMA squadra</span> vengono selezionate.</p>
+                    <p class="text-purple-200">Avrete due fasi per decidere il vostro destino...</p>
+                </div>
+                
+                <div class="bg-blue-900/40 rounded-2xl p-6 border-2 border-blue-400">
+                    <h2 class="text-4xl font-black text-blue-300 mb-4">💬 FASE 1: Chat Segreta</h2>
+                    <p class="mb-3"><span class="text-yellow-300 font-bold">30 secondi</span> per comunicare SOLO tra voi 3</p>
+                    <p class="mb-3">Potete fare <span class="text-green-300 font-bold">accordi, promesse, minacce...</span></p>
+                    <p class="text-red-400 font-black text-3xl animate-pulse">⚠️ I PATTI POSSONO ESSERE VIOLATI ⚠️</p>
+                </div>
+                
+                <div class="bg-orange-900/40 rounded-2xl p-6 border-2 border-orange-400">
+                    <h2 class="text-4xl font-black text-orange-300 mb-4">🎲 FASE 2: Scelta Individuale</h2>
+                    <p class="mb-3"><span class="text-yellow-300 font-bold">25 secondi</span> per scegliere IN SEGRETO</p>
+                    <div class="grid grid-cols-2 gap-4 mt-4">
+                        <div class="bg-green-600/30 p-4 rounded-xl">
+                            <div class="text-5xl mb-2">🤝</div>
+                            <div class="text-3xl font-bold">PATTO</div>
+                        </div>
+                        <div class="bg-red-600/30 p-4 rounded-xl">
+                            <div class="text-5xl mb-2">💣</div>
+                            <div class="text-3xl font-bold">TRADIMENTO</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-center text-2xl text-gray-300 animate-pulse mt-6">
+                    [ PREMI AVANTI PER I RISULTATI ]
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- VISTA REGOLE PARTE 2 - RISULTATI -->
+    <div id="view-patto-regole-2" class="view-section hidden absolute inset-0 bg-gradient-to-br from-purple-900 via-indigo-900 to-black z-50 flex flex-col items-center justify-center overflow-y-auto p-6">
+        <div class="glass rounded-[2rem] p-8 max-w-5xl text-center animate__animated animate__fadeIn">
+            <div class="text-7xl mb-4">🎯</div>
+            <h1 class="text-6xl font-black text-purple-300 mb-6 tracking-wider uppercase">
+                Risultati Possibili
+            </h1>
+            
+            <div class="text-left text-white space-y-5 text-2xl leading-relaxed">
+                <div class="bg-green-900/40 rounded-2xl p-6 border-2 border-green-400">
+                    <h2 class="text-4xl font-black text-green-300 mb-3 flex items-center gap-3">
+                        ✅ TUTTI SCELGONO PATTO
+                    </h2>
+                    <p class="text-3xl font-bold text-yellow-300">→ +150 punti a ciascuno</p>
+                    <p class="text-xl text-gray-300 mt-2">Collaborazione totale! Tutti vincono.</p>
+                </div>
+                
+                <div class="bg-orange-900/40 rounded-2xl p-6 border-2 border-orange-400">
+                    <h2 class="text-4xl font-black text-orange-300 mb-3 flex items-center gap-3">
+                        ⚔️ QUALCUNO TRADISCE
+                    </h2>
+                    <p class="text-2xl mb-2">
+                        <span class="text-red-400 font-bold">Traditori:</span> 
+                        <span class="text-yellow-300 font-bold">+250 pt</span>
+                    </p>
+                    <p class="text-2xl">
+                        <span class="text-blue-400 font-bold">Fedeli:</span> 
+                        <span class="text-red-400 font-bold">-150 pt</span>
+                    </p>
+                    <p class="text-xl text-gray-300 mt-2">Il tradimento può essere redditizio...</p>
+                </div>
+                
+                <div class="bg-red-900/40 rounded-2xl p-6 border-2 border-red-400">
+                    <h2 class="text-4xl font-black text-red-300 mb-3 flex items-center gap-3">
+                        💥 TUTTI TRADISCONO
+                    </h2>
+                    <p class="text-3xl font-bold text-red-400 mb-2">→ -150 pt a tutti i traditori</p>
+                    <p class="text-2xl text-green-400 font-bold">
+                        → +150 pt all'ultima squadra<br/>(se non coinvolta)
+                    </p>
+                    <p class="text-xl text-gray-300 mt-2">Egoismo totale = punizione universale!</p>
+                </div>
+                
+                <div class="text-center mt-8 p-6 bg-purple-900/50 rounded-2xl border border-purple-400">
+                    <p class="text-3xl font-black text-yellow-300 animate-pulse">
+                        🎲 La fiducia è un rischio.<br/>
+                        Il tradimento è una tentazione.<br/>
+                        Scegli saggiamente.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- VISTA FASE CHAT -->
+    <div id="view-patto-chat" class="view-section hidden absolute inset-0 bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 z-50 flex flex-col items-center justify-center">
+        <div class="text-center animate__animated animate__fadeIn max-w-4xl">
+            <div class="text-7xl mb-6 animate-bounce">💬</div>
+            <h1 class="text-6xl font-black text-white mb-8 tracking-wider uppercase">
+                Fase 1: Comunicazione Segreta
+            </h1>
+            
+            <div class="bg-black/40 backdrop-blur-lg rounded-3xl p-8 mb-6">
+                <p class="text-3xl text-purple-300 font-bold mb-6">Squadre coinvolte:</p>
+                <div id="patto-squadre-coinvolte" class="space-y-3">
+                    <!-- Popolato dinamicamente -->
+                </div>
+            </div>
+            
+            <div class="bg-blue-900/50 backdrop-blur-lg rounded-3xl p-6 mb-4">
+                <p class="text-4xl text-white font-black mb-3">💬 Stanno comunicando in segreto...</p>
+                <p class="text-2xl text-blue-300">Fate accordi, promesse, alleanze...</p>
+            </div>
+            
+            <div class="bg-red-900/50 backdrop-blur-lg rounded-3xl p-6 mb-6 animate-pulse">
+                <p class="text-3xl text-red-300 font-black">⚠️ I patti possono essere violati ⚠️</p>
+            </div>
+            
+            <div class="text-center">
+                <div class="text-7xl font-black text-yellow-400 mb-2" id="patto-timer-chat">30</div>
+                <div class="text-2xl text-gray-300">secondi rimanenti</div>
+                <div class="w-full bg-gray-700 rounded-full h-4 overflow-hidden mt-4">
+                    <div id="patto-timer-bar-chat" class="h-4 bg-blue-500 rounded-full transition-all duration-1000" style="width: 100%;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- VISTA FASE SCELTA -->
+    <div id="view-patto-scelta" class="view-section hidden absolute inset-0 bg-gradient-to-br from-orange-900 via-red-900 to-purple-900 z-50 flex flex-col items-center justify-center">
+        <div class="text-center animate__animated animate__fadeIn max-w-4xl">
+            <div class="text-7xl mb-6 animate-pulse">🎲</div>
+            <h1 class="text-6xl font-black text-white mb-8 tracking-wider uppercase">
+                Fase 2: Scelta Individuale
+            </h1>
+            
+            <div class="bg-black/40 backdrop-blur-lg rounded-3xl p-8 mb-6">
+                <p class="text-3xl text-orange-300 font-bold mb-4">Le squadre stanno scegliendo...</p>
+                <div id="patto-squadre-scelta" class="space-y-3">
+                    <!-- Popolato dinamicamente -->
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-6 mb-6 max-w-3xl mx-auto">
+                <div class="bg-green-900/50 backdrop-blur-lg rounded-2xl p-6 border-4 border-green-400">
+                    <div class="text-6xl mb-3">🤝</div>
+                    <div class="text-4xl font-black text-green-300">PATTO</div>
+                    <div class="text-lg text-gray-300 mt-2">Fiducia reciproca</div>
+                </div>
+                <div class="bg-red-900/50 backdrop-blur-lg rounded-2xl p-6 border-4 border-red-400">
+                    <div class="text-6xl mb-3">💣</div>
+                    <div class="text-4xl font-black text-red-300">TRADIMENTO</div>
+                    <div class="text-lg text-gray-300 mt-2">Prendi tutto</div>
+                </div>
+            </div>
+            
+            <div class="text-center">
+                <div class="text-7xl font-black text-yellow-400 mb-2" id="patto-timer-scelta">25</div>
+                <div class="text-2xl text-gray-300">secondi rimanenti</div>
+                <div class="w-full bg-gray-700 rounded-full h-4 overflow-hidden mt-4">
+                    <div id="patto-timer-bar-scelta" class="h-4 bg-orange-500 rounded-full transition-all duration-1000" style="width: 100%;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- VISTA REVEAL SUSPENSE -->
+    <div id="view-patto-reveal-suspense" class="view-section hidden absolute inset-0 bg-gradient-to-br from-black via-purple-900 to-black z-50 flex flex-col items-center justify-center">
+        <div class="text-center animate__animated animate__fadeIn">
+            <div class="text-8xl mb-8 animate-pulse">🎭</div>
+            <h1 class="text-7xl font-black text-white mb-12 tracking-wider uppercase animate-pulse">
+                Le scelte saranno rivelate...
+            </h1>
+            
+            <div id="patto-reveal-squadre" class="space-y-6 max-w-3xl mx-auto">
+                <!-- Popolato dinamicamente con ❓ -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- VISTA REVEAL PROGRESSIVO -->
+    <div id="view-patto-reveal" class="view-section hidden absolute inset-0 bg-gradient-to-br from-purple-900 via-indigo-900 to-black z-50 flex flex-col items-center justify-center">
+        <div class="text-center max-w-4xl">
+            <h1 class="text-6xl font-black text-purple-300 mb-12 tracking-wider uppercase">
+                💀 Rivelazione delle Scelte
+            </h1>
+            
+            <div id="patto-reveal-results" class="space-y-6">
+                <!-- Popolato dinamicamente step by step -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- VISTA RISULTATO FINALE -->
+    <div id="view-patto-finale" class="view-section hidden absolute inset-0 bg-gradient-to-br from-yellow-900 via-orange-900 to-red-900 z-50 flex flex-col items-center justify-center overflow-y-auto p-6">
+        <div class="text-center animate__animated animate__bounceIn max-w-5xl">
+            <div class="text-8xl mb-6">🎯</div>
+            <h1 class="text-7xl font-black text-white mb-8 tracking-wider uppercase">
+                Risultato Finale
+            </h1>
+            
+            <div id="patto-finale-results" class="space-y-4 mb-8">
+                <!-- Popolato dinamicamente con punti assegnati -->
+            </div>
+            
+            <div id="patto-bonus-ultima" class="hidden bg-green-900/50 backdrop-blur-lg rounded-3xl p-8 border-4 border-green-400 mb-6 animate__animated animate__fadeInUp">
+                <p class="text-4xl font-black text-green-300 mb-4">🌱 BONUS ULTIMA SQUADRA</p>
+                <p class="text-5xl font-black text-white">
+                    <span id="patto-bonus-team-name">---</span>
+                </p>
+                <p class="text-4xl text-yellow-300 font-bold">+150 punti</p>
+                <p class="text-xl text-gray-300 mt-2">(Tutti hanno tradito!)</p>
+            </div>
+            
+            <div class="bg-black/40 backdrop-blur-lg rounded-3xl p-6">
+                <p class="text-3xl text-purple-300 font-bold mb-4">🏆 Nuova Classifica</p>
+                <div id="patto-nuova-classifica" class="space-y-2">
+                    <!-- Popolato dinamicamente -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- ====================================== -->
+    <!-- FINE VISTE PATTO COL DESTINO -->
+    <!-- ====================================== -->
 <script>
     const socket = io();
     let timerInterval = null;
@@ -1650,6 +1884,214 @@
                 </tr>`;
         });
     });
+
+    // ============================================
+    // 💀 IL PATTO COL DESTINO - SOCKET HANDLERS
+    // ============================================
+    
+    let pattoTimerInterval = null;
+    let pattoCurrentPhase = null;
+    
+    // Mostra regole (2 schermate con avanti manuale)
+    socket.on('patto_regole_display', () => {
+        hideAllViews();
+        document.getElementById('view-patto-regole-1').classList.remove('hidden');
+        
+        // Dopo 15 secondi passa automaticamente alla parte 2
+        setTimeout(() => {
+            hideAllViews();
+            document.getElementById('view-patto-regole-2').classList.remove('hidden');
+        }, 15000);
+    });
+    
+    // FASE 1: Chat Segreta
+    socket.on('patto_fase_chat_start', (data) => {
+        hideAllViews();
+        pattoCurrentPhase = 'chat';
+        document.getElementById('view-patto-chat').classList.remove('hidden');
+        
+        // Popola squadre coinvolte
+        const container = document.getElementById('patto-squadre-coinvolte');
+        container.innerHTML = '';
+        data.squadreCoinvolte.forEach(squadra => {
+            container.innerHTML += `
+                <div class="flex items-center justify-center gap-4 bg-white/10 backdrop-blur-lg rounded-2xl p-4 border-2" style="border-color: ${squadra.color}">
+                    <div class="w-8 h-8 rounded-full" style="background-color: ${squadra.color}"></div>
+                    <div class="text-3xl font-black text-white">${squadra.name}</div>
+                </div>
+            `;
+        });
+        
+        // Avvia timer 30s
+        pattoStartTimer(data.tempoChat, 'chat');
+    });
+    
+    // FASE 2: Scelta Individuale
+    socket.on('patto_fase_scelta_start', (data) => {
+        hideAllViews();
+        pattoCurrentPhase = 'scelta';
+        document.getElementById('view-patto-scelta').classList.remove('hidden');
+        
+        // Avvia timer 25s
+        pattoStartTimer(data.tempoScelta, 'scelta');
+    });
+    
+    // Reveal: Suspense iniziale
+    socket.on('patto_reveal_suspense', () => {
+        pattoStopTimer();
+        hideAllViews();
+        document.getElementById('view-patto-reveal-suspense').classList.remove('hidden');
+    });
+    
+    // Reveal: Step by step
+    let pattoRevealedTeams = [];
+    socket.on('patto_reveal_step', (data) => {
+        if (data.stepNum === 1) {
+            // Prima rivelazione: passa alla vista reveal e inizia a popolare
+            hideAllViews();
+            document.getElementById('view-patto-reveal').classList.remove('hidden');
+            pattoRevealedTeams = [];
+        }
+        
+        pattoRevealedTeams.push(data);
+        
+        // Aggiorna display con le scelte rivelate finora
+        const container = document.getElementById('patto-reveal-results');
+        container.innerHTML = '';
+        
+        pattoRevealedTeams.forEach((team, index) => {
+            const icon = team.scelta === 'patto' ? '🤝' : '💣';
+            const bgColor = team.scelta === 'patto' ? 'bg-green-900/50 border-green-400' : 'bg-red-900/50 border-red-400';
+            const textColor = team.scelta === 'patto' ? 'text-green-300' : 'text-red-300';
+            const sceltaText = team.scelta === 'patto' ? 'PATTO' : 'TRADIMENTO';
+            
+            container.innerHTML += `
+                <div class="${bgColor} backdrop-blur-lg rounded-2xl p-6 border-4 animate__animated animate__flipInX">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-full" style="background-color: ${team.teamColor}"></div>
+                            <div class="text-4xl font-black text-white">${team.teamName}</div>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <div class="text-6xl">${icon}</div>
+                            <div class="text-4xl font-black ${textColor}">${sceltaText}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+    });
+    
+    // Risultato Finale
+    socket.on('patto_risultato_finale', (data) => {
+        hideAllViews();
+        document.getElementById('view-patto-finale').classList.remove('hidden');
+        
+        // Popola risultati con punti assegnati
+        const container = document.getElementById('patto-finale-results');
+        container.innerHTML = '';
+        
+        data.risultati.forEach(r => {
+            const icon = r.scelta === 'patto' ? '🤝' : '💣';
+            const puntiColor = r.puntiAssegnati > 0 ? 'text-green-400' : 'text-red-400';
+            const puntiSign = r.puntiAssegnati > 0 ? '+' : '';
+            const bgColor = r.puntiAssegnati > 0 ? 'bg-green-900/30 border-green-500' : 'bg-red-900/30 border-red-500';
+            
+            let descrizione = '';
+            if (r.tipo === 'collaborazione') descrizione = 'Tutti hanno collaborato!';
+            else if (r.tipo === 'tradimento_riuscito') descrizione = 'Tradimento riuscito!';
+            else if (r.tipo === 'tradito') descrizione = 'Sei stato tradito!';
+            else if (r.tipo === 'egoismo') descrizione = 'Egoismo punito!';
+            
+            container.innerHTML += `
+                <div class="${bgColor} backdrop-blur-lg rounded-2xl p-6 border-2 animate__animated animate__fadeInUp" style="animation-delay: ${container.children.length * 0.2}s">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-4">
+                            <div class="text-5xl">${icon}</div>
+                            <div class="text-3xl font-black text-white">${r.teamName}</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-5xl font-black ${puntiColor}">${puntiSign}${r.puntiAssegnati} pt</div>
+                            <div class="text-lg text-gray-300">${descrizione}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        // Mostra bonus ultima squadra se presente
+        if (data.bonusUltimaSquadra) {
+            document.getElementById('patto-bonus-ultima').classList.remove('hidden');
+            document.getElementById('patto-bonus-team-name').textContent = data.bonusUltimaSquadra.teamName;
+        } else {
+            document.getElementById('patto-bonus-ultima').classList.add('hidden');
+        }
+        
+        // Mostra nuova classifica
+        const classificaContainer = document.getElementById('patto-nuova-classifica');
+        classificaContainer.innerHTML = '';
+        
+        data.nuovaClassifica.forEach((team, index) => {
+            const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}°`;
+            classificaContainer.innerHTML += `
+                <div class="flex justify-between items-center bg-white/10 rounded-lg p-3">
+                    <div class="flex items-center gap-3">
+                        <span class="text-3xl">${medal}</span>
+                        <span class="text-2xl font-bold text-white">${team.name}</span>
+                    </div>
+                    <span class="text-3xl font-black text-yellow-400">${team.score}</span>
+                </div>
+            `;
+        });
+    });
+    
+    // Reset
+    socket.on('patto_reset', () => {
+        pattoStopTimer();
+        pattoCurrentPhase = null;
+        pattoRevealedTeams = [];
+    });
+    
+    // Funzioni helper timer
+    function pattoStartTimer(seconds, phase) {
+        pattoStopTimer();
+        
+        const timerDisplay = document.getElementById(`patto-timer-${phase}`);
+        const timerBar = document.getElementById(`patto-timer-bar-${phase}`);
+        
+        let timeLeft = seconds;
+        timerDisplay.textContent = timeLeft;
+        timerBar.style.width = '100%';
+        
+        pattoTimerInterval = setInterval(() => {
+            timeLeft--;
+            timerDisplay.textContent = timeLeft;
+            timerBar.style.width = `${(timeLeft / seconds) * 100}%`;
+            
+            if (timeLeft <= 5) {
+                timerBar.style.backgroundColor = '#ef4444';
+                timerDisplay.style.color = '#ef4444';
+            } else if (timeLeft <= 10) {
+                timerBar.style.backgroundColor = '#f59e0b';
+                timerDisplay.style.color = '#f59e0b';
+            }
+            
+            if (timeLeft <= 0) {
+                pattoStopTimer();
+            }
+        }, 1000);
+    }
+    
+    function pattoStopTimer() {
+        if (pattoTimerInterval) {
+            clearInterval(pattoTimerInterval);
+            pattoTimerInterval = null;
+        }
+    }
+    
+    // ============================================
+    // FINE SOCKET HANDLERS PATTO COL DESTINO
+    // ============================================
 
     socket.on('force_reload', () => window.location.reload());
 </script>

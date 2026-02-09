@@ -417,6 +417,36 @@
                 </div>
             </div>
         </div>
+
+        <!-- 💀 IL PATTO COL DESTINO - COLLAPSIBLE -->
+        <div class="bg-purple-900/20 rounded-lg border border-purple-700">
+            <button onclick="toggleSection('patto')" class="w-full flex justify-between items-center p-2 hover:bg-purple-900/30 transition rounded-lg">
+                <div class="text-sm font-bold text-purple-300 uppercase">💀 Il Patto col Destino</div>
+                <span id="icon-patto" class="text-purple-300 font-bold text-lg">▼</span>
+            </button>
+            <div id="content-patto" class="hidden p-2 pt-0">
+                <div class="space-y-1">
+                    <button onclick="pattoShowRegole()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 rounded text-sm">
+                        📜 Spiega Regole
+                    </button>
+                    <button onclick="pattoAvvia()" id="patto-avvia-btn" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-2 rounded text-sm">
+                        🎲 AVVIA PATTO
+                    </button>
+                    <div id="patto-utilizzi-display" class="text-xs text-center py-2 bg-purple-900/30 rounded font-bold">
+                        Utilizzi: <span id="patto-usi">0</span>/2
+                    </div>
+                    <div id="patto-status" class="hidden text-xs text-center py-2 rounded font-bold">
+                        <!-- Popolato dinamicamente -->
+                    </div>
+                    <div id="patto-scelte-status" class="hidden text-xs space-y-1">
+                        <!-- Mostra chi ha scelto -->
+                    </div>
+                    <button onclick="pattoReset()" class="w-full bg-gray-700 hover:bg-gray-600 text-white font-bold py-1.5 rounded text-xs">
+                        🔄 Reset
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -1217,6 +1247,60 @@
             dot.className = i < finaleQuestionCount ? 'progress-dot active' : 'progress-dot';
         });
     }
+
+    // ============================================
+    // 💀 IL PATTO COL DESTINO - FUNZIONI ADMIN
+    // ============================================
+    
+    function pattoShowRegole() {
+        socket.emit('admin_mostra_regole_patto');
+    }
+    
+    function pattoAvvia() {
+        socket.emit('admin_avvia_patto_destino');
+    }
+    
+    function pattoReset() {
+        socket.emit('admin_reset_patto');
+    }
+    
+    // Aggiorna contatore utilizzi
+    socket.on('patto_update_utilizzi', (data) => {
+        document.getElementById('patto-usi').textContent = data.utilizzi;
+        
+        // Disabilita il pulsante se raggiunti i max utilizzi
+        if (data.utilizzi >= data.max) {
+            const btn = document.getElementById('patto-avvia-btn');
+            btn.disabled = true;
+            btn.className = 'w-full bg-gray-600 text-white font-bold py-2 rounded text-sm opacity-50 cursor-not-allowed';
+            btn.textContent = '🚫 MAX UTILIZZI';
+        }
+    });
+    
+    // Notifica quando viene ricevuta una scelta
+    socket.on('patto_scelta_ricevuta', (data) => {
+        const status = document.getElementById('patto-status');
+        status.classList.remove('hidden');
+        status.className = 'text-xs text-center py-2 bg-green-900/30 rounded font-bold text-green-400';
+        status.textContent = `✅ ${data.teamName} ha scelto`;
+        
+        setTimeout(() => {
+            status.classList.add('hidden');
+        }, 2000);
+    });
+    
+    // Mostra errori
+    socket.on('patto_max_utilizzi_raggiunto', () => {
+        alert('⚠️ Hai già utilizzato Il Patto col Destino 2 volte!');
+    });
+    
+    socket.on('patto_squadre_insufficienti', () => {
+        alert('⚠️ Servono almeno 2 squadre per giocare!');
+    });
+    
+    // ============================================
+    // FINE FUNZIONI PATTO COL DESTINO
+    // ============================================
 </script>
 
 </body>

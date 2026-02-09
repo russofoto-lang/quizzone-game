@@ -27,8 +27,10 @@
             margin: auto;
             background: #0f172a;
             color: white;
-            overflow: hidden;
+            overflow: hidden; /* ✅ FIX: Previene overflow */
             font-family: 'Inter', sans-serif;
+            display: flex; /* ✅ FIX: Usa flexbox per gestire meglio il contenuto */
+            flex-direction: column;
         }
         
         /* Se l'altezza è il fattore limitante, centriamo verticalmente */
@@ -43,10 +45,28 @@
         .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
         #qrcode img { margin: 0 auto; border: 15px solid white; border-radius: 10px; }
 
+    /* ✅ FIX: Gestione overflow per contenuti lunghi */
+    .view-section {
+        max-height: 100%;
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+    
+    /* Nascondi scrollbar ma mantieni funzionalità */
+    .view-section::-webkit-scrollbar {
+        width: 0px;
+        background: transparent;
+    }
+
     /* Responsive text sizing */
     .question-text { font-size: clamp(2rem, 4vw, 4rem); line-height: 1.2; }
     .answer-option { font-size: clamp(1.5rem, 2.5vw, 2rem); }
     .category-text { font-size: clamp(1rem, 1.5vw, 1.5rem); }
+    
+    /* ✅ FIX: Responsive padding per schermate con molto testo */
+    .text-heavy-screen {
+        padding: clamp(1rem, 3vh, 4rem) !important;
+    }
     
     @keyframes countdown-pulse {
         0%, 100% { transform: scale(1); }
@@ -468,7 +488,7 @@
     </div>
 
     <!-- VISTA SPIEGAZIONE FINALE -->
-    <div id="view-finale_explanation" class="view-section hidden absolute inset-0 bg-gradient-to-br from-red-900 via-orange-900 to-yellow-900 z-50 flex flex-col items-center justify-center overflow-hidden">
+    <div id="view-finale_explanation" class="view-section text-heavy-screen hidden absolute inset-0 bg-gradient-to-br from-red-900 via-orange-900 to-yellow-900 z-50 flex flex-col items-center justify-center overflow-y-auto">
         <!-- Fiamme animate -->
         <div class="absolute top-0 left-10 text-8xl animate-pulse">🔥</div>
         <div class="absolute top-20 right-10 text-8xl animate-pulse" style="animation-delay: 0.3s;">🔥</div>

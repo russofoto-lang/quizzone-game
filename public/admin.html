@@ -695,22 +695,30 @@
                 break;
             case 4:
                 // Lancia domanda sfida
-                if(!selectedQ) {
-                    alert('⚠️ Seleziona una domanda prima!');
+                // ✅ FIX: Controllo migliorato - verifica sia squadra che domanda
+                if(!ruotaWinner) {
+                    alert('⚠️ Prima gira la ruota e aspetta che venga estratta una squadra!');
+                    console.log('❌ Errore: Nessuna squadra estratta');
                     return;
                 }
+                if(!selectedQ) {
+                    alert('⚠️ Seleziona una domanda dalla lista prima di lanciarla!');
+                    console.log('❌ Errore: Nessuna domanda selezionata');
+                    return;
+                }
+                console.log('🎰 Invio domanda sfida:', selectedQ.domanda, 'a squadra:', ruotaWinner.name);
                 socket.emit('ruota_step', { step: 'challenge', question: selectedQ });
-                console.log('🎰 Domanda sfida lanciata');
+                console.log('✅ Domanda sfida lanciata con successo');
                 break;
         }
     }
 
     // Riceve squadra estratta dalla ruota
     socket.on('ruota_winner', (data) => {
-        ruotaWinner = data;
+        ruotaWinner = data.winner; // ✅ FIX: Accede a data.winner invece di data
         document.getElementById('ruota-winner-display').classList.remove('hidden');
-        document.getElementById('ruota-winner-name').textContent = data.name;
-        console.log('🎰 Estratto:', data.name);
+        document.getElementById('ruota-winner-name').textContent = data.winner.name;
+        console.log('🎰 ESTRATTO:', data.winner.name); // ✅ FIX: Console log più evidente
     });
 
     // ════════════════════════════════════════════════════════════════

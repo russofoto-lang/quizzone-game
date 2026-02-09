@@ -1672,13 +1672,13 @@ io.on('connection', (socket) => {
     
     io.emit('patto_fase_chat_start', {
       squadreCoinvolte: squadreCoinvolte,
-      tempoChat: 60
+      tempoChat: 45
     });
     
     // Timer per passare alla fase scelta
     gameState.pattoDestinoState.timer = setTimeout(() => {
       avviaFaseSceltaPatto();
-    }, 60000);
+    }, 45000);
   });
   
   socket.on('patto_send_chat_message', (data) => {
@@ -1751,7 +1751,7 @@ io.on('connection', (socket) => {
     
     setTimeout(() => {
       revealStepByStep();
-    }, 3000);
+    }, 4000);
   }
   
   function revealStepByStep() {
@@ -1759,7 +1759,7 @@ io.on('connection', (socket) => {
       // Reveal completato, calcola risultato
       setTimeout(() => {
         calcolaRisultatoFinale();
-      }, 2000);
+      }, 2500);
       return;
     }
     
@@ -1780,7 +1780,7 @@ io.on('connection', (socket) => {
     
     gameState.pattoDestinoState.revealTimer = setTimeout(() => {
       revealStepByStep();
-    }, 1500);
+    }, 2500);
   }
   
   function calcolaRisultatoFinale() {

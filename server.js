@@ -774,7 +774,7 @@ io.on('connection', (socket) => {
   });
 
   // ════════════════════════════════════════════════════════════════
-  // 🎰 RUOTA DELLA FORTUNA - LISTENER COMPLETI
+  // 🎰 RUOTA DELLA FORTUNA - LISTENER COMPLETI E CORRETTI
   // ════════════════════════════════════════════════════════════════
 
   socket.on('ruota_step', (data) => {
@@ -782,7 +782,7 @@ io.on('connection', (socket) => {
     
     switch(data.step) {
       case 'explain':
-        // 1️⃣ Spiega regole
+        // 1️⃣ Spiega regole - INVIATO A TUTTI I DISPLAY
         io.emit('cambia_vista', { view: 'ruota_explain' });
         console.log('🎰 Spiegazione regole ruota');
         break;
@@ -799,19 +799,26 @@ io.on('connection', (socket) => {
         gameState.ruotaWinner = { id: winner.id, name: winner.name };
         gameState.ruotaChoice = null;
         
-        // Mostra animazione spinning
+        // Mostra animazione spinning SU DISPLAY
         io.emit('cambia_vista', { view: 'ruota_spin' });
         
-        // Invia dati spinning
+        // Invia dati spinning con timer
         io.emit('ruota_spin', {
-          teams: realTeams.map(t => t.name),
+          teams: realTeams.map(t => ({ id: t.id, name: t.name })), // ✅ FIX: array di oggetti
           winner: { id: winner.id, name: winner.name }
         });
         
         // Dopo 5 secondi mostra vincitore
         setTimeout(() => {
           io.emit('cambia_vista', { view: 'ruota_winner' });
-          io.emit('ruota_winner', { winner: { id: winner.id, name: winner.name } });
+          io.emit('ruota_winner', { 
+            winner: { id: winner.id, name: winner.name } 
+          });
+          
+          // ✅ FIX: Invia anche alla console admin
+          io.to('admin').emit('ruota_winner', { 
+            winner: { id: winner.id, name: winner.name } 
+          });
           
           // Invia scelta SOLO alla squadra vincitrice
           io.to(winner.id).emit('ruota_choice', {
@@ -821,9 +828,10 @@ io.on('connection', (socket) => {
               { id: 'challenge', label: '🎯 Sfida: +150 se corretta, -50 se sbagliata', value: 150 }
             ]
           });
+          
+          console.log(`🎰 Ruota: estratto ${winner.name}`);
         }, 5000);
         
-        console.log(`🎰 Ruota: estratto ${winner.name}`);
         break;
         
       case 'choice':
@@ -833,41 +841,64 @@ io.on('connection', (socket) => {
         break;
         
       case 'challenge':
-        // 4️⃣ Lancia domanda sfida
-        if (!gameState.ruotaWinner || !data.question) {
-          io.to('admin').emit('ruota_error', { message: 'Prima seleziona una domanda!' });
+        // 4️⃣ Lancia domanda sfida - ✅ FIX: Questa è la chiave!
+        if (!gameState.ruotaWinner) {
+          io.to('admin').emit('ruota_error', { message: 'Prima gira la ruota!' });
+          return;
+        }
+        
+        if (!data.question) {
+          io.to('admin').emit('ruota_error', { message: 'Seleziona una domanda dalla lista!' });
           return;
         }
         
         // Imposta la domanda per la sfida
         gameState.currentQuestion = {
           ...data.question,
+          id: data.question.id || Date.now(),
+          domanda: data.question.domanda,
+          risposte: data.question.risposte || [],
+          corretta: data.question.corretta,
           startTime: Date.now(),
           serverTimestamp: Date.now(),
           isRuotaQuestion: true,
           ruotaTeamId: gameState.ruotaWinner.id
         };
         
-        // Mostra domanda SOLO alla squadra e sul display
+        console.log('🎰 Domanda sfida impostata:', data.question.domanda);
+        
+        // 1. Mostra domanda SOLO alla squadra
         io.to(gameState.ruotaWinner.id).emit('nuova_domanda', {
+          id: data.question.id,
           domanda: data.question.domanda,
           risposte: data.question.risposte || [],
-          categoria: data.question.categoria,
+          categoria: data.question.categoria || 'Ruota della Fortuna',
           modalita: 'quiz',
           startTime: Date.now(),
-          serverTimestamp: Date.now()
+          serverTimestamp: Date.now(),
+          isRuotaQuestion: true
         });
         
+        // 2. Mostra domanda sul display (solo visualizzazione)
         io.emit('display_question', {
           domanda: data.question.domanda,
           risposte: data.question.risposte || [],
-          categoria: data.question.categoria,
-          forTeam: gameState.ruotaWinner.name
+          categoria: data.question.categoria || 'Ruota della Fortuna',
+          forTeam: gameState.ruotaWinner.name,
+          startTime: Date.now()
         });
+        
+        // 3. Mostra la vista gioco sul display
+        io.emit('cambia_vista', { view: 'gioco' });
         
         console.log(`🎰 Domanda sfida inviata a ${gameState.ruotaWinner.name}`);
         break;
     }
+  });
+
+  // ✅ NUOVO: Listener per errore ruota
+  socket.on('ruota_error', (data) => {
+    console.log('❌ Errore ruota:', data.message);
   });
 
   // Listener per scelta fatta dalla squadra
@@ -917,10 +948,11 @@ io.on('connection', (socket) => {
         message: '🎯 Hai scelto la sfida! Attendi la domanda...'
       });
       
-      // Notifica admin che deve inviare una domanda
+      // ✅ FIX MIGLIORATO: Notifica admin che deve inviare una domanda
       io.to('admin').emit('ruota_needs_question', {
         teamId: socket.id,
-        teamName: team.name
+        teamName: team.name,
+        message: `🎯 ${team.name} ha scelto la sfida! Seleziona una domanda e clicca "4️⃣ Lancia Domanda Sfida"`
       });
       
       console.log(`🎰 ${team.name} ha scelto la sfida!`);
@@ -1307,7 +1339,7 @@ Server porta: ${PORT}
 ? 3. Buzzer e gioco musicale con assegnazione punti
 ? 4. Podio round funzionante
 ? 5. Risposta corretta visibile in anticipo all'admin
-? 6. Ruota della Fortuna con logica corretta (50/150)
+? 6. ✅ Ruota della Fortuna FIXED (spiegazioni + animazione + estrazione + domanda sfida)
 ? 7. Duello mostra risposta corretta
 ? 8. Sfida finale con classifica nascosta
 ? 9. Tasto winner funzionante

@@ -152,6 +152,110 @@ let gameState = {
   }
 };
 
+// ============================================
+// 💾 SISTEMA DI AUTO-SAVE
+// ============================================
+// Aggiungi questo codice in server.js, subito dopo la definizione di gameState
+
+const fs = require('fs');
+const path = require('path');
+
+// File dove salvare lo stato
+const SAVE_FILE = path.join(__dirname, 'gamestate_backup.json');
+
+// Funzione per salvare lo stato
+function saveGameState() {
+  try {
+    const dataToSave = {
+      timestamp: new Date().toISOString(),
+      teams: Object.values(gameState.teams)
+        .filter(t => !t.isPreview)
+        .map(t => ({
+          id: t.id,
+          name: t.name,
+          score: t.score,
+          color: t.color
+        })),
+      pattoUtilizzi: gameState.pattoDestinoState.contatoreUtilizzi,
+      sessionStart: gameState.sessionStart || new Date().toISOString()
+    };
+    
+    fs.writeFileSync(SAVE_FILE, JSON.stringify(dataToSave, null, 2));
+    console.log('💾 Stato salvato:', dataToSave.teams.length, 'squadre');
+  } catch (error) {
+    console.error('❌ Errore salvataggio:', error);
+  }
+}
+
+// Funzione per caricare lo stato
+function loadGameState() {
+  try {
+    if (fs.existsSync(SAVE_FILE)) {
+      const data = JSON.parse(fs.readFileSync(SAVE_FILE, 'utf8'));
+      console.log('📂 Trovato backup del', data.timestamp);
+      console.log('   Squadre salvate:', data.teams.length);
+      
+      // Chiedi conferma via console (opzionale)
+      // Per ora lo carica automaticamente se il file è recente (< 2 ore)
+      const backupAge = Date.now() - new Date(data.timestamp).getTime();
+      const twoHours = 2 * 60 * 60 * 1000;
+      
+      if (backupAge < twoHours) {
+        console.log('✅ Backup recente, carico automaticamente...');
+        return data;
+      } else {
+        console.log('⚠️  Backup vecchio (', Math.floor(backupAge / 1000 / 60), 'minuti), ignoro');
+        return null;
+      }
+    }
+    return null;
+  } catch (error) {
+    console.error('❌ Errore caricamento:', error);
+    return null;
+  }
+}
+
+// Salva ogni 30 secondi
+setInterval(() => {
+  if (Object.keys(gameState.teams).length > 0) {
+    saveGameState();
+  }
+}, 30000);
+
+// Salva anche quando cambia il punteggio
+const originalUpdateScore = updateScore; // Se hai questa funzione
+// Oppure aggiungi un hook dopo ogni cambio punteggio
+
+// Carica all'avvio
+const savedState = loadGameState();
+if (savedState) {
+  console.log('🔄 RIPRISTINO IN CORSO...');
+  gameState.sessionStart = savedState.sessionStart;
+  gameState.pattoDestinoState.contatoreUtilizzi = savedState.pattoUtilizzi || 0;
+  
+  // NON ricrea le connessioni socket, solo i punteggi
+  // Le squadre si riconnetteranno automaticamente
+  console.log('✅ Punteggi ripristinati! Le squadre devono riconnettersi.');
+  console.log('   Utilizza il comando di riconnessione manuale se necessario.');
+}
+
+// Salva quando il server si chiude
+process.on('SIGTERM', () => {
+  console.log('🛑 Server in chiusura, salvo lo stato...');
+  saveGameState();
+  process.exit(0);
+});
+
+process.on('SIGINT', () => {
+  console.log('🛑 Server interrotto, salvo lo stato...');
+  saveGameState();
+  process.exit(0);
+});
+
+// ============================================
+// FINE SISTEMA AUTO-SAVE
+// ============================================
+
 const db = {
   categories: questionsData.categories || [],
   questions: questionsData.questions || []

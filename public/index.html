@@ -114,47 +114,122 @@
         document.querySelectorAll('button').forEach(btn => btn.disabled = false);
     });
 
+    // ════════════════════════════════════════════════════════════════
+    // CORREZIONI INDEX.HTML (Cellulari)
+    // ════════════════════════════════════════════════════════════════
+
+    // ✅ Listener per mostrare scelta ruota (SOLO alla squadra estratta)
+    socket.on('ruota_show_choice', () => {
+        resetUI();
+        
+        document.getElementById('msg-box').innerHTML = `
+            <div class="text-center">
+                <div class="text-6xl mb-4">🎰</div>
+                <h2 class="text-3xl font-black mb-6">SCEGLI LA TUA SORTE!</h2>
+                <div class="space-y-4">
+                    <button onclick="scegliRuota('50')" class="w-full bg-green-600 p-6 rounded-xl font-black text-2xl hover:bg-green-700">
+                        💰 50 PUNTI SICURI
+                    </button>
+                    <button onclick="scegliRuota('250')" class="w-full bg-orange-600 p-6 rounded-xl font-black text-2xl hover:bg-orange-700">
+                        🎯 SFIDA DA 250 PUNTI
+                        <div class="text-sm font-normal mt-2">Risposta corretta: +250pt | Sbagliata: -100pt</div>
+                    </button>
+                </div>
+            </div>
+        `;
+    });
+
+    // Funzione per inviare la scelta
+    function scegliRuota(choice) {
+        socket.emit('ruota_choice', { choice: choice });
+        
+        document.getElementById('msg-box').innerHTML = `
+            <div class="text-center">
+                <div class="text-6xl mb-4">⏳</div>
+                <h2 class="text-2xl font-bold">Scelta inviata!</h2>
+                ${choice === '250' ? '<p class="mt-4">Preparati alla domanda...</p>' : ''}
+            </div>
+        `;
+    }
+
+    // ✅ MODIFICA la gestione risposte per includere ruota
     socket.on('nuova_domanda', (d) => {
         resetUI();
         document.getElementById('msg-box').innerText = d.domanda;
-        
+
         // Indicatore finale
         if(d.finaleQuestion) {
             document.getElementById('finale-indicator').classList.remove('hidden');
             document.getElementById('finale-indicator').textContent = `🔥 ${d.finaleQuestion}/${d.totalFinaleQuestions}`;
         }
 
-        // Modalità normale (non ALL IN)
-        if(d.modalita !== 'buzzer' && d.risposte && d.risposte.length > 0) {
-            // ✅ PATCH 2: Calcola offset di rete
-            const networkDelay = Date.now() - d.serverTimestamp;
-            questionStartTime = d.startTime + networkDelay;
-            maxTime = 20;
-            startTimer();
-        }
-
-        if(d.modalita === 'buzzer') {
-            document.getElementById('btn-buzzer').classList.remove('hidden');
-            document.getElementById('opts-grid').classList.add('hidden');
+        if (d.modalita === 'buzzer') {
+            const btn = document.getElementById('btn-buzzer');
+            btn.classList.remove('hidden', 'pointer-events-none', 'opacity-50');
+            btn.className = "w-64 h-64 rounded-full bg-red-600 border-red-800 flex items-center justify-center animate-pulse shadow-[0_0_50px_rgba(255,0,0,0.5)] cursor-pointer";
+            btn.innerHTML = "<span class='text-4xl font-black text-white uppercase'>BUZZER!</span>";
+            btn.onclick = () => {
+                socket.emit('buzzer_press', { time: Date.now() });
+                btn.classList.add('pointer-events-none', 'opacity-50');
+                btn.innerHTML = "<span class='text-3xl font-black'>PRENOTATO!</span>";
+            };
             document.getElementById('timer-container').classList.add('hidden');
-        } else if(d.risposte && d.risposte.length > 0) {
-            document.getElementById('btn-buzzer').classList.add('hidden');
+        } else if (d.risposte && d.risposte.length > 0) {
+            // Timer visivo
+            if (d.startTime && !d.isRuotaQuestion) {
+                const networkDelay = Date.now() - d.serverTimestamp;
+                questionStartTime = d.startTime + networkDelay;
+                maxTime = 20;
+                startTimer();
+            }
+            
+            // Mostra opzioni
             const g = document.getElementById('opts-grid');
-            g.classList.remove('hidden');
+            g.classList.remove('hidden', 'pointer-events-none', 'opacity-75');
             g.innerHTML = '';
-            d.risposte.forEach(r => {
+            
+            d.risposte.forEach((r, i) => {
                 const b = document.createElement('button');
-                b.className = "bg-blue-600 rounded-xl p-4 font-bold text-lg shadow-xl active:bg-blue-800 transition-all";
+                b.className = "bg-blue-600 rounded-xl p-6 font-bold text-xl shadow-xl hover:bg-blue-700 transition-all";
                 b.innerText = r;
                 b.onclick = () => {
-                    socket.emit('invia_risposta', r);
-                    g.classList.add('opacity-40','pointer-events-none');
-                    document.getElementById('msg-box').innerText = "✓ Risposta inviata!";
-                    stopTimer();
+                    // ✅ Invia risposta (funziona sia per domande normali che per ruota)
+                    socket.emit('risposta', { risposta: r });
+                    
+                    g.classList.add('pointer-events-none', 'opacity-50');
+                    b.classList.add('ring-4', 'ring-yellow-400');
+                    
+                    document.getElementById('msg-box').innerHTML = `
+                        <div class="bg-yellow-600 p-4 rounded-xl">
+                            <p class="text-2xl font-bold">⏳ Risposta inviata!</p>
+                            <p class="text-lg mt-2">Attendi il risultato...</p>
+                        </div>
+                    `;
                 };
                 g.appendChild(b);
             });
+            
+            document.getElementById('btn-buzzer').classList.add('hidden');
         }
+    });
+
+    // ✅ Feedback risposta inviata
+    socket.on('risposta_inviata', (data) => {
+        stopTimer();
+        document.getElementById('opts-grid').classList.add('pointer-events-none', 'opacity-50');
+        
+        const icon = data.corretta ? '✅' : '❌';
+        const bgColor = data.corretta ? 'bg-green-600' : 'bg-red-600';
+        const message = data.corretta ? 'CORRETTO!' : 'SBAGLIATO!';
+        
+        document.getElementById('msg-box').innerHTML = `
+            <div class="${bgColor} p-6 rounded-xl">
+                <div class="text-6xl mb-3">${icon}</div>
+                <h2 class="text-4xl font-black mb-2">${message}</h2>
+                ${data.corretta ? `<p class="text-2xl">+${data.points} punti!</p>` : ''}
+                <p class="text-lg mt-3">Tempo: ${data.time}s</p>
+            </div>
+        `;
     });
     
     // ALL IN - Mostra bottoni scommessa
@@ -476,6 +551,7 @@
         document.getElementById('timer-container').classList.add('hidden');
         document.getElementById('allin-buttons').classList.add('hidden');
         document.getElementById('memory-buttons').classList.add('hidden'); // ✅ AGGIUNGI QUESTA RIGA
+        document.getElementById('ruota-choice-buttons').classList.add('hidden');
         
         // Nascondi container duello
         const opponentsDiv = document.getElementById('duello-opponents-container');

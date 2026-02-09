@@ -177,7 +177,8 @@
                     <div>🎮</div>
                     <div>Logo</div>
                 </div>
-                <div onclick="showWinnerButton()" class="btn-scene text-center text-[9px] font-bold py-1">
+                <!-- BOTTONE MOSTRA VINCITORE -->
+                <div onclick="socket.emit('show_winner')" class="btn-scene text-center text-[9px] font-bold py-1">
                     <div>👑</div>
                     <div>Win</div>
                 </div>
@@ -188,7 +189,8 @@
         <div class="bg-gray-900/50 rounded-lg p-2 border border-gray-800">
             <div class="text-sm font-bold text-green-400 mb-2 uppercase">⚡ Azioni</div>
             <div class="grid grid-cols-2 gap-1">
-                <button onclick="mostraSoluzioneSuDisplay()" class="btn-warning text-white font-bold py-2 rounded text-sm">
+                <!-- BOTTONE SOLUZIONE CORRETTO -->
+                <button onclick="mostraSoluzione()" class="btn-warning text-white font-bold py-2 rounded text-sm">
                     📺 Soluzione
                 </button>
                 <button onclick="resetDisplays()" class="btn-danger text-white font-bold py-2 rounded text-sm">
@@ -214,7 +216,7 @@
                     <button onclick="resetBuzzer()" class="btn-primary text-white font-bold py-2 rounded text-sm">
                         🔄 Reset
                     </button>
-                </div>
+            </div>
                 <div id="buzzer-queue-admin" class="hidden space-y-1 text-sm max-h-24 overflow-y-auto"></div>
             </div>
         </div>
@@ -381,7 +383,7 @@
                     1️⃣ Spiega Regole
                 </button>
                 <button onclick="startFinale()" id="step-2" class="step-btn w-full btn-danger text-white font-bold py-2 rounded text-sm">
-                    2️⃣ Attiva Finale
+                    2️⃣ Attica Finale
                 </button>
                 <button onclick="prepareAllIn()" id="step-3" class="step-btn w-full btn-warning text-white font-bold py-2 rounded text-sm">
                     3️⃣ Prepara ALL IN
@@ -894,17 +896,16 @@
     function regia(v) { socket.emit('regia_cmd', v); }
     function resetDisplays() { if(confirm("Reset?")) socket.emit('reset_displays'); }
     function resetGame() { if(confirm("⚠️ RESET TOTALE?")) socket.emit('reset_game'); }
-    function showWinnerButton() { socket.emit('show_winner'); }
     
-    function mostraSoluzioneSuDisplay() {
+    function mostraSoluzione() {
         if(selectedQ && selectedQ.corretta !== undefined) {
-            let soluzione = selectedQ.corretta;
-            if(typeof selectedQ.corretta === 'number' && selectedQ.risposte) {
-                soluzione = selectedQ.risposte[selectedQ.corretta];
-            }
-            socket.emit('mostra_soluzione', { soluzione: soluzione });
+            // Invia la risposta corretta al server
+            socket.emit('mostra_soluzione', { 
+                soluzione: selectedQ.corretta 
+            });
+            console.log('📺 Soluzione inviata:', selectedQ.corretta);
         } else {
-            alert('❌ Seleziona domanda!');
+            alert('❌ Seleziona una domanda prima!');
         }
     }
 

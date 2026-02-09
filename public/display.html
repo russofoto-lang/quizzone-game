@@ -28,6 +28,10 @@
         0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
         100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
     }
+    @keyframes fall {
+        0% { transform: translateY(-100px) rotate(0deg); opacity: 1; }
+        100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+    }
     .confetti { 
         position: absolute; 
         width: 10px; 
@@ -1123,6 +1127,37 @@
             showView('classifica_gen');
         }, 5000);
     });
+
+    // ════════════════════════════════════════════════════════════════
+    // 🏆 VINCITORE FINALE
+    // ════════════════════════════════════════════════════════════════
+    
+    socket.on('show_winner_screen', (data) => {
+        console.log('🏆 Mostra vincitore:', data.winner);
+        showView('winner');
+        
+        document.getElementById('winner-name').textContent = data.winner.name;
+        document.getElementById('winner-score').textContent = data.winner.score;
+        
+        // Crea confetti
+        createConfetti();
+    });
+    
+    function createConfetti() {
+        const container = document.getElementById('confetti-container');
+        container.innerHTML = '';
+        
+        for(let i = 0; i < 100; i++) {
+            const confetto = document.createElement('div');
+            confetto.className = 'absolute w-3 h-3 rounded-full animate-pulse';
+            confetto.style.left = Math.random() * 100 + '%';
+            confetto.style.top = Math.random() * 100 + '%';
+            confetto.style.backgroundColor = ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A'][Math.floor(Math.random() * 5)];
+            confetto.style.animation = `fall ${2 + Math.random() * 3}s linear infinite`;
+            confetto.style.animationDelay = Math.random() * 2 + 's';
+            container.appendChild(confetto);
+        }
+    }
 
     // ════════════════════════════════════════════════════════════════
     // 🧠 MEMORY GAME - DISPLAY

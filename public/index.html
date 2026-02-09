@@ -181,65 +181,76 @@
         
         // Mostra messaggio
         document.getElementById('msg-box').innerHTML = `
-            <div class="text-2xl font-black mb-6">${data.message}</div>
+            <div class="text-3xl font-black mb-8 animate-pulse">🎰 HAI VINTO LA RUOTA! 🎰</div>
+            <div class="text-2xl font-bold mb-6">${data.message}</div>
         `;
         
-        // Crea pulsanti per le opzioni
+        // Crea pulsanti per le opzioni (safe o challenge)
         const container = document.getElementById('ruota-choice-buttons');
         container.innerHTML = '';
         container.classList.remove('hidden');
         
         data.options.forEach(option => {
             const btn = document.createElement('button');
-            btn.className = 'bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-black text-2xl py-8 px-6 rounded-3xl shadow-2xl active:scale-95 transition-all mb-4';
-            btn.innerHTML = `
-                <div>${option.label}</div>
-                ${option.value ? `<div class="text-xl mt-2">(= ${option.value} punti)</div>` : ''}
-            `;
-            btn.onclick = () => makeRuotaChoice(option.id, option.opponents);
+            
+            if(option.id === 'safe') {
+                // Bottone 50 punti sicuri
+                btn.className = 'bg-gradient-to-r from-green-500 to-emerald-600 text-white font-black text-3xl py-12 px-8 rounded-3xl shadow-2xl active:scale-95 transition-all mb-6';
+                btn.innerHTML = `
+                    <div class="text-5xl mb-4">💰</div>
+                    <div>${option.label}</div>
+                    <div class="text-2xl mt-4 text-yellow-300">+${option.value} PUNTI</div>
+                `;
+            } else {
+                // Bottone sfida
+                btn.className = 'bg-gradient-to-r from-red-500 to-orange-600 text-white font-black text-3xl py-12 px-8 rounded-3xl shadow-2xl active:scale-95 transition-all mb-6';
+                btn.innerHTML = `
+                    <div class="text-5xl mb-4">🎯</div>
+                    <div>${option.label}</div>
+                    <div class="text-lg mt-4 text-yellow-300">Rischio e fortuna!</div>
+                `;
+            }
+            
+            btn.onclick = () => makeRuotaChoice(option.id);
             container.appendChild(btn);
         });
     });
 
-    function makeRuotaChoice(choice, opponents = null) {
-        // Se scelta "steal" e ci sono avversari, mostra lista
-        if(choice === 'steal' && opponents && opponents.length > 0) {
-            const container = document.getElementById('ruota-choice-buttons');
-            container.innerHTML = '<div class="text-2xl font-bold mb-4">Scegli chi derubare:</div>';
-            
-            opponents.forEach(opp => {
-                const btn = document.createElement('button');
-                btn.className = 'bg-gradient-to-r from-red-500 to-pink-500 text-white font-black text-xl py-6 px-6 rounded-3xl shadow-2xl active:scale-95 transition-all mb-3 w-full';
-                btn.innerHTML = `
-                    <div>${opp.name}</div>
-                    <div class="text-sm mt-1">${opp.score} punti</div>
-                `;
-                btn.onclick = () => {
-                    socket.emit('ruota_choice_made', { 
-                        choice: 'steal',
-                        targetTeam: opp.id
-                    });
-                    container.classList.add('hidden');
-                    document.getElementById('msg-box').innerText = `💰 Hai scelto di rubare 200 punti a ${opp.name}!`;
-                };
-                container.appendChild(btn);
-            });
-            return;
-        }
-        
-        // Altrimenti invia direttamente la scelta
+    function makeRuotaChoice(choice) {
+        // Invia scelta al server
         socket.emit('ruota_choice_made', { 
             choice: choice 
         });
         
         document.getElementById('ruota-choice-buttons').classList.add('hidden');
         
-        if(choice === 'double') {
-            document.getElementById('msg-box').innerText = '🔥 Hai scelto di raddoppiare i tuoi punti!';
-        } else if(choice === 'safe') {
-            document.getElementById('msg-box').innerText = '💰 Hai scelto 50 punti sicuri!';
+        if(choice === 'safe') {
+            document.getElementById('msg-box').innerHTML = `
+                <div class="bg-green-600 p-8 rounded-3xl animate-pulse">
+                    <div class="text-7xl mb-6">💰</div>
+                    <div class="text-4xl font-black">HAI SCELTO 50 PUNTI SICURI!</div>
+                    <div class="text-2xl mt-4">Aggiunti al tuo punteggio</div>
+                </div>
+            `;
+        } else {
+            document.getElementById('msg-box').innerHTML = `
+                <div class="bg-orange-600 p-8 rounded-3xl animate-pulse">
+                    <div class="text-7xl mb-6">🎯</div>
+                    <div class="text-4xl font-black">HAI SCELTO LA SFIDA!</div>
+                    <div class="text-2xl mt-4">Preparati alla domanda...</div>
+                    <div class="text-lg mt-4 text-yellow-300">+250 se corretta | -100 se sbagliata</div>
+                </div>
+            `;
         }
     }
+    
+    // Feedback dopo scelta ruota
+    socket.on('ruota_feedback', (data) => {
+        document.getElementById('msg-box').innerHTML = `
+            <div class="text-3xl font-black">${data.message}</div>
+            ${data.points ? `<div class="text-6xl mt-4 text-yellow-400">${data.points > 0 ? '+' : ''}${data.points} PUNTI</div>` : ''}
+        `;
+    });
 
     // FINALE STARTED
     socket.on('finale_started', () => {

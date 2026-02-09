@@ -6,6 +6,72 @@
     <title>Siponto - Gioca</title>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* ✅ ANIMAZIONI FEEDBACK PULSANTI */
+        @keyframes button-success {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); background-color: #10b981; }
+            100% { transform: scale(1); }
+        }
+        
+        .btn-feedback-success {
+            animation: button-success 0.4s ease-out;
+        }
+        
+        @keyframes pulse-ring {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(1.3); opacity: 0; }
+        }
+        
+        .pulse-ring {
+            animation: pulse-ring 0.6s ease-out;
+        }
+        
+        /* ✅ TIMER CIRCOLARE */
+        .timer-circle-container {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            margin: 0 auto;
+        }
+        
+        .timer-circle-bg {
+            fill: none;
+            stroke: #374151;
+            stroke-width: 8;
+        }
+        
+        .timer-circle-progress {
+            fill: none;
+            stroke-width: 8;
+            stroke-linecap: round;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+            transition: stroke-dashoffset 1s linear, stroke 0.3s ease;
+        }
+        
+        .timer-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.5rem;
+            font-weight: 900;
+        }
+        
+        /* ✅ BUZZER CON TIMER CIRCOLARE */
+        .buzzer-with-timer {
+            position: relative;
+        }
+        
+        .buzzer-timer-ring {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
+    </style>
 </head>
 <body class="bg-gray-900 text-white h-screen flex flex-col">
     <div id="login-screen" class="flex-1 flex flex-col items-center justify-center p-6 text-center">
@@ -26,14 +92,25 @@
         </div>
     </div>
     
-    <!-- TIMER VISIVO -->
-    <div id="timer-container" class="hidden bg-gray-800 p-3 border-b border-gray-700">
-        <div class="flex justify-between items-center mb-2">
-            <span class="text-sm font-semibold text-gray-400">Tempo rimasto:</span>
-            <span id="timer-display" class="text-2xl font-black" style="color: #10b981;">20</span>
-        </div>
-        <div class="w-full bg-gray-700 rounded-full h-2 overflow-hidden">
-            <div id="timer-bar" class="h-2 rounded-full transition-all duration-1000" style="background-color: #10b981; width: 100%;"></div>
+    <!-- TIMER VISIVO CIRCOLARE -->
+    <div id="timer-container" class="hidden bg-gray-800 p-4 border-b border-gray-700">
+        <div class="flex items-center justify-center gap-4">
+            <div class="timer-circle-container">
+                <svg width="80" height="80" viewBox="0 0 80 80">
+                    <circle class="timer-circle-bg" cx="40" cy="40" r="36"></circle>
+                    <circle id="timer-circle" class="timer-circle-progress" 
+                            cx="40" cy="40" r="36"
+                            stroke="#10b981"
+                            stroke-dasharray="226.195"
+                            stroke-dashoffset="0">
+                    </circle>
+                </svg>
+                <div id="timer-display" class="timer-text" style="color: #10b981;">20</div>
+            </div>
+            <div class="text-left">
+                <div class="text-xs text-gray-400 uppercase tracking-wide">Tempo rimasto</div>
+                <div class="text-sm font-semibold text-white">Rispondi veloce!</div>
+            </div>
         </div>
     </div>
 
@@ -77,6 +154,79 @@
     let questionStartTime = 0;
     let maxTime = 20;
     let currentStreak = 0;
+
+    // ════════════════════════════════════════════════════════════════
+    // ✅ FUNZIONI FEEDBACK VISIVO E VIBRAZIONE
+    // ════════════════════════════════════════════════════════════════
+    
+    /**
+     * Vibra il dispositivo mobile
+     * @param {number} duration - Durata in millisecondi (default: 50ms)
+     */
+    function vibrate(duration = 50) {
+        if (navigator.vibrate) {
+            navigator.vibrate(duration);
+        }
+    }
+    
+    /**
+     * Aggiunge feedback visivo di successo a un pulsante
+     * @param {HTMLElement} button - Il pulsante da animare
+     */
+    function addButtonFeedback(button) {
+        // Vibrazione
+        vibrate(50);
+        
+        // Animazione CSS
+        button.classList.add('btn-feedback-success');
+        
+        // Crea anello pulsante
+        const ring = document.createElement('div');
+        ring.className = 'absolute inset-0 rounded-full border-4 border-green-400 pulse-ring pointer-events-none';
+        button.style.position = 'relative';
+        button.appendChild(ring);
+        
+        // Rimuovi animazione dopo completamento
+        setTimeout(() => {
+            button.classList.remove('btn-feedback-success');
+            ring.remove();
+        }, 600);
+    }
+    
+    /**
+     * Aggiorna il timer circolare
+     * @param {number} timeLeft - Tempo rimanente in secondi
+     * @param {number} maxTime - Tempo massimo in secondi
+     */
+    function updateCircularTimer(timeLeft, maxTime) {
+        const display = document.getElementById('timer-display');
+        const circle = document.getElementById('timer-circle');
+        
+        if (!display || !circle) return;
+        
+        // Calcola percentuale rimanente
+        const percentage = timeLeft / maxTime;
+        const circumference = 226.195; // 2 * π * r (r=36)
+        const offset = circumference * (1 - percentage);
+        
+        // Aggiorna cerchio
+        circle.style.strokeDashoffset = offset;
+        
+        // Cambia colore in base al tempo rimanente
+        let color = '#10b981'; // Verde
+        if (timeLeft <= 5) {
+            color = '#ef4444'; // Rosso
+            circle.style.stroke = color;
+            display.style.color = color;
+        } else if (timeLeft <= 10) {
+            color = '#f59e0b'; // Arancione
+            circle.style.stroke = color;
+            display.style.color = color;
+        }
+        
+        // Aggiorna numero
+        display.textContent = timeLeft;
+    }
 
     function login() { const n = document.getElementById('team-name').value; if(n) socket.emit('login', n); }
     
@@ -146,6 +296,9 @@
             }
             
             btn.onclick = () => {
+                // ✅ VIBRAZIONE E FEEDBACK per scelta ruota
+                vibrate(80);
+                
                 // Invia la scelta al server
                 socket.emit('ruota_choice_made', { choice: option.id });
                 
@@ -228,6 +381,9 @@
                 b.className = "bg-blue-600 rounded-xl p-6 font-bold text-xl shadow-xl hover:bg-blue-700 transition-all active:scale-95";
                 b.innerText = r;
                 b.onclick = () => {
+                    // ✅ FEEDBACK VISIVO E VIBRAZIONE
+                    addButtonFeedback(b);
+                    
                     // ✅ Invia risposta (funziona sia per domande normali che per ruota)
                     if (d.isRuotaQuestion) {
                         socket.emit('ruota_answer', { risposta: r });
@@ -280,6 +436,9 @@
 
     // ALL IN - Scommessa
     function placeBet(amount) {
+        // ✅ VIBRAZIONE per conferma scommessa
+        vibrate(60);
+        
         socket.emit('place_allin_bet', { amount: amount });
         document.getElementById('allin-buttons').classList.add('hidden');
         document.getElementById('msg-box').innerText = `Scommessa: ${amount} punti - In attesa domanda...`;
@@ -335,33 +494,16 @@
         
         document.getElementById('timer-container').classList.remove('hidden');
         
-        const timerDisplay = document.getElementById('timer-display');
-        const timerBar = document.getElementById('timer-bar');
-        
-        timerBar.style.width = '100%';
-        timerBar.style.backgroundColor = '#10b981';
-        
         timerInterval = setInterval(() => {
             const elapsed = (Date.now() - questionStartTime) / 1000;
             const remaining = Math.max(0, maxTime - elapsed);
             
-            timerDisplay.textContent = Math.ceil(remaining);
-            timerBar.style.width = `${(remaining / maxTime) * 100}%`;
-            
-            if(remaining <= 5) {
-                timerBar.style.backgroundColor = '#ef4444';
-                timerDisplay.style.color = '#ef4444';
-            } else if(remaining <= 10) {
-                timerBar.style.backgroundColor = '#f59e0b';
-                timerDisplay.style.color = '#f59e0b';
-            } else {
-                timerBar.style.backgroundColor = '#10b981';
-                timerDisplay.style.color = '#10b981';
-            }
+            // ✅ Aggiorna timer circolare
+            updateCircularTimer(Math.ceil(remaining), maxTime);
             
             if(remaining <= 0) {
                 stopTimer();
-                timerDisplay.textContent = '0';
+                updateCircularTimer(0, maxTime);
             }
         }, 100);
     }
@@ -411,7 +553,13 @@
         }
     });
 
-    function prenota() { if(!buzzerLocked) socket.emit('prenoto'); }
+    function prenota() { 
+        if(!buzzerLocked) {
+            // ✅ VIBRAZIONE FORTE per il buzzer
+            vibrate([100, 50, 100]); // Pattern: vibra-pausa-vibra
+            socket.emit('prenoto');
+        }
+    }
     
     function resetUI() {
         stopTimer();
@@ -685,6 +833,9 @@
     });
 
     function sendMemoryAnswer(position) {
+        // ✅ VIBRAZIONE per risposta memory
+        vibrate(50);
+        
         socket.emit('memory_answer', { position: position });
         
         // Disabilita tutti i pulsanti

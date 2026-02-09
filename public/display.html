@@ -749,6 +749,46 @@
         document.getElementById('winner-team-name').textContent = data.winner.name;
     });
 
+    // ════════════════════════════════════════════════════════════════
+    // 💰 SFIDA FINALE - ALL IN REVEAL
+    // ════════════════════════════════════════════════════════════════
+    
+    socket.on('finale_allin_reveal', (data) => {
+        console.log('💰 ALL IN Reveal:', data);
+        showView('custom');
+        
+        // Mostra risultati ALL IN
+        const resultsHtml = data.bets.map(bet => {
+            const isCorrect = bet.answer === data.correctAnswer;
+            const points = isCorrect ? bet.bet : -bet.bet;
+            const rowClass = isCorrect ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400';
+            
+            return `
+                <div class="${rowClass} p-4 rounded-xl mb-3 animate__animated animate__fadeInLeft">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <div class="text-2xl font-black">${bet.teamName}</div>
+                            <div class="text-lg">Risposta: "${bet.answer}"</div>
+                            <div class="text-sm text-gray-300">Puntata: ${bet.bet} punti</div>
+                        </div>
+                        <div class="text-4xl font-black ${isCorrect ? 'text-green-400' : 'text-red-400'}">
+                            ${points > 0 ? '+' : ''}${points}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        
+        document.getElementById('custom-text-display').innerHTML = `
+            <div class="text-7xl mb-6 animate__animated animate__bounceIn">💰</div>
+            <div class="text-5xl font-black mb-4 text-yellow-400">ALL IN - RISULTATI</div>
+            <div class="text-3xl mb-8">Risposta corretta: <span class="text-green-400">${data.correctAnswer}</span></div>
+            <div class="w-full max-w-4xl mx-auto">
+                ${resultsHtml}
+            </div>
+        `;
+    });
+
     // Mostra risultato ruota
     socket.on('ruota_result', (data) => {
         console.log('🎰 Risultato ruota:', data.teamName, data.action, data.points);

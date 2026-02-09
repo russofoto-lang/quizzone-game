@@ -101,9 +101,9 @@ let gameState = {
   isPaused: false,
   roundScores: {}, // ? FIX: Aggiunto per tracciare i punteggi del round
   hideLeaderboard: false, // ✅ FIX 5: Per nascondere classifica durante finale
-  ruotaWinner: null, // ✅ FIX 3: Per ruota della fortuna
-  ruotaChoice: null, // ✅ FIX 3: Per ruota della fortuna
-  ruotaChallenge: null, // ✅ FIX 3: Per ruota della fortuna
+  ruotaWinner: null, // ✅ Per ruota della fortuna
+  ruotaChoice: null, // ✅ Per ruota della fortuna
+  ruotaChallenge: null, // ✅ Per ruota della fortuna
   
   duelloMode: {
     active: false,
@@ -474,25 +474,6 @@ function showDuelloCorrectAnswer(teamId, teamName, answer, isCorrect) {
   });
   
   console.log(`🔥 DUELLO: ${teamName} risponde "${answer}" - ${isCorrect ? 'CORRETTO' : 'SBAGLIATO'} (Corretta: ${gameState.currentQuestion.corretta})`);
-}
-
-// ════════════════════════════════════════════════════════════════
-// 🎰 RUOTA DELLA FORTUNA - FUNZIONI COMPLETE
-// ════════════════════════════════════════════════════════════════
-
-function startRuotaFortuna() {
-  const realTeams = Object.values(gameState.teams).filter(t => !t.isPreview);
-  if (realTeams.length === 0) {
-    io.to('admin').emit('ruota_error', { message: 'Nessuna squadra registrata!' });
-    return;
-  }
-  
-  // Reset stato ruota
-  gameState.ruotaWinner = null;
-  gameState.ruotaChoice = null;
-  gameState.ruotaChallenge = null;
-  
-  console.log('🎰 Ruota della Fortuna avviata');
 }
 
 io.on('connection', (socket) => {

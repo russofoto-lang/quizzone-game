@@ -605,8 +605,14 @@ io.on('connection', (socket) => {
 
   socket.on('pause_game', () => {
     gameState.isPaused = true;
-    io.emit('game_paused');
-    console.log('? Gioco in pausa');
+    
+    // ✅ FIX: Invia classifica al display durante la pausa
+    const realTeams = Object.values(gameState.teams)
+      .filter(t => !t.isPreview)
+      .sort((a, b) => b.score - a.score);
+    
+    io.emit('game_paused', { teams: realTeams });
+    console.log('⏸️ Gioco in pausa - classifica inviata');
   });
 
   socket.on('resume_game', () => {
@@ -633,10 +639,12 @@ io.on('connection', (socket) => {
     console.log('? Reset totale');
   });
 
-  // ? FIX 1: Evento mostra_soluzione invia SOLO al display, NON ai cellulari
+  // ✅ FIX: mostra_soluzione invia al display (broadcast a tutti i client tranne admin)
   socket.on('mostra_soluzione', (data) => {
-    io.to('display').emit('mostra_soluzione', data);
-    console.log('? Soluzione mostrata sul display:', data.soluzione);
+    // Invia a tutti i client (display e cellulari vedranno la soluzione)
+    // Ma sui cellulari abbiamo già rimosso la visualizzazione
+    io.emit('mostra_soluzione', data);
+    console.log('📺 Soluzione mostrata sul display:', data.soluzione);
   });
 
   socket.on('show_winner', () => {
@@ -720,6 +728,16 @@ io.on('connection', (socket) => {
     io.emit('buzzer_queue_update', { queue: [] });
     io.emit('stato_buzzer', { locked: false, attiva: true });
     io.to('admin').emit('buzzer_queue_full', { queue: [], correctAnswer: "--" });
+  });
+
+  // ✅ FIX: Aggiungo alias reset_buzzer per compatibilità con admin
+  socket.on('reset_buzzer', () => {
+    gameState.buzzerQueue = [];
+    gameState.buzzerLocked = false;
+    io.emit('buzzer_queue_update', { queue: [] });
+    io.emit('stato_buzzer', { locked: false, attiva: true });
+    io.to('admin').emit('buzzer_queue_full', { queue: [], correctAnswer: "--" });
+    console.log('🔄 Buzzer resettato');
   });
 
   socket.on('buzzer_close', () => {
@@ -827,7 +845,8 @@ io.on('connection', (socket) => {
 
   socket.on('ruota_choice', (data) => {
     const team = gameState.teams[socket.id];
-    if (!team || !gameState.ruotaWinner || team.id !== gameState.ruotaWinner.id) return;
+    // ✅ FIX: Usa socket.id invece di team.id (che non esiste)
+    if (!team || !gameState.ruotaWinner || socket.id !== gameState.ruotaWinner.id) return;
     
     gameState.ruotaChoice = data.choice;
     
@@ -842,7 +861,7 @@ io.on('connection', (socket) => {
         newScore: team.score
       });
       
-      io.to(team.id).emit('ruota_feedback', {
+      io.to(socket.id).emit('ruota_feedback', {
         message: '💰 Hai scelto 50 punti sicuri!',
         points: 50
       });
@@ -861,18 +880,18 @@ io.on('connection', (socket) => {
     } else if (data.choice === '250') {
       // Salva che questa squadra ha scelto la sfida
       gameState.ruotaChallenge = {
-        teamId: team.id,
+        teamId: socket.id,
         teamName: team.name,
         choiceMade: true
       };
       
-      io.to(team.id).emit('ruota_feedback', {
+      io.to(socket.id).emit('ruota_feedback', {
         message: '🎯 Hai scelto la sfida! Attendi la domanda...'
       });
       
       // Notifica admin che deve inviare una domanda
       io.to('admin').emit('ruota_needs_question', {
-        teamId: team.id,
+        teamId: socket.id,
         teamName: team.name
       });
       

@@ -107,14 +107,14 @@
     // CORREZIONI INDEX.HTML (Cellulari)
     // ════════════════════════════════════════════════════════════════
 
-    // ✅ Listener per mostrare scelta ruota (SOLO alla squadra estratta)
+    // ✅ Listener per mostrare scelta ruota (SOLO alla squadra estratta) - AGGIORNATO
     socket.on('ruota_choice', (data) => {
         console.log('🎰 Ricevuta scelta ruota:', data);
         resetUI();
         
         document.getElementById('msg-box').innerHTML = `
-            <div class="text-3xl font-black mb-8 animate-pulse">🎰 HAI VINTO LA RUOTA! 🎰</div>
-            <div class="text-2xl font-bold mb-6">${data.message}</div>
+            <div class="text-4xl font-black mb-8 animate-pulse text-yellow-400">🎰 HAI VINTO LA RUOTA! 🎰</div>
+            <div class="text-2xl font-bold mb-6 text-white">${data.message}</div>
         `;
         
         // Crea pulsanti per le opzioni
@@ -127,19 +127,19 @@
             
             if(option.id === 'safe') {
                 // Bottone 50 punti sicuri
-                btn.className = 'bg-gradient-to-r from-green-500 to-emerald-600 text-white font-black text-3xl py-12 px-8 rounded-3xl shadow-2xl active:scale-95 transition-all mb-6';
+                btn.className = 'bg-gradient-to-r from-green-500 to-emerald-600 text-white font-black text-3xl py-12 px-8 rounded-3xl shadow-2xl active:scale-95 transition-all mb-6 hover:scale-105';
                 btn.innerHTML = `
-                    <div class="text-5xl mb-4">💰</div>
-                    <div>${option.label}</div>
-                    <div class="text-2xl mt-4 text-yellow-300">+${option.value} PUNTI</div>
+                    <div class="text-6xl mb-4">💰</div>
+                    <div class="text-2xl mb-2">${option.label}</div>
+                    <div class="text-3xl mt-4 text-yellow-300 font-black">+${option.value} PUNTI</div>
                 `;
             } else {
                 // Bottone sfida
-                btn.className = 'bg-gradient-to-r from-red-500 to-orange-600 text-white font-black text-3xl py-12 px-8 rounded-3xl shadow-2xl active:scale-95 transition-all mb-6';
+                btn.className = 'bg-gradient-to-r from-red-500 to-orange-600 text-white font-black text-3xl py-12 px-8 rounded-3xl shadow-2xl active:scale-95 transition-all mb-6 hover:scale-105';
                 btn.innerHTML = `
-                    <div class="text-5xl mb-4">🎯</div>
-                    <div>${option.label}</div>
-                    <div class="text-lg mt-4 text-yellow-300">Rischio e fortuna!</div>
+                    <div class="text-6xl mb-4">🎯</div>
+                    <div class="text-2xl mb-2">${option.label}</div>
+                    <div class="text-xl mt-4 text-yellow-300">Rischi 50 punti per vincerne 150!</div>
                 `;
             }
             
@@ -148,6 +148,7 @@
                 socket.emit('ruota_choice_made', { choice: option.id });
                 
                 // Mostra feedback
+                container.classList.add('hidden');
                 document.getElementById('msg-box').innerHTML = `
                     <div class="bg-gradient-to-r ${option.id === 'safe' ? 'from-green-500 to-emerald-600' : 'from-orange-500 to-red-600'} p-8 rounded-3xl animate-pulse">
                         <div class="text-7xl mb-6">${option.id === 'safe' ? '💰' : '🎯'}</div>
@@ -155,8 +156,6 @@
                         <div class="text-2xl mt-4">${option.id === 'safe' ? 'Punti aggiunti al tuo punteggio' : 'Preparati alla domanda...'}</div>
                     </div>
                 `;
-                
-                container.classList.add('hidden');
             };
             
             container.appendChild(btn);
@@ -166,8 +165,8 @@
     // Feedback dopo scelta
     socket.on('ruota_feedback', (data) => {
         document.getElementById('msg-box').innerHTML = `
-            <div class="text-3xl font-black">${data.message}</div>
-            ${data.points ? `<div class="text-6xl mt-4 text-yellow-400">${data.points > 0 ? '+' : ''}${data.points} PUNTI</div>` : ''}
+            <div class="text-4xl font-black mb-4">${data.message}</div>
+            ${data.points ? `<div class="text-6xl mt-4 text-yellow-400 font-black">${data.points > 0 ? '+' : ''}${data.points} PUNTI</div>` : ''}
         `;
     });
 
@@ -179,7 +178,17 @@
     // ✅ MODIFICA la gestione risposte per includere ruota
     socket.on('nuova_domanda', (d) => {
         resetUI();
-        document.getElementById('msg-box').innerText = d.domanda;
+        
+        // ✅ Se è una domanda della ruota, mostra messaggio speciale
+        if (d.isRuotaQuestion) {
+            document.getElementById('msg-box').innerHTML = `
+                <div class="text-4xl font-black text-yellow-400 mb-4">🎯 SFIDA RUOTA DELLA FORTUNA!</div>
+                <div class="text-2xl text-white mb-6">Rispondi correttamente per vincere 150 punti!</div>
+                <div class="text-3xl font-bold">${d.domanda}</div>
+            `;
+        } else {
+            document.getElementById('msg-box').innerText = d.domanda;
+        }
 
         // Indicatore finale
         if(d.finaleQuestion) {
@@ -214,7 +223,7 @@
             
             d.risposte.forEach((r, i) => {
                 const b = document.createElement('button');
-                b.className = "bg-blue-600 rounded-xl p-6 font-bold text-xl shadow-xl hover:bg-blue-700 transition-all";
+                b.className = "bg-blue-600 rounded-xl p-6 font-bold text-xl shadow-xl hover:bg-blue-700 transition-all active:scale-95";
                 b.innerText = r;
                 b.onclick = () => {
                     // ✅ Invia risposta (funziona sia per domande normali che per ruota)
@@ -225,7 +234,7 @@
                     }
                     
                     g.classList.add('pointer-events-none', 'opacity-50');
-                    b.classList.add('ring-4', 'ring-yellow-400');
+                    b.classList.add('ring-4', 'ring-yellow-400', 'bg-blue-800');
                     
                     document.getElementById('msg-box').innerHTML = `
                         <div class="bg-yellow-600 p-4 rounded-xl">

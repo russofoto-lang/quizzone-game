@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="it">
 <head>
     <meta charset="UTF-8">
@@ -475,7 +474,7 @@
                 <div class="animate__animated animate__fadeInLeft" style="animation-delay: 0.8s;">
                     <h2 class="text-5xl font-black text-red-300 mb-3">⚠️ CLASSIFICA NASCOSTA ⚡</h2>
                     <p class="text-3xl text-white">Non vedrete i punteggi fino alla fine!</p>
-                </div>
+                    </div>
             </div>
             
             <p class="text-4xl text-white font-bold mb-6 animate__animated animate__fadeIn" style="animation-delay: 1s;">
@@ -680,20 +679,24 @@
         }
     });
 
-    // PAUSA GIOCO
+    // PAUSA GIOCO - MODIFICATO
     socket.on('game_paused', (data) => {
-        console.log('Ricevuto comando pausa');
         showView('pausa');
+        
         const leaderboard = document.getElementById('pause-leaderboard');
         leaderboard.innerHTML = '';
         
-        if(data.teams && data.teams.length > 0) {
+        if (data.teams && data.teams.length > 0) {
             data.teams.slice(0, 5).forEach((team, idx) => {
                 const medals = ['🥇', '🥈', '🥉'];
                 const medal = medals[idx] || `${idx + 1}°`;
+                
                 leaderboard.innerHTML += `
                     <div class="flex justify-between items-center bg-white/10 rounded-xl p-4">
-                        <span><span class="text-4xl mr-3">${medal}</span> <span class="font-bold">${team.name}</span></span>
+                        <span>
+                            <span class="text-4xl mr-3">${medal}</span>
+                            <span class="font-bold">${team.name}</span>
+                        </span>
                         <span class="font-black text-yellow-400">${team.score} pt</span>
                     </div>
                 `;
@@ -701,6 +704,8 @@
         } else {
             leaderboard.innerHTML = '<p class="text-white/60">Nessuna squadra registrata</p>';
         }
+        
+        console.log('⏸️ Pausa con classifica mostrata');
     });
 
     socket.on('game_resumed', () => {

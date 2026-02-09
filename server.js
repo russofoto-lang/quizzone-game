@@ -407,13 +407,18 @@ function finalizeDuello() {
   
   if(!attaccante || !difensore) return;
   
-  const attaccanteWins = gameState.duelloMode.scoreAttaccante > gameState.duelloMode.scoreDifensore;
+  const attaccanteWins = gameState.duelloMode.scoreAttaccante >= 2; // Vince chi arriva a 2 (su 3)
   
+  // ✅ FIX: Assegnazione AUTOMATICA punti
   if(attaccanteWins) {
     attaccante.score += 250;
     difensore.score = Math.max(0, difensore.score - 250);
+    console.log(`🔥 ${attaccante.name} VINCE: +250 punti`);
+    console.log(`🔥 ${difensore.name} PERDE: -250 punti`);
   } else {
     difensore.score += 100;
+    console.log(`🔥 ${difensore.name} VINCE: +100 punti`);
+    console.log(`🔥 ${attaccante.name} PERDE: 0 punti`);
   }
   
   const realTeams = Object.values(gameState.teams).filter(t => !t.isPreview);
@@ -423,16 +428,22 @@ function finalizeDuello() {
   io.emit('duello_end', {
     attaccanteWins: attaccanteWins,
     winner: attaccanteWins ? 
-      { id: attaccante.id, name: attaccante.name, score: attaccante.score } : 
-      { id: difensore.id, name: difensore.name, score: difensore.score },
+      { id: attaccante.id, name: attaccante.name, score: attaccante.score, points: 250 } : 
+      { id: difensore.id, name: difensore.name, score: difensore.score, points: 100 },
     loser: attaccanteWins ? 
-      { id: difensore.id, name: difensore.name, score: difensore.score } : 
-      { id: attaccante.id, name: attaccante.name, score: attaccante.score },
+      { id: difensore.id, name: difensore.name, score: difensore.score, points: -250 } : 
+      { id: attaccante.id, name: attaccante.name, score: attaccante.score, points: 0 },
     finalScore: {
       attaccante: gameState.duelloMode.scoreAttaccante,
       difensore: gameState.duelloMode.scoreDifensore
     }
   });
+  
+  console.log('\n' + '🏆'.repeat(40));
+  console.log(`🏆 DUELLO TERMINATO`);
+  console.log(`🏆 Attaccante: ${gameState.duelloMode.scoreAttaccante} - Difensore: ${gameState.duelloMode.scoreDifensore}`);
+  console.log(`🏆 Vincitore: ${attaccanteWins ? attaccante.name : difensore.name}`);
+  console.log('🏆'.repeat(40) + '\n');
   
   gameState.duelloMode.active = false;
 }
@@ -498,27 +509,49 @@ io.on('connection', (socket) => {
     const time = ((Date.now() - gameState.currentQuestion.startTime) / 1000).toFixed(2);
     const isCorrect = (data.risposta === gameState.currentQuestion.corretta);
     
+    // ✅ FIX: Assegna punti AUTOMATICAMENTE se risposta corretta
+    let pointsEarned = 0;
+    if (isCorrect) {
+      const questionPoints = gameState.currentQuestion.punti || 100;
+      
+      // Bonus per il primo che risponde correttamente
+      const isFirstCorrect = !gameState.roundAnswers.some(a => a.corretta);
+      pointsEarned = isFirstCorrect ? questionPoints + 50 : questionPoints;
+      
+      team.score += pointsEarned;
+      
+      console.log(`✅ ${team.name}: CORRETTO! +${pointsEarned} punti (totale: ${team.score})`);
+    } else {
+      console.log(`❌ ${team.name}: SBAGLIATO (risposta: ${data.risposta})`);
+    }
+    
     gameState.roundAnswers.push({
       teamId: socket.id,
       teamName: team.name,
       risposta: data.risposta,
       corretta: isCorrect,
-      time: time
+      time: time,
+      points: pointsEarned
     });
     
     socket.emit('risposta_inviata', {
       corretta: isCorrect,
-      time: time
+      time: time,
+      points: pointsEarned
     });
     
     const realTeams = Object.values(gameState.teams).filter(t => !t.isPreview);
+    
+    // ✅ Invia risposte aggiornate all'admin
     io.to('admin').emit('update_answers', {
       answers: gameState.roundAnswers,
       totalTeams: realTeams.length,
       correctAnswer: gameState.currentQuestion.corretta
     });
     
-    console.log(`? ${team.name}: ${data.risposta} ${isCorrect ? '?' : '?'} (${time}s)`);
+    // ✅ Aggiorna classifica in tempo reale
+    io.emit('update_teams', realTeams);
+    io.to('admin').emit('update_teams', realTeams);
   });
 
   socket.on('regia_cmd', (cmd) => {
@@ -717,7 +750,7 @@ io.on('connection', (socket) => {
     io.emit('cambia_vista', { view: 'logo' });
   });
 
-  // ? FIX: RUOTA DELLA FORTUNA
+  // ✅ FIX: RUOTA DELLA FORTUNA - NUOVA LOGICA
   socket.on('ruota_step', (data) => {
     const realTeams = Object.values(gameState.teams).filter(t => !t.isPreview);
     
@@ -725,14 +758,17 @@ io.on('connection', (socket) => {
       case 'explain':
         io.emit('cambia_vista', { view: 'ruota_explain' });
         io.emit('ruota_explain', {
-          message: '? RUOTA DELLA FORTUNA\n\nUna squadra verr? estratta casualmente e potr? scegliere tra:\no Raddoppiare i propri punti\no Rubare 200 punti a un avversario'
+          message: '🎰 RUOTA DELLA FORTUNA\n\nUna squadra verrà estratta e potrà scegliere:\n• 50 punti SICURI\n• Rispondere alla domanda: +250 se corretta, -100 se sbagliata'
         });
-        console.log('? Spiegazione Ruota della Fortuna');
+        console.log('🎰 Spiegazione Ruota della Fortuna');
         break;
         
       case 'spin':
         if(realTeams.length === 0) return;
         const winner = realTeams[Math.floor(Math.random() * realTeams.length)];
+        
+        // Salva il vincitore nel gameState
+        gameState.ruotaWinner = { id: winner.id, name: winner.name };
         
         io.emit('ruota_spin', { 
           teams: realTeams.map(t => ({ id: t.id, name: t.name })),
@@ -741,33 +777,38 @@ io.on('connection', (socket) => {
         
         io.to('admin').emit('ruota_winner', { id: winner.id, name: winner.name });
         
-        console.log('\n' + '?'.repeat(40));
-        console.log(`? RUOTA ESTRATTA: ${winner.name}`);
-        console.log('?'.repeat(40) + '\n');
+        console.log('\n' + '🎰'.repeat(40));
+        console.log(`🎰 RUOTA ESTRATTA: ${winner.name}`);
+        console.log('🎰'.repeat(40) + '\n');
         break;
         
       case 'choice':
-        const team = gameState.teams[data.teamId];
+        if(!gameState.ruotaWinner) {
+          console.log('❌ Errore: Nessun vincitore ruota salvato');
+          return;
+        }
+        
+        const team = gameState.teams[gameState.ruotaWinner.id];
         if(!team) return;
         
-        const opponents = realTeams.filter(t => t.id !== data.teamId);
-        
-        io.to(data.teamId).emit('ruota_choice', {
-          message: 'Scegli la tua fortuna:',
+        // ✅ Invia scelta SOLO alla squadra estratta
+        io.to(gameState.ruotaWinner.id).emit('ruota_choice', {
+          message: '🎰 Hai vinto la Ruota! Scegli:',
           options: [
-            { id: 'double', label: '? Raddoppia i tuoi punti', value: team.score * 2 },
-            { id: 'steal', label: '? Ruba 200 punti', opponents: opponents.map(t => ({ id: t.id, name: t.name, score: t.score })) }
+            { id: 'safe', label: '💰 50 punti SICURI', value: 50 },
+            { id: 'challenge', label: '🎯 Sfida: +250 se corretta, -100 se sbagliata' }
           ]
         });
         
-        console.log('? Scelta inviata a:', team.name);
+        console.log('🎰 Scelta inviata a:', team.name);
         break;
         
       case 'challenge':
+        // Lancia la domanda (step 4 dall'admin)
         if(!data.question) return;
         sendQuestion(data.question, 'quiz');
         io.emit('cambia_vista', { view: 'gioco' });
-        console.log('? Domanda sfida lanciata');
+        console.log('🎰 Domanda sfida lanciata');
         break;
     }
   });
@@ -779,39 +820,82 @@ io.on('connection', (socket) => {
     io.to('admin').emit('ruota_choice_result', {
       teamId: socket.id,
       teamName: team.name,
-      choice: data.choice,
-      targetTeam: data.targetTeam || null
+      choice: data.choice
     });
     
-    // Applica la scelta
-    if(data.choice === 'double') {
-      team.score = team.score * 2;
+    // ✅ NUOVA LOGICA: 50 punti sicuri o domanda
+    if(data.choice === 'safe') {
+      // Assegna 50 punti sicuri
+      team.score += 50;
+      
       io.emit('ruota_result', {
         teamName: team.name,
-        action: 'double',
+        action: 'safe',
+        points: 50,
         newScore: team.score
       });
-      console.log(`? ${team.name} ha raddoppiato: ${team.score} punti`);
-    } else if(data.choice === 'steal' && data.targetTeam) {
-      const target = gameState.teams[data.targetTeam];
-      if(target) {
-        target.score = Math.max(0, target.score - 200);
-        team.score += 200;
-        io.emit('ruota_result', {
-          teamName: team.name,
-          action: 'steal',
-          targetName: target.name,
-          stolenPoints: 200,
-          newScore: team.score,
-          targetNewScore: target.score
-        });
-        console.log(`? ${team.name} ha rubato 200 punti a ${target.name}`);
-      }
+      
+      io.to(socket.id).emit('ruota_feedback', {
+        message: '💰 Hai scelto 50 punti sicuri!',
+        points: 50
+      });
+      
+      console.log(`🎰 ${team.name} ha scelto 50 punti sicuri (totale: ${team.score})`);
+      
+      // Aggiorna classifica
+      const realTeams = Object.values(gameState.teams).filter(t => !t.isPreview);
+      io.emit('update_teams', realTeams);
+      io.to('admin').emit('update_teams', realTeams);
+      
+      // Torna alla vista logo dopo 3 secondi
+      setTimeout(() => {
+        io.emit('cambia_vista', { view: 'classifica_gen' });
+      }, 3000);
+      
+    } else if(data.choice === 'challenge') {
+      // Salva che questa squadra ha scelto la sfida
+      gameState.ruotaChallenge = {
+        teamId: socket.id,
+        teamName: team.name
+      };
+      
+      io.to(socket.id).emit('ruota_feedback', {
+        message: '🎯 Hai scelto la sfida! Attendi la domanda...'
+      });
+      
+      console.log(`🎰 ${team.name} ha scelto la SFIDA (+250/-100)`);
     }
+  });
+  
+  // ✅ Gestisci risposta alla domanda sfida ruota
+  socket.on('ruota_challenge_answer', (data) => {
+    if(!gameState.ruotaChallenge) return;
+    
+    const team = gameState.teams[gameState.ruotaChallenge.teamId];
+    if(!team || socket.id !== gameState.ruotaChallenge.teamId) return;
+    
+    const isCorrect = (data.answer === gameState.currentQuestion.corretta);
+    
+    if(isCorrect) {
+      team.score += 250;
+      console.log(`✅ ${team.name}: RISPOSTA CORRETTA! +250 punti (totale: ${team.score})`);
+    } else {
+      team.score = Math.max(0, team.score - 100);
+      console.log(`❌ ${team.name}: RISPOSTA SBAGLIATA! -100 punti (totale: ${team.score})`);
+    }
+    
+    io.emit('ruota_challenge_result', {
+      teamName: team.name,
+      correct: isCorrect,
+      points: isCorrect ? 250 : -100,
+      newScore: team.score
+    });
     
     const realTeams = Object.values(gameState.teams).filter(t => !t.isPreview);
     io.emit('update_teams', realTeams);
     io.to('admin').emit('update_teams', realTeams);
+    
+    gameState.ruotaChallenge = null;
   });
 
   // ? FIX: SFIDA FINALE

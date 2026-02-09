@@ -294,7 +294,7 @@ function startMemoryRound() {
   io.emit('memory_show_all', {
     cards: gameState.memoryMode.cards.map(c => c.emoji),
     grid: gridSize,
-    duration: 5,
+    duration: 8,
     manche: gameState.memoryMode.currentManche,
     round: gameState.memoryMode.currentRound
   });
@@ -306,7 +306,7 @@ function startMemoryRound() {
       io.emit('memory_reveal_one', {
         position: gameState.memoryMode.revealedCard.position,
         image: gameState.memoryMode.revealedCard.emoji,
-        duration: 15
+        duration: 20
       });
       
       io.to('admin').emit('memory_players_input', {
@@ -316,14 +316,14 @@ function startMemoryRound() {
       });
       
       gameState.memoryMode.mancheStartTime = Date.now();
-      gameState.memoryMode.answerDeadline = Date.now() + 15000;
+      gameState.memoryMode.answerDeadline = Date.now() + 20000;
       
       gameState.memoryMode.answerTimeout = setTimeout(() => {
         processMemoryAnswers();
-      }, 15000);
+      }, 20000);
       
-    }, 2000);
-  }, 9000);
+    }, 3000);
+  }, 12000);
 }
 
 function processMemoryAnswers() {

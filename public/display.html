@@ -674,7 +674,8 @@
         
         // Classifica round
         if(data.view === 'classifica_round' && data.data) {
-            renderRoundList(data.data);
+            // ✅ FIX: Passa direttamente l'array results invece di tutto l'oggetto data
+            renderRoundList(data.data.results || []);
         }
         
         // Schermata custom
@@ -883,27 +884,52 @@
         const tbody = document.getElementById('round-list-body'); 
         tbody.innerHTML = '';
         
-        if(data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="p-10 text-center text-gray-500 text-4xl">Nessuna risposta</td></tr>';
+        // ✅ FIX: Gestisce sia array vuoto che undefined/null
+        if(!data || data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="p-10 text-center text-gray-500 text-4xl">Nessun punteggio in questo round</td></tr>';
             return;
         }
 
-        const sorted = [...data].sort((a, b) => (b.punti || 0) - (a.punti || 0));
+        // ✅ FIX: Ordina per roundPoints (per podio) o punti (per risultati domanda)
+        const sorted = [...data].sort((a, b) => {
+            const puntiA = a.roundPoints !== undefined ? a.roundPoints : (a.punti || 0);
+            const puntiB = b.roundPoints !== undefined ? b.roundPoints : (b.punti || 0);
+            return puntiB - puntiA;
+        });
 
         sorted.forEach((entry, i) => {
-            const isCorrect = entry.corretta;
-            const rowClass = isCorrect ? 'bg-green-500/20 text-green-400' : 'text-white opacity-80';
-            const punti = entry.punti || 0;
-            tbody.innerHTML += `
-                <tr class="border-b border-white/5 ${rowClass} animate__animated animate__fadeInLeft" style="animation-delay: ${i*0.1}s">
-                    <td class="p-6 font-mono text-3xl text-indigo-400">${i+1}</td>
-                    <td class="p-6 font-black">${entry.teamName}</td>
-                    <td class="p-6 italic">${entry.risposta}</td>
-                    <td class="p-6 text-right font-mono">${entry.tempo}s</td>
-                    <td class="p-6 text-right font-black text-2xl ${isCorrect ? 'text-green-400' : 'text-red-400'}">
-                        ${isCorrect ? '+' + punti : punti}
-                    </td>
-                </tr>`;
+            // ✅ FIX: Gestisce sia struttura podio (roundPoints) che risultati domanda (corretta/punti)
+            const isPodioMode = entry.roundPoints !== undefined;
+            
+            if(isPodioMode) {
+                // Modalità PODIO: mostra punteggio round
+                const rowClass = entry.roundPoints > 0 ? 'bg-green-500/20 text-green-400' : 'text-white opacity-80';
+                tbody.innerHTML += `
+                    <tr class="border-b border-white/5 ${rowClass} animate__animated animate__fadeInLeft" style="animation-delay: ${i*0.1}s">
+                        <td class="p-6 font-mono text-3xl text-indigo-400">${i+1}</td>
+                        <td class="p-6 font-black">${entry.name || entry.teamName || 'Unknown'}</td>
+                        <td class="p-6 italic">-</td>
+                        <td class="p-6 text-right font-mono">-</td>
+                        <td class="p-6 text-right font-black text-2xl ${entry.roundPoints > 0 ? 'text-green-400' : 'text-gray-400'}">
+                            ${entry.roundPoints > 0 ? '+' : ''}${entry.roundPoints}
+                        </td>
+                    </tr>`;
+            } else {
+                // Modalità RISULTATI DOMANDA: mostra risposta, tempo e correttezza
+                const isCorrect = entry.corretta;
+                const rowClass = isCorrect ? 'bg-green-500/20 text-green-400' : 'text-white opacity-80';
+                const punti = entry.punti || 0;
+                tbody.innerHTML += `
+                    <tr class="border-b border-white/5 ${rowClass} animate__animated animate__fadeInLeft" style="animation-delay: ${i*0.1}s">
+                        <td class="p-6 font-mono text-3xl text-indigo-400">${i+1}</td>
+                        <td class="p-6 font-black">${entry.teamName || entry.name || 'Unknown'}</td>
+                        <td class="p-6 italic">${entry.risposta || '-'}</td>
+                        <td class="p-6 text-right font-mono">${entry.tempo ? entry.tempo + 's' : '-'}</td>
+                        <td class="p-6 text-right font-black text-2xl ${isCorrect ? 'text-green-400' : 'text-red-400'}">
+                            ${isCorrect ? '+' + punti : punti}
+                        </td>
+                    </tr>`;
+            }
         });
     }
 

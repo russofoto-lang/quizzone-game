@@ -289,9 +289,10 @@
     });
 
     function makeRuotaChoice(choice) {
-        // Invia scelta al server
-        socket.emit('ruota_choice_made', { 
-            choice: choice 
+        // ✅ FIX: Usa 'ruota_choice' invece di 'ruota_choice_made'
+        // E usa i valori corretti: '50' e '250' invece di 'safe' e 'challenge'
+        socket.emit('ruota_choice', { 
+            choice: choice === 'safe' ? '50' : '250'
         });
         
         document.getElementById('ruota-choice-buttons').classList.add('hidden');

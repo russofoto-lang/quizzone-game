@@ -842,15 +842,25 @@ io.on('connection', (socket) => {
         
       case 'challenge':
         // 4️⃣ Lancia domanda sfida - ✅ FIX: Questa è la chiave!
+        console.log('\n' + '🎰'.repeat(40));
+        console.log('🎰 STEP 4: LANCIA DOMANDA SFIDA');
+        console.log('🎰'.repeat(40));
+        
         if (!gameState.ruotaWinner) {
+          console.log('❌ ERRORE: Nessuna squadra estratta dalla ruota');
           io.to('admin').emit('ruota_error', { message: 'Prima gira la ruota!' });
           return;
         }
         
         if (!data.question) {
+          console.log('❌ ERRORE: Nessuna domanda fornita');
           io.to('admin').emit('ruota_error', { message: 'Seleziona una domanda dalla lista!' });
           return;
         }
+        
+        console.log(`✅ Squadra estratta: ${gameState.ruotaWinner.name} (ID: ${gameState.ruotaWinner.id})`);
+        console.log(`✅ Domanda: "${data.question.domanda}"`);
+        console.log(`✅ Risposta corretta: ${data.question.corretta}`);
         
         // Imposta la domanda per la sfida
         gameState.currentQuestion = {
@@ -879,6 +889,8 @@ io.on('connection', (socket) => {
           isRuotaQuestion: true
         });
         
+        console.log(`📱 Domanda inviata al telefono di: ${gameState.ruotaWinner.name}`);
+        
         // 2. Mostra domanda sul display (solo visualizzazione)
         io.emit('display_question', {
           domanda: data.question.domanda,
@@ -888,10 +900,13 @@ io.on('connection', (socket) => {
           startTime: Date.now()
         });
         
+        console.log('📺 Domanda mostrata sul display');
+        
         // 3. Mostra la vista gioco sul display
         io.emit('cambia_vista', { view: 'gioco' });
         
-        console.log(`🎰 Domanda sfida inviata a ${gameState.ruotaWinner.name}`);
+        console.log('✅ DOMANDA SFIDA LANCIATA CON SUCCESSO!');
+        console.log('🎰'.repeat(40) + '\n');
         break;
     }
   });

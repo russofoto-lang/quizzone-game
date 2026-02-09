@@ -328,6 +328,12 @@ function processMemoryAnswers() {
         const points = 100;
         team.score += points;
         
+        // ✅ FIX: Traccia punteggi round
+        if (!gameState.roundScores[answer.teamId]) {
+          gameState.roundScores[answer.teamId] = 0;
+        }
+        gameState.roundScores[answer.teamId] += points;
+        
         results.push({
           teamName: answer.teamName,
           position: answer.position,
@@ -548,6 +554,12 @@ io.on('connection', (socket) => {
       
       team.score += pointsEarned;
       
+      // ✅ FIX: Traccia punteggi round
+      if (!gameState.roundScores[socket.id]) {
+        gameState.roundScores[socket.id] = 0;
+      }
+      gameState.roundScores[socket.id] += pointsEarned;
+      
       console.log(`✅ ${team.name}: CORRETTO! +${pointsEarned} punti (totale: ${team.score})`);
     } else {
       console.log(`❌ ${team.name}: SBAGLIATO (risposta: ${data.risposta})`);
@@ -583,7 +595,14 @@ io.on('connection', (socket) => {
   });
 
   socket.on('regia_cmd', (cmd) => {
-    // ? FIX 4: Gestisci il comando "podio" per mostrare classifica round
+    // ✅ FIX: Reset round scores (per iniziare un nuovo round/prova)
+    if (cmd === 'reset_round') {
+      gameState.roundScores = {};
+      console.log('🔄 Round scores resettati - Nuovo round iniziato');
+      return;
+    }
+    
+    // ✅ FIX 4: Gestisci il comando "podio" per mostrare classifica round
     if (cmd === 'classifica_round' || cmd === 'podio') {
       // Calcola e invia la classifica del round corrente
       const roundResults = Object.entries(gameState.roundScores || {}).map(([teamId, points]) => {
@@ -595,12 +614,11 @@ io.on('connection', (socket) => {
         };
       }).sort((a, b) => b.roundPoints - a.roundPoints);
       
-      io.emit('cambia_vista', { view: 'classifica_round' });
-      io.emit('update_round_leaderboard', { results: roundResults });
-      console.log('? Mostro podio round');
+      io.emit('cambia_vista', { view: 'classifica_round', data: { results: roundResults } });
+      console.log('🏆 Mostro podio round con', roundResults.length, 'squadre');
     } else {
       io.emit('cambia_vista', { view: cmd });
-      console.log('? Vista:', cmd);
+      console.log('📺 Vista:', cmd);
     }
   });
 
@@ -841,7 +859,7 @@ io.on('connection', (socket) => {
         break;
         
       case 'challenge':
-        // 4️⃣ Lancia domanda sfida - ✅ FIX: Questa è la chiave!
+        // 4️⃣ Lancia domanda sfida
         console.log('\n' + '🎰'.repeat(40));
         console.log('🎰 STEP 4: LANCIA DOMANDA SFIDA');
         console.log('🎰'.repeat(40));
@@ -973,7 +991,7 @@ io.on('connection', (socket) => {
       console.log(`🎰 ${team.name} ha scelto la sfida!`);
       
       // ✅ FIX CRITICO: NON resettare ruotaWinner se ha scelto challenge!
-      // Serve per lanciare la domanda dopo. Verrà resettato dopo la domanda.
+      // Serve per lanciare la domanda dopo. Verrà resettato dopo la risposta.
       return;
     }
     

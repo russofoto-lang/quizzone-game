@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="it">
 <head>
     <meta charset="UTF-8">
@@ -375,7 +375,7 @@
             </div>
         </div>
 
-        <!-- Sfida Finale - COLLAPSIBLE -->
+        <!-- ✅ FIX COMPLETO: Sfida Finale - COLLAPSIBLE -->
         <div class="bg-red-900/20 rounded-lg border border-red-700">
             <button onclick="toggleSection('finale')" class="w-full flex justify-between items-center p-2 hover:bg-red-900/30 transition rounded-lg">
                 <div class="text-sm font-bold text-red-300 uppercase">🔥 Sfida Finale</div>
@@ -383,33 +383,38 @@
             </button>
             <div id="content-finale" class="hidden p-2 pt-0">
                 <div class="space-y-1">
-                <button onclick="showFinaleExplanation()" id="step-1" class="step-btn active w-full btn-primary text-white font-bold py-2 rounded text-sm">
-                    1️⃣ Spiega Regole
-                </button>
-                <button onclick="startFinale()" id="step-2" class="step-btn w-full btn-danger text-white font-bold py-2 rounded text-sm">
-                    2️⃣ Attiva Finale
-                </button>
-                <button onclick="prepareAllIn()" id="step-3" class="step-btn w-full btn-warning text-white font-bold py-2 rounded text-sm">
-                    3️⃣ Prepara ALL IN
-                </button>
-                <div id="allin-bets-status" class="hidden text-xs text-center text-yellow-400 py-1 font-bold"></div>
-                <button onclick="showAllInQuestion()" id="step-4" class="step-btn w-full btn-warning text-white font-bold py-2 rounded text-sm">
-                    4️⃣ Mostra Domanda
-                </button>
-                <div id="step-5" class="step-btn text-xs text-gray-400 text-center py-1">
-                    5️⃣ Lancia domande 2-5 (x2)
+                    <button onclick="showFinaleExplanation()" id="step-1" class="step-btn active w-full btn-primary text-white font-bold py-2 rounded text-sm">
+                        1️⃣ Spiega Regole
+                    </button>
+                    <button onclick="startFinale()" id="step-2" class="step-btn w-full btn-danger text-white font-bold py-2 rounded text-sm">
+                        2️⃣ Attiva Finale
+                    </button>
+                    <button onclick="prepareAllIn()" id="step-3" class="step-btn w-full btn-warning text-white font-bold py-2 rounded text-sm">
+                        3️⃣ Prepara ALL IN
+                    </button>
+                    <div id="allin-bets-status" class="hidden text-xs text-center text-yellow-400 py-1 font-bold">
+                        💰 <span id="allin-counter">0</span>/<span id="allin-total">0</span> squadre
+                    </div>
+                    <button onclick="showAllInResults()" id="step-4" class="step-btn w-full bg-orange-600 hover:bg-orange-500 text-white font-bold py-2 rounded text-sm">
+                        4️⃣ Mostra Risultati
+                    </button>
+                    <button onclick="processAllIn()" id="step-5" class="step-btn w-full btn-success text-white font-bold py-2 rounded text-sm">
+                        5️⃣ Elabora Punteggi
+                    </button>
+                    <div id="step-6" class="step-btn text-xs text-gray-400 text-center py-1">
+                        6️⃣ Lancia domande 2-5 (x2)
+                    </div>
+                    <button onclick="revealWinner()" id="step-6-btn" class="step-btn w-full btn-warning text-white font-bold py-2 rounded text-sm">
+                        7️⃣ RIVELA VINCITORE 👑
+                    </button>
+                    <div id="finale-progress" class="hidden text-center py-1">
+                        <span class="progress-dot"></span>
+                        <span class="progress-dot"></span>
+                        <span class="progress-dot"></span>
+                        <span class="progress-dot"></span>
+                        <span class="progress-dot"></span>
+                    </div>
                 </div>
-                <button onclick="revealWinner()" id="step-6" class="step-btn w-full btn-warning text-white font-bold py-2 rounded text-sm">
-                    6️⃣ RIVELA VINCITORE 👑
-                </button>
-                <div id="finale-progress" class="hidden text-center py-1">
-                    <span class="progress-dot"></span>
-                    <span class="progress-dot"></span>
-                    <span class="progress-dot"></span>
-                    <span class="progress-dot"></span>
-                    <span class="progress-dot"></span>
-                </div>
-            </div>
             </div>
         </div>
     </div>
@@ -420,6 +425,7 @@
     let currentQuestions = [], selectedQ = null, dbStructure = {};
     let isPaused = false, finaleActive = false, finaleQuestionCount = 0;
     let totalQuestionsAsked = 0, allInPrepared = false, totalTeams = 0;
+    let gameState = { teams: {} }; // Stato temporaneo
 
     socket.on('connect', () => { socket.emit('admin_connect'); });
     
@@ -898,6 +904,96 @@
     });
 
     // ════════════════════════════════════════════════════════════════
+    // ✅ FIX COMPLETO: SFIDA FINALE - FUNZIONI
+    // ════════════════════════════════════════════════════════════════
+
+    function showFinaleExplanation() {
+        socket.emit('show_finale_explanation');
+        setTimeout(() => activateStep(2), 20000);
+        console.log('🔥 Spiegazione finale inviata');
+    }
+
+    function startFinale() {
+        if(confirm('🔥 ATTENZIONE: Iniziare la SFIDA FINALE?\n\nLa classifica verrà nascosta fino alla fine.')) {
+            socket.emit('start_finale');
+            finaleActive = true;
+            finaleQuestionCount = 0;
+            document.getElementById('finale-progress').classList.remove('hidden');
+            activateStep(3);
+            console.log('🔥 Finale attivata');
+        }
+    }
+
+    function prepareAllIn() {
+        if(!selectedQ) {
+            alert('❌ Seleziona una domanda per ALL IN!');
+            return;
+        }
+        
+        // Modifica i punti della domanda per i pulsanti 100-500
+        selectedQ.allInOptions = [100, 200, 300, 500];
+        
+        socket.emit('prepare_allin', selectedQ);
+        activateStep(4);
+        
+        // Mostra contatore scommesse
+        document.getElementById('allin-bets-status').classList.remove('hidden');
+        document.getElementById('allin-counter').textContent = '0';
+        
+        const realTeams = Object.values(gameState.teams || {}).filter(t => !t.isPreview);
+        document.getElementById('allin-total').textContent = realTeams.length;
+        
+        console.log('💰 ALL IN preparato con domanda:', selectedQ.domanda);
+    }
+
+    function showAllInResults() {
+        socket.emit('admin_force_show_allin');
+        console.log('📊 Risultati ALL IN mostrati sul display');
+        
+        // Dopo 10 secondi, abilita elaborazione
+        setTimeout(() => {
+            activateStep(5);
+            alert('✅ Risultati mostrati sul display.\nOra clicca "5️⃣ Elabora Punteggi" per aggiornare i punteggi.');
+        }, 1000);
+    }
+
+    function processAllIn() {
+        socket.emit('process_allin_results');
+        activateStep(6);
+        console.log('💰 Punteggi ALL IN in elaborazione...');
+    }
+
+    function revealWinner() {
+        if(confirm('🏆 RIVELARE IL VINCITORE FINALE?\n\nLa classifica tornerà visibile a tutti.')) {
+            socket.emit('reveal_winner');
+            finaleActive = false;
+            document.getElementById('finale-progress').classList.add('hidden');
+            activateStep(1);
+            console.log('🏆 Vincitore finale rivelato');
+        }
+    }
+
+    socket.on('allin_bet_placed', (data) => {
+        document.getElementById('allin-counter').textContent = data.betsCount;
+        
+        // Se tutte le squadre hanno scommesso
+        if(data.betsCount >= data.totalTeams) {
+            document.getElementById('allin-bets-status').innerHTML = `
+                <div class="bg-green-600 text-white p-1 rounded text-xs font-bold animate-pulse">
+                    ✅ TUTTE LE ${data.totalTeams} SQUADRE HANNO SCOMMESSO!
+                </div>
+            `;
+        }
+        
+        console.log(`💰 Scommessa: ${data.teamName} - ${data.bet} punti`);
+    });
+
+    socket.on('allin_results_processed', (data) => {
+        alert(`✅ RISULTATI ALL IN ELABORATI!\n\n${data.correctCount}/${data.totalBets} squadre corrette\n\nOra puoi lanciare le domande 2-5 (x2 punti).`);
+        console.log('✅ Risultati ALL IN elaborati:', data);
+    });
+
+    // ════════════════════════════════════════════════════════════════
     // CORREZIONI ADMIN.HTML - Aggiungere questi listener
     // ════════════════════════════════════════════════════════════════
 
@@ -1021,64 +1117,22 @@
     }
 
     function activateStep(stepNum) {
-        for(let i = 1; i <= 6; i++) {
+        for(let i = 1; i <= 7; i++) {
             const step = document.getElementById(`step-${i}`);
             if(step) {
                 step.className = step.className.replace(' active', '');
                 if(i === stepNum) step.className += ' active';
             }
         }
-    }
-
-    function showFinaleExplanation() {
-        socket.emit('show_finale_explanation');
-        setTimeout(() => activateStep(2), 20000);
-    }
-
-    function startFinale() {
-        if(confirm('🔥 Iniziare FINALE?')) {
-            socket.emit('start_finale');
-            finaleActive = true;
-            finaleQuestionCount = 0;
-            document.getElementById('finale-progress').classList.remove('hidden');
-            activateStep(3);
+        
+        // Gestione speciale per step 6 (div) e step-6-btn (button)
+        if(stepNum === 6) {
+            const step6Btn = document.getElementById('step-6-btn');
+            if(step6Btn) {
+                step6Btn.className = step6Btn.className.replace(' active', '');
+                step6Btn.className += ' active';
+            }
         }
-    }
-
-    function prepareAllIn() {
-        if(!selectedQ) return alert('❌ Seleziona domanda 1!');
-        allInPrepared = true;
-        socket.emit('invia_domanda_finale', {...selectedQ, modalita: 'quiz'});
-        document.getElementById('allin-bets-status').classList.remove('hidden');
-        document.getElementById('allin-bets-status').textContent = `💰 0/${totalTeams}`;
-        activateStep(4);
-    }
-
-    function showAllInQuestion() {
-        socket.emit('admin_force_show_allin');
-        allInPrepared = false;
-        activateStep(5);
-    }
-
-    socket.on('allin_bet_placed', (data) => {
-        document.getElementById('allin-bets-status').textContent = `💰 ${data.betsCount}/${data.totalTeams}`;
-        if(data.betsCount >= data.totalTeams) {
-            document.getElementById('allin-bets-status').textContent = `✅ Tutti!`;
-        }
-    });
-
-    function revealWinner() {
-        socket.emit('reveal_winner');
-        finaleActive = false;
-        document.getElementById('finale-progress').classList.add('hidden');
-        activateStep(1);
-    }
-
-    function updateFinaleProgress() {
-        const dots = document.querySelectorAll('#finale-progress .progress-dot');
-        dots.forEach((dot, i) => {
-            dot.className = i < finaleQuestionCount ? 'progress-dot active' : 'progress-dot';
-        });
     }
 
     function refreshPreview() {
@@ -1156,6 +1210,13 @@
             if(btn) btn.click();
         }, 100);
     });
+
+    function updateFinaleProgress() {
+        const dots = document.querySelectorAll('#finale-progress .progress-dot');
+        dots.forEach((dot, i) => {
+            dot.className = i < finaleQuestionCount ? 'progress-dot active' : 'progress-dot';
+        });
+    }
 </script>
 
 </body>

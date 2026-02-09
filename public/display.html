@@ -27,9 +27,9 @@
             margin: auto;
             background: #0f172a;
             color: white;
-            overflow: hidden; /* ✅ FIX: Previene overflow */
+            overflow: hidden;
             font-family: 'Inter', sans-serif;
-            display: flex; /* ✅ FIX: Usa flexbox per gestire meglio il contenuto */
+            display: flex; /* ✅ FIX: Flexbox per gestire meglio il contenuto */
             flex-direction: column;
         }
         
@@ -62,11 +62,6 @@
     .question-text { font-size: clamp(2rem, 4vw, 4rem); line-height: 1.2; }
     .answer-option { font-size: clamp(1.5rem, 2.5vw, 2rem); }
     .category-text { font-size: clamp(1rem, 1.5vw, 1.5rem); }
-    
-    /* ✅ FIX: Responsive padding per schermate con molto testo */
-    .text-heavy-screen {
-        padding: clamp(1rem, 3vh, 4rem) !important;
-    }
     
     @keyframes countdown-pulse {
         0%, 100% { transform: scale(1); }
@@ -388,26 +383,26 @@
     </div>
 
     <!-- VISTA RUOTA FORTUNA - SPIEGAZIONE -->
-    <div id="view-ruota-explain" class="view-section hidden absolute inset-0 bg-gradient-to-br from-yellow-900 via-orange-900 to-red-900 z-50 flex flex-col items-center justify-center">
-        <div class="glass rounded-[3rem] p-16 max-w-5xl text-center animate__animated animate__bounceIn">
-            <div class="text-9xl mb-8">🎰</div>
-            <h1 class="text-8xl font-black text-yellow-400 mb-12 tracking-wider">
+    <div id="view-ruota-explain" class="view-section hidden absolute inset-0 bg-gradient-to-br from-yellow-900 via-orange-900 to-red-900 z-50 flex flex-col items-center justify-center overflow-y-auto">
+        <div class="glass rounded-[2rem] p-8 max-w-4xl text-center animate__animated animate__bounceIn my-4">
+            <div class="text-6xl mb-4">🎰</div>
+            <h1 class="text-5xl font-black text-yellow-400 mb-6 tracking-wider">
                 RUOTA DELLA FORTUNA!
             </h1>
-            <div class="text-4xl text-white leading-relaxed space-y-6">
+            <div class="text-2xl text-white leading-relaxed space-y-4">
                 <p>La ruota sceglierà<br><strong class="text-yellow-300">UNA squadra fortunata!</strong></p>
-                <div class="border-t-4 border-yellow-400 my-8"></div>
-                <p class="text-5xl font-bold">Avrai 2 scelte:</p>
-                <div class="grid grid-cols-2 gap-8 mt-8">
-                    <div class="bg-green-600/30 p-8 rounded-3xl border-4 border-green-400">
-                        <div class="text-7xl mb-4">💰</div>
-                        <div class="text-4xl font-bold">50 PUNTI</div>
-                        <div class="text-2xl">GRATIS!</div>
+                <div class="border-t-2 border-yellow-400 my-4"></div>
+                <p class="text-3xl font-bold">Avrai 2 scelte:</p>
+                <div class="grid grid-cols-2 gap-4 mt-4">
+                    <div class="bg-green-600/30 p-4 rounded-2xl border-2 border-green-400">
+                        <div class="text-5xl mb-2">💰</div>
+                        <div class="text-2xl font-bold">50 PUNTI</div>
+                        <div class="text-lg">GRATIS!</div>
                     </div>
-                    <div class="bg-orange-600/30 p-8 rounded-3xl border-4 border-orange-400">
-                        <div class="text-7xl mb-4">🎯</div>
-                        <div class="text-4xl font-bold">150 PUNTI</div>
-                        <div class="text-2xl">Con domanda!</div>
+                    <div class="bg-orange-600/30 p-4 rounded-2xl border-2 border-orange-400">
+                        <div class="text-5xl mb-2">🎯</div>
+                        <div class="text-2xl font-bold">150 PUNTI</div>
+                        <div class="text-lg">Con domanda!</div>
                     </div>
                 </div>
             </div>
@@ -488,56 +483,56 @@
     </div>
 
     <!-- VISTA SPIEGAZIONE FINALE -->
-    <div id="view-finale_explanation" class="view-section text-heavy-screen hidden absolute inset-0 bg-gradient-to-br from-red-900 via-orange-900 to-yellow-900 z-50 flex flex-col items-center justify-center overflow-y-auto">
-        <!-- Fiamme animate -->
-        <div class="absolute top-0 left-10 text-8xl animate-pulse">🔥</div>
-        <div class="absolute top-20 right-10 text-8xl animate-pulse" style="animation-delay: 0.3s;">🔥</div>
-        <div class="absolute bottom-20 left-20 text-8xl animate-pulse" style="animation-delay: 0.6s;">🔥</div>
-        <div class="absolute bottom-10 right-20 text-8xl animate-pulse" style="animation-delay: 0.9s;">🔥</div>
+    <div id="view-finale_explanation" class="view-section hidden absolute inset-0 bg-gradient-to-br from-red-900 via-orange-900 to-yellow-900 z-50 flex flex-col items-center justify-center overflow-y-auto">
+        <!-- Fiamme animate ridotte -->
+        <div class="absolute top-2 left-10 text-5xl animate-pulse">🔥</div>
+        <div class="absolute top-2 right-10 text-5xl animate-pulse" style="animation-delay: 0.3s;">🔥</div>
+        <div class="absolute bottom-2 left-20 text-5xl animate-pulse" style="animation-delay: 0.6s;">🔥</div>
+        <div class="absolute bottom-2 right-20 text-5xl animate-pulse" style="animation-delay: 0.9s;">🔥</div>
         
-        <div class="relative z-10 max-w-4xl text-center animate__animated animate__zoomIn">
-            <div class="text-9xl mb-4">🔥🔥🔥🔥🔥</div>
+        <div class="relative z-10 max-w-5xl text-center animate__animated animate__zoomIn px-4 py-2">
+            <div class="text-5xl mb-2">🔥🔥🔥</div>
             
-            <h1 class="text-8xl font-black text-white mb-4 uppercase tracking-tight animate__animated animate__fadeInDown">
+            <h1 class="text-5xl font-black text-white mb-2 uppercase tracking-tight animate__animated animate__fadeInDown">
                 SFIDA FINALE
             </h1>
-            <p class="text-6xl font-bold text-yellow-300 mb-8 animate__animated animate__fadeInUp" style="animation-delay: 0.2s;">
+            <p class="text-4xl font-bold text-yellow-300 mb-4 animate__animated animate__fadeInUp" style="animation-delay: 0.2s;">
                 5 PROVE
             </p>
             
-            <div class="bg-black/40 rounded-3xl p-8 mb-6 text-left space-y-6">
+            <div class="bg-black/40 rounded-2xl p-4 mb-3 text-left space-y-3">
                 <!-- ALL IN -->
-                <div class="border-b-2 border-yellow-500/30 pb-6 animate__animated animate__fadeInLeft" style="animation-delay: 0.4s;">
-                    <h2 class="text-5xl font-black text-yellow-300 mb-3">💰 PROVA 1: ALL IN</h2>
-                    <p class="text-3xl text-white mb-2">Scommetti i tuoi punti: 0 - 50 - 100 - 200</p>
-                    <div class="ml-6 space-y-1">
-                        <p class="text-2xl text-green-400">✅ Risposta corretta → Vinci il DOPPIO</p>
-                        <p class="text-2xl text-red-400">❌ Risposta sbagliata → PERDI la scommessa</p>
+                <div class="border-b border-yellow-500/30 pb-3 animate__animated animate__fadeInLeft" style="animation-delay: 0.4s;">
+                    <h2 class="text-2xl font-black text-yellow-300 mb-1">💰 PROVA 1: ALL IN</h2>
+                    <p class="text-lg text-white mb-1">Scommetti: 0 - 50 - 100 - 200</p>
+                    <div class="ml-4 space-y-0.5 text-sm">
+                        <p class="text-green-400">✅ Corretta → DOPPIO</p>
+                        <p class="text-red-400">❌ Sbagliata → PERDI</p>
                     </div>
                 </div>
                 
                 <!-- PUNTI X2 -->
-                <div class="border-b-2 border-orange-500/30 pb-6 animate__animated animate__fadeInLeft" style="animation-delay: 0.6s;">
-                    <h2 class="text-5xl font-black text-orange-300 mb-3">🔥 PROVE 2-5: PUNTI x2</h2>
-                    <p class="text-3xl text-white">Ogni risposta corretta vale il DOPPIO!</p>
+                <div class="border-b border-orange-500/30 pb-3 animate__animated animate__fadeInLeft" style="animation-delay: 0.6s;">
+                    <h2 class="text-2xl font-black text-orange-300 mb-1">🔥 PROVE 2-5: PUNTI x2</h2>
+                    <p class="text-lg text-white">Ogni risposta vale il DOPPIO!</p>
                 </div>
                 
                 <!-- CLASSIFICA NASCOSTA -->
                 <div class="animate__animated animate__fadeInLeft" style="animation-delay: 0.8s;">
-                    <h2 class="text-5xl font-black text-red-300 mb-3">⚠️ CLASSIFICA NASCOSTA ⚡</h2>
-                    <p class="text-3xl text-white">Non vedrete i punteggi fino alla fine!</p>
-                    </div>
+                    <h2 class="text-2xl font-black text-red-300 mb-1">⚠️ CLASSIFICA NASCOSTA</h2>
+                    <p class="text-lg text-white">Punteggi segreti fino alla fine!</p>
+                </div>
             </div>
             
-            <p class="text-4xl text-white font-bold mb-6 animate__animated animate__fadeIn" style="animation-delay: 1s;">
+            <p class="text-2xl text-white font-bold mb-3 animate__animated animate__fadeIn" style="animation-delay: 1s;">
                 Tutto può cambiare!
             </p>
             
-            <div class="text-7xl mb-4 animate__animated animate__bounceIn" style="animation-delay: 1.2s;">
-                🏆🏆🏆🏆🏆
+            <div class="text-4xl mb-2 animate__animated animate__bounceIn" style="animation-delay: 1.2s;">
+                🏆🏆🏆
             </div>
             
-            <div id="finale-countdown" class="text-8xl font-black text-yellow-300 animate-pulse">
+            <div id="finale-countdown" class="text-5xl font-black text-yellow-300 animate-pulse">
                 PRONTI?
             </div>
         </div>

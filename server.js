@@ -971,8 +971,13 @@ io.on('connection', (socket) => {
       });
       
       console.log(`🎰 ${team.name} ha scelto la sfida!`);
+      
+      // ✅ FIX CRITICO: NON resettare ruotaWinner se ha scelto challenge!
+      // Serve per lanciare la domanda dopo. Verrà resettato dopo la domanda.
+      return;
     }
     
+    // ✅ Reset ruotaWinner SOLO se ha scelto safe (punti sicuri)
     gameState.ruotaWinner = null;
   });
 
@@ -1024,6 +1029,7 @@ io.on('connection', (socket) => {
     
     gameState.currentQuestion = null;
     gameState.ruotaChallenge = null;
+    gameState.ruotaWinner = null; // ✅ FIX: Reset ruotaWinner dopo la risposta
   });
 
   socket.on('memory_start', () => {

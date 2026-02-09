@@ -8,7 +8,38 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
     <style>
-        body { background: #0f172a; color: white; overflow: hidden; font-family: 'Inter', sans-serif; }
+        /* FORMATO 16:9 FISSO */
+        html, body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+            background: #0f172a;
+        }
+        
+        #app-container {
+            position: relative;
+            width: 100vw;
+            height: 56.25vw; /* 16:9 aspect ratio */
+            max-height: 100vh;
+            max-width: 177.78vh; /* 16:9 aspect ratio */
+            margin: auto;
+            background: #0f172a;
+            color: white;
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        /* Se l'altezza è il fattore limitante, centriamo verticalmente */
+        @media (max-aspect-ratio: 16/9) {
+            #app-container {
+                width: 177.78vh;
+                height: 100vh;
+                margin: 0 auto;
+            }
+        }
+
         .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
         #qrcode img { margin: 0 auto; border: 15px solid white; border-radius: 10px; }
 
@@ -40,7 +71,8 @@
 </style>
 
 </head>
-<body class="flex flex-col h-screen p-6">
+<body>
+<div id="app-container" class="flex flex-col p-6">
 
 <div class="h-[10%] flex justify-between items-center border-b border-gray-700 pb-2">
     <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-red-600">SIPONTO FOREVER YOUNG</h1>
@@ -1332,5 +1364,6 @@
 
     socket.on('force_reload', () => window.location.reload());
 </script>
+</div>
 </body>
 </html>

@@ -157,9 +157,6 @@ let gameState = {
 // ============================================
 // Aggiungi questo codice in server.js, subito dopo la definizione di gameState
 
-const fs = require('fs');
-const path = require('path');
-
 // File dove salvare lo stato
 const SAVE_FILE = path.join(__dirname, 'gamestate_backup.json');
 
@@ -223,7 +220,7 @@ setInterval(() => {
 }, 30000);
 
 // Salva anche quando cambia il punteggio
-const originalUpdateScore = updateScore; // Se hai questa funzione
+const originalUpdateScore = (typeof updateScore === 'function') ? updateScore : null;
 // Oppure aggiungi un hook dopo ogni cambio punteggio
 
 // Carica all'avvio

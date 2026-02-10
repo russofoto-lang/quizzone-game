@@ -265,6 +265,69 @@
             </div>
         </div>
 
+        <!-- 🔊 EFFETTI AUDIO - COLLAPSIBLE -->
+        <div class="bg-cyan-900/20 rounded-lg border border-cyan-700">
+            <button onclick="toggleSection('audio')" class="w-full flex justify-between items-center p-2 hover:bg-cyan-900/30 transition rounded-lg">
+                <div class="text-sm font-bold text-cyan-300 uppercase">🔊 Effetti Audio</div>
+                <span id="icon-audio" class="text-cyan-300 font-bold text-lg">▼</span>
+            </button>
+            <div id="content-audio" class="hidden p-2 pt-0">
+                <!-- Toggle + Volume -->
+                <div class="flex items-center gap-2 mb-2">
+                    <button onclick="toggleAudioEnabled()" id="audio-toggle-btn" class="flex-1 btn-success text-white font-bold py-1.5 rounded text-xs">
+                        🔊 ON
+                    </button>
+                    <input type="range" id="audio-volume" min="0" max="100" value="50"
+                           class="flex-1 h-2 accent-cyan-400" onchange="setAudioVolume(this.value)">
+                    <span id="audio-volume-label" class="text-xs text-gray-400 w-8">50%</span>
+                </div>
+
+                <!-- Pulsanti Effetti Rapidi -->
+                <div class="text-xs text-gray-400 mb-1">Effetti manuali:</div>
+                <div class="grid grid-cols-3 gap-1 mb-1">
+                    <button onclick="playSfx('gong')" class="bg-cyan-800 hover:bg-cyan-700 text-white font-bold py-1.5 rounded text-xs">
+                        🔔 Gong
+                    </button>
+                    <button onclick="playSfx('fanfare')" class="bg-cyan-800 hover:bg-cyan-700 text-white font-bold py-1.5 rounded text-xs">
+                        🎺 Fanfare
+                    </button>
+                    <button onclick="playSfx('drumroll', 3)" class="bg-cyan-800 hover:bg-cyan-700 text-white font-bold py-1.5 rounded text-xs">
+                        🥁 Rullo
+                    </button>
+                </div>
+                <div class="grid grid-cols-3 gap-1 mb-1">
+                    <button onclick="playSfx('correct')" class="bg-green-800 hover:bg-green-700 text-white font-bold py-1.5 rounded text-xs">
+                        ✅ Corretto
+                    </button>
+                    <button onclick="playSfx('wrong')" class="bg-red-800 hover:bg-red-700 text-white font-bold py-1.5 rounded text-xs">
+                        ❌ Sbagliato
+                    </button>
+                    <button onclick="playSfx('buzzer')" class="bg-yellow-800 hover:bg-yellow-700 text-white font-bold py-1.5 rounded text-xs">
+                        ⚡ Buzzer
+                    </button>
+                </div>
+                <div class="grid grid-cols-3 gap-1 mb-1">
+                    <button onclick="playSfx('timesUp')" class="bg-orange-800 hover:bg-orange-700 text-white font-bold py-1.5 rounded text-xs">
+                        ⏰ Tempo!
+                    </button>
+                    <button onclick="playSfx('suspense', 5)" class="bg-purple-800 hover:bg-purple-700 text-white font-bold py-1.5 rounded text-xs">
+                        😱 Suspense
+                    </button>
+                    <button onclick="playSfx('reveal')" class="bg-indigo-800 hover:bg-indigo-700 text-white font-bold py-1.5 rounded text-xs">
+                        🎭 Reveal
+                    </button>
+                </div>
+                <div class="grid grid-cols-2 gap-1">
+                    <button onclick="playSfx('countdownBeeps', 5)" class="bg-red-900 hover:bg-red-800 text-white font-bold py-1.5 rounded text-xs">
+                        ⏳ Countdown 5s
+                    </button>
+                    <button onclick="playSfx('wheelSpin', 4)" class="bg-yellow-900 hover:bg-yellow-800 text-white font-bold py-1.5 rounded text-xs">
+                        🎰 Ruota Spin
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <!-- Ruota della Fortuna - COLLAPSIBLE -->
         <div class="bg-yellow-900/20 rounded-lg border border-yellow-700">
             <button onclick="toggleSection('ruota')" class="w-full flex justify-between items-center p-2 hover:bg-yellow-900/30 transition rounded-lg">
@@ -710,6 +773,40 @@
     function stopKaraoke() {
         socket.emit('stop_karaoke');
         console.log('⏹️ Karaoke fermato');
+    }
+
+    // ════════════════════════════════════════════════════════════════
+    // 🔊 EFFETTI AUDIO
+    // ════════════════════════════════════════════════════════════════
+
+    let audioEnabled = true;
+
+    function playSfx(effect, duration) {
+        const data = { effect: effect };
+        if (duration) data.duration = duration;
+        socket.emit('play_sfx', data);
+        console.log('🔊 SFX inviato:', effect);
+    }
+
+    function toggleAudioEnabled() {
+        audioEnabled = !audioEnabled;
+        socket.emit('audio_set_enabled', { enabled: audioEnabled });
+        const btn = document.getElementById('audio-toggle-btn');
+        if (audioEnabled) {
+            btn.textContent = '🔊 ON';
+            btn.className = 'flex-1 btn-success text-white font-bold py-1.5 rounded text-xs';
+        } else {
+            btn.textContent = '🔇 OFF';
+            btn.className = 'flex-1 btn-danger text-white font-bold py-1.5 rounded text-xs';
+        }
+        console.log('🔊 Audio:', audioEnabled ? 'ON' : 'OFF');
+    }
+
+    function setAudioVolume(val) {
+        const volume = parseInt(val) / 100;
+        socket.emit('audio_set_volume', { volume: volume });
+        document.getElementById('audio-volume-label').textContent = val + '%';
+        console.log('🔊 Volume:', val + '%');
     }
 
     // Ruota della Fortuna Functions

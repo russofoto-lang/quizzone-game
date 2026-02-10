@@ -301,6 +301,23 @@
     let maxTime = 20;
     let currentStreak = 0;
 
+    // ════════════════════════════════════════════════════════════════
+    // WAKE LOCK - Tiene lo schermo acceso durante il gioco
+    // ════════════════════════════════════════════════════════════════
+    let wakeLock = null;
+    async function requestWakeLock() {
+      if (!('wakeLock' in navigator)) return;
+      try {
+        wakeLock = await navigator.wakeLock.request('screen');
+        wakeLock.addEventListener('release', () => { wakeLock = null; });
+      } catch (err) { /* Browser non supporta o ha rifiutato */ }
+    }
+    // Riacquisisci il lock quando la tab torna in primo piano
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible' && !wakeLock) requestWakeLock();
+    });
+    requestWakeLock();
+
     // Initialize audio on first touch (mobile requires user gesture)
     document.addEventListener('touchstart', function initAudio() {
         SipontoAudio.init();

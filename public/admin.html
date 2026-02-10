@@ -29,16 +29,55 @@
         .step-btn.active { opacity: 1; pointer-events: auto; }
         .preview-frame { background: #000; border: 2px solid rgba(255,255,255,0.1); border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
         .admin-panel { background: rgba(15,23,42,0.6); border: 1px solid rgba(255,255,255,0.06); border-radius: 0.5rem; }
+
+        /* Toast Notification System */
+        #toast-container { position: fixed; top: 12px; right: 12px; z-index: 9999; display: flex; flex-direction: column; gap: 6px; max-width: 340px; pointer-events: none; }
+        .toast { pointer-events: auto; padding: 10px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; color: white; backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 4px 20px rgba(0,0,0,0.4); animation: toastIn 0.25s ease-out; transition: opacity 0.3s, transform 0.3s; }
+        .toast.removing { opacity: 0; transform: translateX(100%); }
+        .toast-info { background: rgba(59,130,246,0.9); }
+        .toast-success { background: rgba(16,185,129,0.9); }
+        .toast-warning { background: rgba(245,158,11,0.9); }
+        .toast-error { background: rgba(239,68,68,0.9); }
+        @keyframes toastIn { from { opacity: 0; transform: translateX(50px); } to { opacity: 1; transform: translateX(0); } }
+
+        /* Connection Status */
+        .conn-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+        .conn-dot.connected { background: #10b981; box-shadow: 0 0 6px #10b981; }
+        .conn-dot.disconnected { background: #ef4444; box-shadow: 0 0 6px #ef4444; animation: pulse 1s infinite; }
+        .conn-dot.reconnecting { background: #f59e0b; box-shadow: 0 0 6px #f59e0b; animation: pulse 0.5s infinite; }
+
+        /* Game mode badge */
+        .mode-badge { padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        /* Question search */
+        .search-input { background: rgba(31,41,55,0.8); border: 1px solid rgba(255,255,255,0.1); color: white; font-size: 12px; padding: 4px 8px; border-radius: 4px; width: 100%; }
+        .search-input:focus { outline: none; border-color: rgba(59,130,246,0.5); box-shadow: 0 0 8px rgba(59,130,246,0.2); }
+        .search-input::placeholder { color: rgba(255,255,255,0.3); }
+
+        /* Score change animation */
+        @keyframes scoreUp { from { color: #10b981; transform: scale(1.2); } to { color: #facc15; transform: scale(1); } }
+        @keyframes scoreDown { from { color: #ef4444; transform: scale(1.2); } to { color: #facc15; transform: scale(1); } }
+        .score-changed-up { animation: scoreUp 0.5s ease-out; }
+        .score-changed-down { animation: scoreDown 0.5s ease-out; }
     </style>
 </head>
 <body class="h-screen flex flex-col overflow-hidden">
+
+<!-- Toast Container -->
+<div id="toast-container"></div>
 
 <!-- HEADER MINIMAL -->
 <div class="px-4 py-2 border-b border-white/10" style="background: linear-gradient(90deg, rgba(7,11,20,0.95), rgba(15,23,42,0.95));">
     <div class="flex justify-between items-center">
         <div class="flex items-center gap-4">
             <h1 class="font-display font-black text-xl text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-orange-400 to-red-500">CONTROL CENTER</h1>
+            <div class="flex items-center gap-2">
+                <span class="conn-dot disconnected" id="conn-status-dot"></span>
+                <span id="conn-status-text" class="text-xs text-gray-500">Connessione...</span>
+            </div>
             <span id="question-counter" class="text-lg font-bold text-gray-400">Q: 0</span>
+            <span id="game-mode-badge" class="mode-badge bg-gray-700 text-gray-400 hidden">IDLE</span>
+            <span id="teams-count" class="text-xs font-bold text-gray-500">0 squadre</span>
         </div>
         
         <!-- Layout Presets -->
@@ -82,9 +121,13 @@
         </div>
 
         <!-- Lista Domande -->
-        <div class="flex-1 admin-panel p-2 overflow-hidden">
-            <div class="text-sm font-bold text-blue-400 mb-1 uppercase">📋 Domande</div>
-            <div id="questions-container" class="overflow-y-auto h-full text-xs">
+        <div class="flex-1 admin-panel p-2 overflow-hidden flex flex-col">
+            <div class="flex justify-between items-center mb-1">
+                <div class="text-sm font-bold text-blue-400 uppercase">📋 Domande</div>
+                <span id="questions-count" class="text-[10px] text-gray-500 font-bold">0</span>
+            </div>
+            <input type="text" id="question-search" class="search-input mb-1" placeholder="Cerca domanda..." oninput="filterQuestions()">
+            <div id="questions-container" class="overflow-y-auto flex-1 text-xs">
                 <div class="text-gray-500 text-center py-4">Seleziona tipo...</div>
             </div>
         </div>
@@ -518,20 +561,94 @@
 </div>
 
 <script>
-    const socket = io();
+    // Ottimizzazione Socket.io: preferisci WebSocket, compressione, riconnessione veloce
+    const socket = io({
+      transports: ['websocket', 'polling'],
+      reconnection: true,
+      reconnectionAttempts: Infinity,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
+      timeout: 10000
+    });
     let currentQuestions = [], selectedQ = null, dbStructure = {};
     let isPaused = false, finaleActive = false, finaleQuestionCount = 0;
     let totalQuestionsAsked = 0, allInPrepared = false, totalTeams = 0;
-    let gameState = { teams: {} }; // Stato temporaneo
+    let gameState = { teams: {} };
+    let previousScores = {}; // Per animazione cambio punteggio
+    let currentGameMode = 'idle'; // Traccia modalità corrente
 
-    socket.on('connect', () => { socket.emit('admin_connect'); });
-    
-    socket.on('init_data', (d) => { 
-        dbStructure = d; 
+    // ============================================
+    // TOAST NOTIFICATION SYSTEM (sostituisce alert)
+    // ============================================
+    function showToast(message, type = 'info', duration = 3000) {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+        toast.textContent = message;
+        container.appendChild(toast);
+        setTimeout(() => {
+            toast.classList.add('removing');
+            setTimeout(() => toast.remove(), 300);
+        }, duration);
+    }
+
+    // ============================================
+    // CONNECTION STATUS
+    // ============================================
+    function updateConnectionStatus(status) {
+        const dot = document.getElementById('conn-status-dot');
+        const text = document.getElementById('conn-status-text');
+        dot.className = 'conn-dot ' + status;
+        const labels = { connected: 'Connesso', disconnected: 'Disconnesso', reconnecting: 'Riconnessione...' };
+        text.textContent = labels[status] || status;
+        text.className = 'text-xs ' + (status === 'connected' ? 'text-green-400' : status === 'disconnected' ? 'text-red-400' : 'text-yellow-400');
+    }
+
+    socket.on('connect', () => {
+        updateConnectionStatus('connected');
+        socket.emit('admin_connect');
+        showToast('Connesso al server', 'success', 2000);
+    });
+    socket.on('disconnect', () => {
+        updateConnectionStatus('disconnected');
+        showToast('Connessione persa! Riconnessione...', 'error', 4000);
+    });
+    socket.on('reconnect_attempt', (n) => {
+        updateConnectionStatus('reconnecting');
+    });
+    socket.on('reconnect', () => {
+        updateConnectionStatus('connected');
+        socket.emit('admin_connect');
+        showToast('Riconnesso!', 'success', 2000);
+    });
+
+    // ============================================
+    // GAME MODE STATUS
+    // ============================================
+    function setGameMode(mode) {
+        currentGameMode = mode;
+        const badge = document.getElementById('game-mode-badge');
+        const modes = {
+            idle: { text: 'IDLE', bg: 'bg-gray-700', color: 'text-gray-400' },
+            quiz: { text: 'QUIZ', bg: 'bg-blue-600', color: 'text-white' },
+            buzzer: { text: 'BUZZER', bg: 'bg-red-600', color: 'text-white' },
+            memory: { text: 'MEMORY', bg: 'bg-purple-600', color: 'text-white' },
+            duello: { text: 'DUELLO', bg: 'bg-orange-600', color: 'text-white' },
+            finale: { text: 'FINALE', bg: 'bg-red-700', color: 'text-white' },
+            ruota: { text: 'RUOTA', bg: 'bg-yellow-600', color: 'text-black' },
+            patto: { text: 'PATTO', bg: 'bg-purple-700', color: 'text-white' }
+        };
+        const m = modes[mode] || modes.idle;
+        badge.textContent = m.text;
+        badge.className = `mode-badge ${m.bg} ${m.color}`;
+        badge.classList.remove('hidden');
+    }
+
+    socket.on('init_data', (d) => {
+        dbStructure = d;
         totalTeams = d.teams.length;
-        updateTeams(d.teams); 
+        updateTeams(d.teams);
         populateCategories();
-        // ✅ Carica automaticamente la preview all'avvio
         refreshPreview();
     });
 
@@ -567,18 +684,46 @@
 
     function showQuestionsList(questions) {
         const container = document.getElementById('questions-container');
+        const countEl = document.getElementById('questions-count');
         container.innerHTML = '';
-        
+        countEl.textContent = questions.length;
+
+        // Usa DocumentFragment per performance DOM
+        const fragment = document.createDocumentFragment();
         questions.forEach((item, i) => {
             const div = document.createElement('div');
             div.className = 'p-2 bg-gray-800 rounded mb-1 cursor-pointer hover:bg-gray-700 border border-gray-700';
+            div.dataset.index = i;
             div.innerHTML = `
-                <div class="font-bold text-blue-400">Q${i+1}</div>
-                <div class="leading-tight mt-0.5">${item.domanda.substring(0,50)}...</div>
+                <div class="flex justify-between items-center">
+                    <span class="font-bold text-blue-400">Q${i+1}</span>
+                    <span class="text-[9px] text-gray-500">${item.punti || 100}pt</span>
+                </div>
+                <div class="leading-tight mt-0.5">${item.domanda.substring(0,60)}${item.domanda.length > 60 ? '...' : ''}</div>
             `;
             div.onclick = () => selectQuestion(i);
-            container.appendChild(div);
+            fragment.appendChild(div);
         });
+        container.appendChild(fragment);
+
+        // Reset search
+        document.getElementById('question-search').value = '';
+    }
+
+    function filterQuestions() {
+        const query = document.getElementById('question-search').value.toLowerCase().trim();
+        const container = document.getElementById('questions-container');
+        const items = container.children;
+        let visibleCount = 0;
+
+        for (let i = 0; i < items.length; i++) {
+            const text = items[i].textContent.toLowerCase();
+            const match = !query || text.includes(query);
+            items[i].style.display = match ? '' : 'none';
+            if (match) visibleCount++;
+        }
+
+        document.getElementById('questions-count').textContent = query ? `${visibleCount}/${currentQuestions.length}` : currentQuestions.length;
     }
 
     function selectQuestion(index) {
@@ -590,13 +735,14 @@
         });
     }
 
-    function lanciaQuiz() { if(selectedQ) lancia('quiz'); else alert('❌ Seleziona domanda!'); }
-    function lanciaBuzzer() { if(selectedQ) lancia('buzzer'); else alert('❌ Seleziona una domanda prima!'); }
+    function lanciaQuiz() { if(selectedQ) lancia('quiz'); else showToast('Seleziona una domanda!', 'error'); }
+    function lanciaBuzzer() { if(selectedQ) lancia('buzzer'); else showToast('Seleziona una domanda prima!', 'error'); }
 
     function lancia(m) {
         totalQuestionsAsked++;
         document.getElementById('question-counter').textContent = `Q: ${totalQuestionsAsked}`;
-        
+        setGameMode(m === 'buzzer' ? 'buzzer' : finaleActive ? 'finale' : 'quiz');
+
         if(finaleActive) {
             finaleQuestionCount++;
             updateFinaleProgress();
@@ -700,8 +846,9 @@
         socket.emit('buzzer_reset'); 
     }
     
-    function openBuzzerStandalone() { 
+    function openBuzzerStandalone() {
         socket.emit('start_buzzer', { domanda: '🎵 Premi quando sai la risposta!' });
+        setGameMode('buzzer');
         console.log('🎵 Buzzer standalone attivato');
     }
     
@@ -723,26 +870,42 @@
 
     socket.on('update_teams', (teams) => {
         totalTeams = teams.length;
+        document.getElementById('teams-count').textContent = `${teams.length} squadre`;
+
         const lb = document.getElementById('leaderboard-center');
-        lb.innerHTML = '';
-        const sorted = teams.sort((a, b) => b.score - a.score);
+        const sorted = [...teams].sort((a, b) => b.score - a.score);
+
+        // Usa DocumentFragment per ridurre reflow DOM
+        const fragment = document.createDocumentFragment();
         sorted.forEach((t, i) => {
             const medals = ['🥇', '🥈', '🥉'];
             const medal = i < 3 ? medals[i] : `${i + 1}°`;
-            lb.innerHTML += `
-                <div class="bg-gray-800/70 rounded-lg p-2 flex items-center justify-between border border-gray-700">
-                    <div class="flex items-center gap-2 flex-1 min-w-0">
-                        <span class="text-xl">${medal}</span>
-                        <span class="font-bold text-white text-sm truncate">${t.name}</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <span class="text-yellow-400 font-black text-sm">${t.score}</span>
-                        <button onclick="adjustPoints('${t.id}', 50)" class="bg-green-600 hover:bg-green-500 text-white font-bold px-2 py-1 rounded text-xs">+</button>
-                        <button onclick="adjustPoints('${t.id}', -50)" class="bg-red-600 hover:bg-red-500 text-white font-bold px-2 py-1 rounded text-xs">−</button>
-                    </div>
+
+            // Rileva cambio punteggio per animazione
+            const prevScore = previousScores[t.id];
+            let scoreClass = 'text-yellow-400 font-black text-sm';
+            if (prevScore !== undefined && prevScore !== t.score) {
+                scoreClass += t.score > prevScore ? ' score-changed-up' : ' score-changed-down';
+            }
+            previousScores[t.id] = t.score;
+
+            const div = document.createElement('div');
+            div.className = 'bg-gray-800/70 rounded-lg p-2 flex items-center justify-between border border-gray-700';
+            div.innerHTML = `
+                <div class="flex items-center gap-2 flex-1 min-w-0">
+                    <span class="text-xl">${medal}</span>
+                    <span class="font-bold text-white text-sm truncate">${t.name}</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="${scoreClass}">${t.score}</span>
+                    <button onclick="adjustPoints('${t.id}', 50)" class="bg-green-600 hover:bg-green-500 text-white font-bold px-2 py-1 rounded text-xs">+</button>
+                    <button onclick="adjustPoints('${t.id}', -50)" class="bg-red-600 hover:bg-red-500 text-white font-bold px-2 py-1 rounded text-xs">−</button>
                 </div>
             `;
+            fragment.appendChild(div);
         });
+        lb.innerHTML = '';
+        lb.appendChild(fragment);
     });
 
     // ✅ Funzione per aggiungere/togliere punti
@@ -758,7 +921,7 @@
     function playYoutubeKaraoke() {
         const videoId = document.getElementById('youtube-id-input').value.trim();
         if(!videoId) {
-            alert('❌ Inserisci un Video ID!');
+            showToast('Inserisci un Video ID!', 'error');
             return;
         }
         socket.emit('play_youtube_karaoke', { videoId: videoId });
@@ -845,6 +1008,7 @@
             case 1:
                 // Spiega regole
                 socket.emit('ruota_step', { step: 'explain' });
+                setGameMode('ruota');
                 console.log('🎰 Spiegazione Ruota');
                 break;
             case 2:
@@ -855,7 +1019,7 @@
             case 3:
                 // Mostra scelta al telefono
                 if(!ruotaWinner) {
-                    alert('⚠️ Prima gira la ruota!');
+                    showToast('Prima gira la ruota!', 'warning');
                     return;
                 }
                 socket.emit('ruota_step', { step: 'choice', teamId: ruotaWinner.id });
@@ -865,13 +1029,11 @@
                 // Lancia domanda sfida
                 // ✅ FIX: Controllo migliorato - verifica sia squadra che domanda
                 if(!ruotaWinner) {
-                    alert('⚠️ Prima gira la ruota e aspetta che venga estratta una squadra!');
-                    console.log('❌ Errore: Nessuna squadra estratta');
+                    showToast('Prima gira la ruota e aspetta l\'estrazione!', 'warning');
                     return;
                 }
                 if(!selectedQ) {
-                    alert('⚠️ Seleziona una domanda dalla lista prima di lanciarla!');
-                    console.log('❌ Errore: Nessuna domanda selezionata');
+                    showToast('Seleziona una domanda dalla lista!', 'warning');
                     return;
                 }
                 console.log('🎰 Invio domanda sfida:', selectedQ.domanda, 'a squadra:', ruotaWinner.name);
@@ -902,12 +1064,13 @@
             case 1:
                 // Avvia duello - estrae attaccante
                 socket.emit('duello_start');
+                setGameMode('duello');
                 console.log('🔥 Duello avviato');
                 break;
             case 2:
                 // Mostra scelta avversario
                 if(!duelloAttaccante) {
-                    alert('⚠️ Prima avvia il duello!');
+                    showToast('Prima avvia il duello!', 'warning');
                     return;
                 }
                 socket.emit('duello_show_opponent_choice');
@@ -916,7 +1079,7 @@
             case 3:
                 // Mostra scelta categoria
                 if(!duelloDifensore) {
-                    alert('⚠️ Prima scegli l\'avversario!');
+                    showToast('Prima scegli l\'avversario!', 'warning');
                     return;
                 }
                 socket.emit('duello_show_category_choice');
@@ -925,11 +1088,11 @@
             case 4:
                 // Lancia domanda duello
                 if(!duelloCategoria) {
-                    alert('⚠️ Prima scegli la categoria!');
+                    showToast('Prima scegli la categoria!', 'warning');
                     return;
                 }
                 if(!selectedQ) {
-                    alert('⚠️ Seleziona una domanda dalla categoria ' + duelloCategoria + '!');
+                    showToast('Seleziona una domanda dalla categoria ' + duelloCategoria + '!', 'warning');
                     return;
                 }
                 socket.emit('duello_launch_question', { question: selectedQ });
@@ -1003,14 +1166,15 @@
 
     // Prossima domanda
     socket.on('duello_next_question', () => {
-        alert('✅ Punto segnato! Lancia la prossima domanda (2 o 3)');
+        showToast('Punto segnato! Lancia la prossima domanda', 'success');
         console.log('🔥 Pronto per prossima domanda');
     });
 
     // Fine duello
     socket.on('duello_end', (data) => {
-        alert(`🏆 ${data.winner.name} VINCE IL DUELLO!\n\n${data.pointsChange}`);
-        
+        showToast(`${data.winner.name} VINCE IL DUELLO!`, 'success', 5000);
+        setGameMode('idle');
+
         // Reset UI duello
         duelloAttaccante = null;
         duelloDifensore = null;
@@ -1037,8 +1201,9 @@
     // ════════════════════════════════════════════════════════════════
 
     function startMemoryGame() {
-        if(confirm('🧠 Avviare Memory Game (3 manche)?')) {
+        if(confirm('Avviare Memory Game (3 round)?')) {
             socket.emit('memory_start');
+            setGameMode('memory');
             document.getElementById('memory-status').classList.remove('hidden');
             console.log('🧠 Memory avviato');
         }
@@ -1050,8 +1215,9 @@
     }
 
     function stopMemoryGame() {
-        if(confirm('🛑 Fermare Memory Game?')) {
+        if(confirm('Fermare Memory Game?')) {
             socket.emit('memory_stop');
+            setGameMode('idle');
             document.getElementById('memory-status').classList.add('hidden');
             console.log('🧠 Memory fermato');
         }
@@ -1072,9 +1238,10 @@
     }
 
     function startFinale() {
-        if(confirm('🔥 ATTENZIONE: Iniziare la SFIDA FINALE?\n\nLa classifica verrà nascosta fino alla fine.')) {
+        if(confirm('ATTENZIONE: Iniziare la SFIDA FINALE?\nLa classifica verrà nascosta.')) {
             socket.emit('start_finale');
             finaleActive = true;
+            setGameMode('finale');
             finaleQuestionCount = 0;
             document.getElementById('finale-progress').classList.remove('hidden');
             activateStep(3);
@@ -1084,7 +1251,7 @@
 
     function prepareAllIn() {
         if(!selectedQ) {
-            alert('❌ Seleziona una domanda per ALL IN!');
+            showToast('Seleziona una domanda per ALL IN!', 'error');
             return;
         }
         
@@ -1111,7 +1278,7 @@
         // Dopo 10 secondi, abilita elaborazione
         setTimeout(() => {
             activateStep(5);
-            alert('✅ Risultati mostrati sul display.\nOra clicca "5️⃣ Elabora Punteggi" per aggiornare i punteggi.');
+            showToast('Risultati mostrati! Clicca "Elabora Punteggi"', 'info', 4000);
         }, 1000);
     }
 
@@ -1122,9 +1289,10 @@
     }
 
     function revealWinner() {
-        if(confirm('🏆 RIVELARE IL VINCITORE FINALE?\n\nLa classifica tornerà visibile a tutti.')) {
+        if(confirm('RIVELARE IL VINCITORE FINALE?')) {
             socket.emit('reveal_winner');
             finaleActive = false;
+            setGameMode('idle');
             document.getElementById('finale-progress').classList.add('hidden');
             activateStep(1);
             console.log('🏆 Vincitore finale rivelato');
@@ -1147,7 +1315,7 @@
     });
 
     socket.on('allin_results_processed', (data) => {
-        alert(`✅ RISULTATI ALL IN ELABORATI!\n\n${data.correctCount}/${data.totalBets} squadre corrette\n\nOra puoi lanciare le domande 2-5 (x2 punti).`);
+        showToast(`ALL IN: ${data.correctCount}/${data.totalBets} corrette. Lancia domande 2-5 (x2)`, 'success', 5000);
         console.log('✅ Risultati ALL IN elaborati:', data);
     });
 
@@ -1255,7 +1423,7 @@
             });
             console.log('📺 Soluzione inviata:', selectedQ.corretta);
         } else {
-            alert('❌ Seleziona una domanda prima!');
+            showToast('Seleziona una domanda prima!', 'error');
         }
     }
 
@@ -1309,6 +1477,16 @@
     // Nascondi quando cambia domanda
     socket.on('nuova_domanda', () => {
         document.getElementById('correct-answer-preview').classList.add('hidden');
+    });
+
+    // Team connect/disconnect notifications
+    socket.on('team_joined', (data) => {
+        if (!data.isPreview) {
+            showToast(`${data.name} si è unito!`, 'success', 2500);
+        }
+    });
+    socket.on('team_left', (data) => {
+        showToast(`${data.name} disconnesso`, 'warning', 2500);
     });
 
     // ✅ Ricevi dati delle domande all'avvio
@@ -1395,6 +1573,7 @@
     
     function pattoAvvia() {
         socket.emit('admin_avvia_patto_destino');
+        setGameMode('patto');
     }
     
     function pattoReset() {
@@ -1428,11 +1607,11 @@
     
     // Mostra errori
     socket.on('patto_max_utilizzi_raggiunto', () => {
-        alert('⚠️ Hai già utilizzato Il Patto col Destino 2 volte!');
+        showToast('Max utilizzi Patto col Destino raggiunto!', 'warning');
     });
     
     socket.on('patto_squadre_insufficienti', () => {
-        alert('⚠️ Servono almeno 2 squadre per giocare!');
+        showToast('Servono almeno 2 squadre per giocare!', 'warning');
     });
     
     // ============================================

@@ -100,6 +100,7 @@ let gameState = {
   roundAnswers: [],
   isPaused: false,
   roundScores: {}, // ? FIX: Aggiunto per tracciare i punteggi del round
+  roundDetails: [], // 🆕 Dettagli completi delle risposte del round (squadra, risposta, tempo, punti)
   hideLeaderboard: false, // ✅ FIX 5: Per nascondere classifica durante finale
   ruotaWinner: null, // ✅ Per ruota della fortuna
   ruotaChoice: null, // ✅ Per ruota della fortuna
@@ -892,6 +893,17 @@ io.on('connection', (socket) => {
       points: pointsEarned
     });
     
+    // 🆕 Salva i dettagli completi per il podio
+    gameState.roundDetails.push({
+      teamId: socket.id,
+      teamName: team.name,
+      name: team.name, // Per compatibilità con display
+      risposta: data.risposta,
+      corretta: isCorrect,
+      tempo: time,
+      punti: pointsEarned
+    });
+    
     socket.emit('risposta_inviata', {
       corretta: isCorrect,
       time: time,
@@ -916,24 +928,32 @@ io.on('connection', (socket) => {
     // ✅ FIX: Reset round scores (per iniziare un nuovo round/prova)
     if (cmd === 'reset_round') {
       gameState.roundScores = {};
-      console.log('🔄 Round scores resettati - Nuovo round iniziato');
+      gameState.roundDetails = [];
+      console.log('🔄 Round scores e details resettati - Nuovo round iniziato');
       return;
     }
     
     // ✅ FIX 4: Gestisci il comando "podio" per mostrare classifica round
     if (cmd === 'classifica_round' || cmd === 'podio') {
-      // Calcola e invia la classifica del round corrente
-      const roundResults = Object.entries(gameState.roundScores || {}).map(([teamId, points]) => {
-        const team = gameState.teams[teamId];
-        return {
-          id: teamId,
-          name: team ? team.name : 'Unknown',
-          roundPoints: points
-        };
-      }).sort((a, b) => b.roundPoints - a.roundPoints);
-      
-      io.emit('cambia_vista', { view: 'classifica_round', data: { results: roundResults } });
-      console.log('🏆 Mostro podio round con', roundResults.length, 'squadre');
+      // Se abbiamo dettagli completi (con risposte), usiamo quelli
+      if (gameState.roundDetails && gameState.roundDetails.length > 0) {
+        const sortedDetails = [...gameState.roundDetails].sort((a, b) => b.punti - a.punti);
+        io.emit('cambia_vista', { view: 'classifica_round', data: { results: sortedDetails } });
+        console.log('🏆 Mostro podio round DETTAGLIATO con', sortedDetails.length, 'risposte');
+      } else {
+        // Altrimenti mostriamo solo i punteggi totali del round
+        const roundResults = Object.entries(gameState.roundScores || {}).map(([teamId, points]) => {
+          const team = gameState.teams[teamId];
+          return {
+            id: teamId,
+            name: team ? team.name : 'Unknown',
+            roundPoints: points
+          };
+        }).sort((a, b) => b.roundPoints - a.roundPoints);
+        
+        io.emit('cambia_vista', { view: 'classifica_round', data: { results: roundResults } });
+        console.log('🏆 Mostro podio round SEMPLICE con', roundResults.length, 'squadre');
+      }
     } else {
       io.emit('cambia_vista', { view: cmd });
       console.log('📺 Vista:', cmd);
@@ -969,6 +989,7 @@ io.on('connection', (socket) => {
     gameState.roundAnswers = [];
     gameState.isPaused = false;
     gameState.roundScores = {};
+    gameState.roundDetails = [];
     gameState.ruotaWinner = null;
     gameState.ruotaChoice = null;
     gameState.ruotaChallenge = null;
@@ -1008,6 +1029,20 @@ io.on('connection', (socket) => {
         gameState.roundScores[data.teamId] = 0;
       }
       gameState.roundScores[data.teamId] += data.points;
+      
+      // 🆕 Aggiungi ai dettagli del round (se non è già presente una risposta per questa squadra)
+      const alreadyAnswered = gameState.roundDetails.some(d => d.teamId === data.teamId);
+      if (!alreadyAnswered) {
+        gameState.roundDetails.push({
+          teamId: data.teamId,
+          teamName: team.name,
+          name: team.name,
+          risposta: '-',
+          corretta: data.points > 0,
+          tempo: '-',
+          punti: data.points
+        });
+      }
       
       const realTeams = Object.values(gameState.teams).filter(t => !t.isPreview);
       io.emit('update_teams', realTeams);

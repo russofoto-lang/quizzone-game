@@ -7,6 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
     <style>
         /* FORMATO 16:9 FISSO */
         html, body {
@@ -15,25 +16,24 @@
             overflow: hidden;
             width: 100vw;
             height: 100vh;
-            background: #0f172a;
+            background: #070b14;
         }
-        
+
         #app-container {
             position: relative;
             width: 100vw;
-            height: 56.25vw; /* 16:9 aspect ratio */
+            height: 56.25vw;
             max-height: 100vh;
-            max-width: 177.78vh; /* 16:9 aspect ratio */
+            max-width: 177.78vh;
             margin: auto;
-            background: #0f172a;
+            background: #070b14;
             color: white;
             overflow: hidden;
             font-family: 'Inter', sans-serif;
-            display: flex; /* ✅ FIX: Flexbox per gestire meglio il contenuto */
+            display: flex;
             flex-direction: column;
         }
-        
-        /* Se l'altezza è il fattore limitante, centriamo verticalmente */
+
         @media (max-aspect-ratio: 16/9) {
             #app-container {
                 width: 177.78vh;
@@ -42,17 +42,69 @@
             }
         }
 
-        .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
-        #qrcode img { margin: 0 auto; border: 15px solid white; border-radius: 10px; }
+        /* Animated gradient background */
+        .bg-animated {
+            background: linear-gradient(-45deg, #070b14, #0c1629, #111b33, #0a1022);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+        }
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
 
-    /* ✅ FIX: Gestione overflow per contenuti lunghi */
+        /* Particle stars background */
+        .stars-bg::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image:
+                radial-gradient(2px 2px at 20px 30px, rgba(255,255,255,0.3), transparent),
+                radial-gradient(2px 2px at 40px 70px, rgba(255,255,255,0.2), transparent),
+                radial-gradient(1px 1px at 90px 40px, rgba(255,255,255,0.4), transparent),
+                radial-gradient(1px 1px at 130px 80px, rgba(255,255,255,0.2), transparent),
+                radial-gradient(2px 2px at 160px 30px, rgba(255,255,255,0.3), transparent);
+            background-size: 200px 100px;
+            animation: twinkle 4s ease-in-out infinite alternate;
+            pointer-events: none;
+            z-index: 0;
+        }
+        @keyframes twinkle {
+            0% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        /* Enhanced glass effect */
+        .glass {
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(16px) saturate(1.2);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255,255,255,0.08);
+        }
+
+        /* Neon glow utilities */
+        .neon-blue { text-shadow: 0 0 10px #3b82f6, 0 0 40px rgba(59,130,246,0.4); }
+        .neon-yellow { text-shadow: 0 0 10px #facc15, 0 0 40px rgba(250,204,21,0.4); }
+        .neon-red { text-shadow: 0 0 10px #ef4444, 0 0 40px rgba(239,68,68,0.4); }
+        .neon-green { text-shadow: 0 0 10px #22c55e, 0 0 40px rgba(34,197,94,0.4); }
+        .neon-purple { text-shadow: 0 0 10px #a855f7, 0 0 40px rgba(168,85,247,0.4); }
+
+        .glow-border-blue { box-shadow: 0 0 15px rgba(59,130,246,0.5), inset 0 0 15px rgba(59,130,246,0.1); }
+        .glow-border-yellow { box-shadow: 0 0 15px rgba(250,204,21,0.5), inset 0 0 15px rgba(250,204,21,0.1); }
+        .glow-border-red { box-shadow: 0 0 15px rgba(239,68,68,0.5), inset 0 0 15px rgba(239,68,68,0.1); }
+
+        /* Orbitron font for titles */
+        .font-display { font-family: 'Orbitron', 'Inter', sans-serif; }
+
+        #qrcode img { margin: 0 auto; border: 15px solid white; border-radius: 16px; box-shadow: 0 0 40px rgba(255,255,255,0.2); }
+
     .view-section {
         max-height: 100%;
         overflow-y: auto;
         overflow-x: hidden;
     }
-    
-    /* Nascondi scrollbar ma mantieni funzionalità */
+
     .view-section::-webkit-scrollbar {
         width: 0px;
         background: transparent;
@@ -62,13 +114,51 @@
     .question-text { font-size: clamp(2rem, 4vw, 4rem); line-height: 1.2; }
     .answer-option { font-size: clamp(1.5rem, 2.5vw, 2rem); }
     .category-text { font-size: clamp(1rem, 1.5vw, 1.5rem); }
-    
+
+    /* Enhanced answer cards */
+    .answer-card {
+        background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
+        border: 2px solid rgba(255,255,255,0.15);
+        border-radius: 1.5rem;
+        padding: 1.5rem;
+        font-weight: 700;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    .answer-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899);
+        opacity: 0.6;
+    }
+    .answer-card .letter-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 0.75rem;
+        background: linear-gradient(135deg, #3b82f6, #6366f1);
+        font-weight: 900;
+        margin-right: 1rem;
+        flex-shrink: 0;
+        box-shadow: 0 4px 12px rgba(59,130,246,0.4);
+    }
+
+    /* Podium effect for top 3 */
+    .podium-gold { background: linear-gradient(135deg, rgba(250,204,21,0.15), rgba(245,158,11,0.1)); border-left: 4px solid #facc15; }
+    .podium-silver { background: linear-gradient(135deg, rgba(148,163,184,0.15), rgba(100,116,139,0.1)); border-left: 4px solid #94a3b8; }
+    .podium-bronze { background: linear-gradient(135deg, rgba(217,119,6,0.15), rgba(180,83,9,0.1)); border-left: 4px solid #d97706; }
+
     @keyframes countdown-pulse {
         0%, 100% { transform: scale(1); }
         50% { transform: scale(1.1); }
     }
     .countdown-critical { animation: countdown-pulse 0.5s ease-in-out infinite; }
-    
+
     @keyframes confetti-fall {
         0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
         100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
@@ -77,78 +167,105 @@
         0% { transform: translateY(-100px) rotate(0deg); opacity: 1; }
         100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
     }
-    .confetti { 
-        position: absolute; 
-        width: 10px; 
-        height: 10px; 
-        animation: confetti-fall 3s linear infinite; 
+    .confetti {
+        position: absolute;
+        width: 12px;
+        height: 12px;
+        border-radius: 2px;
+        animation: confetti-fall 3s linear infinite;
     }
+
+    /* Enhanced timer bar */
+    .timer-bar-track {
+        background: rgba(255,255,255,0.08);
+        border-radius: 9999px;
+        height: 0.75rem;
+        overflow: hidden;
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+    }
+    .timer-bar-fill {
+        height: 100%;
+        border-radius: 9999px;
+        transition: all 1s linear;
+        box-shadow: 0 0 12px currentColor;
+    }
+
+    /* Spinning wheel enhancement */
+    .wheel-glow {
+        box-shadow: 0 0 60px rgba(250,204,21,0.5), 0 0 120px rgba(250,204,21,0.2);
+    }
+
+    /* Slide-in for leaderboard rows */
+    @keyframes slideInScore {
+        0% { transform: translateX(-40px); opacity: 0; }
+        100% { transform: translateX(0); opacity: 1; }
+    }
+    .score-row { animation: slideInScore 0.5s ease forwards; }
 </style>
 
 </head>
 <body>
-<div id="app-container" class="flex flex-col p-6">
+<div id="app-container" class="flex flex-col p-6 bg-animated stars-bg">
 
-<div class="h-[10%] flex justify-between items-center border-b border-gray-700 pb-2">
-    <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-red-600">SIPONTO FOREVER YOUNG</h1>
-    <div id="mini-leaderboard" class="text-xl font-mono text-blue-400"></div>
+<div class="h-[10%] flex justify-between items-center border-b border-white/10 pb-2 relative z-10">
+    <h1 class="font-display text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-orange-400 to-red-500 tracking-wider">SIPONTO FOREVER YOUNG</h1>
+    <div id="mini-leaderboard" class="text-xl font-mono text-blue-300 neon-blue"></div>
 </div>
 
 <div class="h-[90%] relative flex items-center justify-center">
 
     <!-- VISTA LOGO QR -->
     <div id="view-logo" class="view-section absolute inset-0 flex flex-col items-center justify-center">
-        <div class="glass p-10 rounded-[3rem] shadow-2xl text-center animate__animated animate__fadeInDown">
-            <h2 class="text-3xl font-bold mb-6 text-white uppercase tracking-tighter">Inquadra per partecipare</h2>
+        <div class="glass p-12 rounded-[3rem] shadow-2xl text-center animate__animated animate__fadeInDown glow-border-yellow">
+            <h2 class="text-3xl font-bold mb-6 text-white uppercase tracking-wider">Inquadra per partecipare</h2>
             <div id="qrcode" class="shadow-2xl"></div>
-            <p class="mt-6 text-2xl font-black text-yellow-500">quizzone-game.onrender.com</p>
+            <p class="mt-6 text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-400">quizzone-game.onrender.com</p>
         </div>
-        <div class="mt-10 text-gray-500 animate-pulse text-xl uppercase tracking-widest">Attesa inizio sessione...</div>
+        <div class="mt-10 text-gray-400 animate-pulse text-xl uppercase tracking-[0.4em]">Attesa inizio sessione...</div>
     </div>
 
     <!-- VISTA GIOCO -->
     <div id="view-gioco" class="view-section hidden absolute inset-0 flex flex-col items-center justify-center p-4">
-        <div id="buzzer-overlay" class="hidden absolute inset-0 bg-black/90 z-50 flex flex-col items-center justify-center p-6">
-            <p class="text-5xl text-red-500 font-black mb-6 animate__animated animate__bounceIn">⚡ PRENOTAZIONI BUZZER ⚡</p>
-            
-            <div class="bg-red-900/50 rounded-3xl p-6 max-w-4xl w-full max-h-[70vh] overflow-y-auto">
+        <div id="buzzer-overlay" class="hidden absolute inset-0 bg-black/95 z-50 flex flex-col items-center justify-center p-6">
+            <p class="font-display text-5xl text-red-400 font-black mb-8 animate__animated animate__bounceIn neon-red">PRENOTAZIONI BUZZER</p>
+
+            <div class="bg-red-900/30 rounded-3xl p-6 max-w-4xl w-full max-h-[70vh] overflow-y-auto glass glow-border-red">
                 <div id="buzzer-queue-display" class="space-y-3"></div>
             </div>
         </div>
 
-        <div class="bg-gray-800/80 w-full max-w-7xl p-6 rounded-[2rem] border-t-8 border-blue-500 shadow-2xl text-center glass max-h-[85vh] overflow-y-auto">
-            
+        <div class="bg-gray-900/70 w-full max-w-7xl p-8 rounded-[2rem] border-t-4 border-blue-500 shadow-2xl text-center glass glow-border-blue max-h-[85vh] overflow-y-auto">
+
             <!-- TIMER DISPLAY -->
-            <div id="timer-display-container" class="hidden mb-4">
-                <div class="flex justify-center items-center gap-4 mb-2">
-                    <span class="text-xl text-white font-semibold">Tempo rimasto:</span>
-                    <span id="timer-display-text" class="text-6xl font-black" style="color: #10b981;">20</span>
-                    <span class="text-2xl text-white">secondi</span>
+            <div id="timer-display-container" class="hidden mb-6">
+                <div class="flex justify-center items-center gap-4 mb-3">
+                    <span class="text-lg text-gray-300 font-semibold uppercase tracking-wider">Tempo rimasto</span>
+                    <span id="timer-display-text" class="text-7xl font-black font-display" style="color: #10b981;">20</span>
                 </div>
-                <div class="w-full bg-gray-700 rounded-full h-3 overflow-hidden">
-                    <div id="timer-display-bar" class="h-3 rounded-full transition-all duration-1000" style="background-color: #10b981; width: 100%;"></div>
+                <div class="timer-bar-track">
+                    <div id="timer-display-bar" class="timer-bar-fill" style="background-color: #10b981; width: 100%;"></div>
                 </div>
             </div>
 
-            <h2 id="cat" class="category-text font-bold text-blue-400 mb-4 uppercase tracking-[0.3em]">CATEGORIA</h2>
-            <div id="q-text" class="question-text font-black leading-tight mb-6 text-white px-4">Caricamento domanda...</div>
-            
-            <div id="opts" class="grid grid-cols-2 gap-4 hidden max-w-5xl mx-auto"></div>
+            <h2 id="cat" class="category-text font-bold text-blue-400 mb-4 uppercase tracking-[0.3em] neon-blue">CATEGORIA</h2>
+            <div id="q-text" class="question-text font-black leading-tight mb-8 text-white px-4">Caricamento domanda...</div>
 
-            <div id="solution" class="hidden mt-6 border-t border-gray-600 pt-6 animate__animated animate__fadeInUp">
-                <div class="inline-block bg-green-600 text-white px-8 py-4 rounded-full text-4xl font-black shadow-2xl uppercase italic">
-                    ✅ <span id="sol-text">RISPOSTA</span>
+            <div id="opts" class="grid grid-cols-2 gap-5 hidden max-w-5xl mx-auto"></div>
+
+            <div id="solution" class="hidden mt-8 border-t border-white/10 pt-8 animate__animated animate__fadeInUp">
+                <div class="inline-block bg-gradient-to-r from-green-600 to-emerald-500 text-white px-10 py-5 rounded-full text-4xl font-black shadow-2xl uppercase italic neon-green glow-border-blue" style="box-shadow: 0 0 30px rgba(34,197,94,0.5);">
+                    <span id="sol-text">RISPOSTA</span>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- VISTA CLASSIFICA ROUND -->
-    <div id="view-classifica_round" class="view-section hidden absolute inset-0 bg-indigo-950 z-40 flex flex-col items-center pt-10">
-        <h2 class="text-5xl font-black text-white mb-8 bg-indigo-600 px-12 py-3 rounded-full shadow-2xl italic">⚡ RISULTATI ROUND ⚡</h2>
+    <div id="view-classifica_round" class="view-section hidden absolute inset-0 bg-animated z-40 flex flex-col items-center pt-10">
+        <h2 class="font-display text-5xl font-black text-white mb-8 bg-gradient-to-r from-indigo-600 to-purple-600 px-12 py-4 rounded-full shadow-2xl neon-purple" style="box-shadow: 0 0 30px rgba(99,102,241,0.5);">RISULTATI ROUND</h2>
         <div class="w-full max-w-5xl h-[70vh] overflow-y-auto glass rounded-3xl p-6">
             <table class="w-full text-left text-2xl border-collapse">
-                <thead class="text-indigo-300 border-b-2 border-indigo-800">
+                <thead class="text-indigo-300 border-b-2 border-indigo-700/50">
                     <tr>
                         <th class="p-4">POS</th>
                         <th class="p-4">SQUADRA</th>
@@ -163,24 +280,24 @@
     </div>
 
     <!-- VISTA CLASSIFICA GENERALE -->
-    <div id="view-classifica_gen" class="view-section hidden absolute inset-0 bg-slate-900 z-40 flex flex-col items-center pt-10">
-        <h2 class="text-6xl font-black text-yellow-500 mb-10 uppercase tracking-tighter">🏆 Classifica Generale 🏆</h2>
+    <div id="view-classifica_gen" class="view-section hidden absolute inset-0 bg-animated stars-bg z-40 flex flex-col items-center pt-10">
+        <h2 class="font-display text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-yellow-400 to-amber-500 mb-10 uppercase tracking-wider neon-yellow">CLASSIFICA GENERALE</h2>
         <div class="w-full max-w-4xl h-[70vh] overflow-y-auto glass rounded-[3rem] p-8">
             <table class="w-full text-left text-3xl"><tbody id="full-leaderboard-body"></tbody></table>
         </div>
     </div>
 
     <!-- VISTA VINCITORE CON CONFETTI -->
-    <div id="view-winner" class="view-section hidden absolute inset-0 bg-gradient-to-br from-yellow-900 via-orange-900 to-red-900 z-50 flex flex-col items-center justify-center">
+    <div id="view-winner" class="view-section hidden absolute inset-0 bg-gradient-to-br from-yellow-900 via-orange-900 to-red-900 z-50 flex flex-col items-center justify-center" style="background: radial-gradient(ellipse at center, #3d1a00 0%, #1a0800 70%);">
         <div id="confetti-container" class="absolute inset-0 overflow-hidden"></div>
         <div class="relative z-10 text-center animate__animated animate__zoomIn">
-            <div class="text-9xl mb-8 animate-pulse">🎉</div>
-            <h1 class="text-8xl font-black uppercase mb-6 text-white">VINCITORE!</h1>
-            <div id="winner-name" class="text-7xl font-black text-yellow-300 mb-4 uppercase"></div>
-            <div class="text-5xl font-bold text-white mb-12">
-                <span id="winner-score"></span> PUNTI
+            <div class="text-9xl mb-6" style="animation: countdown-pulse 1.5s ease infinite;">🏆</div>
+            <h1 class="font-display text-8xl font-black uppercase mb-6 text-transparent bg-clip-text bg-gradient-to-b from-yellow-200 via-yellow-400 to-amber-600" style="text-shadow: none; filter: drop-shadow(0 0 30px rgba(250,204,21,0.6));">VINCITORE!</h1>
+            <div id="winner-name" class="font-display text-7xl font-black text-white mb-6 uppercase neon-yellow" style="text-shadow: 0 0 20px rgba(250,204,21,0.8), 0 0 60px rgba(250,204,21,0.4);"></div>
+            <div class="text-5xl font-bold text-yellow-200 mb-12">
+                <span id="winner-score" class="font-display text-7xl"></span> <span class="text-4xl">PUNTI</span>
             </div>
-            <div class="text-4xl text-white/80">🏆 COMPLIMENTI! 🏆</div>
+            <div class="text-3xl text-white/60 uppercase tracking-[0.5em]">Congratulazioni</div>
         </div>
     </div>
 
@@ -300,13 +417,13 @@
     </div>
 
     <!-- VISTA LOGO FOREVER YOUNG -->
-    <div id="view-logo_forever" class="view-section hidden absolute inset-0 bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 z-40 flex flex-col items-center justify-center">
+    <div id="view-logo_forever" class="view-section hidden absolute inset-0 z-40 flex flex-col items-center justify-center" style="background: radial-gradient(ellipse at center, #1a0533 0%, #070011 70%);">
         <div class="text-center animate__animated animate__zoomIn">
-            <div class="text-9xl mb-8">🎮</div>
-            <h1 class="text-9xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-pink-500 to-purple-600 mb-4">
+            <div class="text-9xl mb-6" style="animation: countdown-pulse 2s ease infinite;">🎮</div>
+            <h1 class="font-display text-9xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-pink-400 to-purple-500 mb-6" style="filter: drop-shadow(0 0 40px rgba(236,72,153,0.5));">
                 FOREVER YOUNG
             </h1>
-            <h2 class="text-7xl font-bold text-white">SIPONTO</h2>
+            <h2 class="font-display text-7xl font-bold text-white/90 tracking-[0.3em]">SIPONTO</h2>
         </div>
     </div>
 
@@ -410,16 +527,16 @@
     </div>
 
     <!-- VISTA RUOTA FORTUNA - SPINNING -->
-    <div id="view-ruota-spin" class="view-section hidden absolute inset-0 bg-gradient-to-br from-purple-900 via-pink-900 to-red-900 z-50 flex flex-col items-center justify-center">
+    <div id="view-ruota-spin" class="view-section hidden absolute inset-0 z-50 flex flex-col items-center justify-center" style="background: radial-gradient(ellipse at center, #2d1050 0%, #0a0015 80%);">
         <div class="text-center animate__animated animate__fadeIn">
-            <h1 class="text-7xl font-black text-yellow-400 mb-12 tracking-wider">
-                🎰 LA RUOTA GIRA... 🎰
+            <h1 class="font-display text-7xl font-black text-yellow-400 mb-12 tracking-wider neon-yellow">
+                LA RUOTA GIRA...
             </h1>
             <div id="wheel-container" class="relative w-96 h-96 mx-auto">
-                <div id="wheel" class="absolute inset-0 rounded-full border-8 border-yellow-400 bg-gradient-to-br from-yellow-500 to-orange-600 flex items-center justify-center text-6xl font-black text-white shadow-2xl animate-spin">
+                <div id="wheel" class="absolute inset-0 rounded-full border-8 border-yellow-400 bg-gradient-to-br from-yellow-500 via-orange-500 to-red-500 flex items-center justify-center text-6xl font-black text-white shadow-2xl animate-spin wheel-glow">
                     <span id="wheel-name">?</span>
                 </div>
-                <div class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-8 text-9xl">
+                <div class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-8 text-9xl" style="filter: drop-shadow(0 0 10px rgba(250,204,21,0.8));">
                     ▼
                 </div>
             </div>
@@ -1184,7 +1301,7 @@
         if(d.risposte && d.risposte.length > 0) { 
             o.classList.remove('hidden'); 
             d.risposte.forEach((r, idx) => {
-                o.innerHTML += `<div class="answer-option bg-white/10 p-6 rounded-2xl border-2 border-white/10 shadow-lg text-3xl font-bold">${String.fromCharCode(65+idx)}: ${r}</div>`;
+                o.innerHTML += `<div class="answer-card answer-option flex items-center text-3xl"><span class="letter-badge">${String.fromCharCode(65+idx)}</span>${r}</div>`;
             });
         }
         
@@ -1358,7 +1475,7 @@
         if(d.risposte && d.modalita !== 'buzzer' && d.modalita !== 'stima' && d.modalita !== 'anagramma') { 
             o.classList.remove('hidden'); 
             d.risposte.forEach((r, idx) => {
-                o.innerHTML += `<div class="answer-option bg-white/10 p-4 rounded-2xl border-2 border-white/10 shadow-lg font-bold">${String.fromCharCode(65+idx)}: ${r}</div>`;
+                o.innerHTML += `<div class="answer-card answer-option flex items-center"><span class="letter-badge">${String.fromCharCode(65+idx)}</span>${r}</div>`;
             });
         
         // ✅ PATCH 2: Calcola offset di rete
@@ -1484,7 +1601,7 @@
         o.classList.remove('hidden');
         
         d.risposte.forEach((r, idx) => {
-            o.innerHTML += `<div class="bg-white/10 p-6 rounded-2xl border-2 border-white/10 shadow-lg text-4xl font-bold">${String.fromCharCode(65+idx)}: ${r}</div>`;
+            o.innerHTML += `<div class="answer-card answer-option flex items-center text-4xl"><span class="letter-badge">${String.fromCharCode(65+idx)}</span>${r}</div>`;
         });
         
         questionStartTime = d.startTime;
@@ -1498,15 +1615,17 @@
         const realTeams = t.filter(team => !team.isPreview);
         realTeams.sort((a,b) => b.score - a.score);
         
-        const fb = document.getElementById('full-leaderboard-body'); 
+        const fb = document.getElementById('full-leaderboard-body');
         fb.innerHTML = '';
         realTeams.forEach((x,i) => {
             const medal = i === 0 ? '🥇' : (i === 1 ? '🥈' : (i === 2 ? '🥉' : i+1));
+            const podiumClass = i === 0 ? 'podium-gold' : (i === 1 ? 'podium-silver' : (i === 2 ? 'podium-bronze' : ''));
+            const scoreClass = i === 0 ? 'text-yellow-400 neon-yellow' : (i === 1 ? 'text-gray-300' : (i === 2 ? 'text-amber-500' : 'text-yellow-500/80'));
             fb.innerHTML += `
-            <tr class="border-b border-white/10 animate__animated animate__fadeInUp">
-                <td class="p-6 font-black text-4xl text-gray-400 w-24">${medal}</td>
+            <tr class="border-b border-white/5 ${podiumClass} score-row" style="animation-delay: ${i*0.08}s">
+                <td class="p-6 font-black text-4xl w-24">${medal}</td>
                 <td class="p-6 text-4xl font-bold uppercase">${x.name}</td>
-                <td class="p-6 text-right text-5xl font-black text-yellow-500">${x.score}</td>
+                <td class="p-6 text-right text-5xl font-black ${scoreClass}">${x.score}</td>
             </tr>`;
         });
         
@@ -1555,7 +1674,7 @@
         if(d.risposte) { 
             o.classList.remove('hidden'); 
             d.risposte.forEach((r, idx) => {
-                o.innerHTML += `<div class="answer-option bg-white/10 p-4 rounded-2xl border-2 border-white/10 shadow-lg font-bold">${String.fromCharCode(65+idx)}: ${r}</div>`;
+                o.innerHTML += `<div class="answer-card answer-option flex items-center"><span class="letter-badge">${String.fromCharCode(65+idx)}</span>${r}</div>`;
             });
         }
         
@@ -1707,15 +1826,22 @@
     function createConfetti() {
         const container = document.getElementById('confetti-container');
         container.innerHTML = '';
-        
-        for(let i = 0; i < 100; i++) {
+        const colors = ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#FF69B4', '#7C3AED', '#22C55E'];
+        const shapes = ['circle', 'square', 'rect'];
+
+        for(let i = 0; i < 150; i++) {
             const confetto = document.createElement('div');
-            confetto.className = 'absolute w-3 h-3 rounded-full animate-pulse';
+            const shape = shapes[Math.floor(Math.random() * shapes.length)];
+            const size = 6 + Math.random() * 10;
+            confetto.className = 'confetti';
             confetto.style.left = Math.random() * 100 + '%';
-            confetto.style.top = Math.random() * 100 + '%';
-            confetto.style.backgroundColor = ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A'][Math.floor(Math.random() * 5)];
-            confetto.style.animation = `fall ${2 + Math.random() * 3}s linear infinite`;
-            confetto.style.animationDelay = Math.random() * 2 + 's';
+            confetto.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            confetto.style.width = shape === 'rect' ? size * 2 + 'px' : size + 'px';
+            confetto.style.height = size + 'px';
+            confetto.style.borderRadius = shape === 'circle' ? '50%' : '2px';
+            confetto.style.animationDuration = (2 + Math.random() * 3) + 's';
+            confetto.style.animationDelay = Math.random() * 3 + 's';
+            confetto.style.opacity = 0.8 + Math.random() * 0.2;
             container.appendChild(confetto);
         }
     }

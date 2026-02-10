@@ -6,41 +6,64 @@
     <title>Siponto - Gioca</title>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
     <style>
-        /* ✅ ANIMAZIONI FEEDBACK PULSANTI */
+        /* Animated gradient background */
+        body {
+            background: linear-gradient(-45deg, #070b14, #0c1629, #111b33, #0a1022);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+        }
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .font-display { font-family: 'Orbitron', 'Inter', sans-serif; }
+
+        /* Enhanced glass effect */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(16px) saturate(1.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        /* Animations */
         @keyframes button-success {
             0% { transform: scale(1); }
             50% { transform: scale(1.05); background-color: #10b981; }
             100% { transform: scale(1); }
         }
-        
+
         .btn-feedback-success {
             animation: button-success 0.4s ease-out;
         }
-        
+
         @keyframes pulse-ring {
             0% { transform: scale(1); opacity: 1; }
             100% { transform: scale(1.3); opacity: 0; }
         }
-        
+
         .pulse-ring {
             animation: pulse-ring 0.6s ease-out;
         }
-        
-        /* ✅ TIMER CIRCOLARE */
+
+        /* Timer */
         .timer-circle-container {
             position: relative;
             width: 80px;
             height: 80px;
             margin: 0 auto;
         }
-        
+
         .timer-circle-bg {
             fill: none;
-            stroke: #374151;
+            stroke: #1e293b;
             stroke-width: 8;
         }
-        
+
         .timer-circle-progress {
             fill: none;
             stroke-width: 8;
@@ -49,7 +72,7 @@
             transform-origin: 50% 50%;
             transition: stroke-dashoffset 1s linear, stroke 0.3s ease;
         }
-        
+
         .timer-text {
             position: absolute;
             top: 50%;
@@ -58,12 +81,11 @@
             font-size: 1.5rem;
             font-weight: 900;
         }
-        
-        /* ✅ BUZZER CON TIMER CIRCOLARE */
+
         .buzzer-with-timer {
             position: relative;
         }
-        
+
         .buzzer-timer-ring {
             position: absolute;
             top: 50%;
@@ -71,29 +93,58 @@
             transform: translate(-50%, -50%);
             pointer-events: none;
         }
+
+        /* Answer buttons */
+        .answer-btn {
+            background: linear-gradient(135deg, rgba(37,99,235,0.9), rgba(79,70,229,0.9));
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            font-weight: 700;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 16px rgba(37,99,235,0.3);
+            transition: all 0.2s ease;
+            color: white;
+        }
+        .answer-btn:active {
+            transform: scale(0.95);
+            box-shadow: 0 2px 8px rgba(37,99,235,0.2);
+        }
+
+        /* Buzzer glow */
+        @keyframes buzzerGlow {
+            0%, 100% { box-shadow: 0 0 40px rgba(239,68,68,0.5), 0 0 80px rgba(239,68,68,0.2); }
+            50% { box-shadow: 0 0 60px rgba(239,68,68,0.7), 0 0 120px rgba(239,68,68,0.3); }
+        }
+        .buzzer-active {
+            animation: buzzerGlow 1.5s ease-in-out infinite;
+        }
     </style>
 </head>
-<body class="bg-gray-900 text-white h-screen flex flex-col">
-    <div id="login-screen" class="flex-1 flex flex-col items-center justify-center p-6 text-center">
-        <h1 class="text-4xl font-black mb-6 text-yellow-500 uppercase tracking-tighter">SIPONTO<br>FOREVER YOUNG</h1>
-        <input type="text" id="team-name" placeholder="Nome Squadra" class="w-full p-4 rounded-xl text-black text-center font-bold uppercase mb-4 text-xl">
-        <button onclick="login()" class="w-full bg-blue-600 py-4 rounded-xl font-bold text-xl shadow-lg active:scale-95">ENTRA NEL GIOCO</button>
+<body class="text-white h-screen flex flex-col">
+    <div id="login-screen" class="flex-1 flex flex-col items-center justify-center p-8 text-center">
+        <div class="glass-panel rounded-3xl p-8 w-full max-w-sm">
+            <h1 class="font-display text-3xl font-black mb-2 text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-orange-400 to-red-500 uppercase">SIPONTO</h1>
+            <h2 class="font-display text-2xl font-bold mb-8 text-white/80 uppercase tracking-wider">Forever Young</h2>
+            <input type="text" id="team-name" placeholder="Nome Squadra" class="w-full p-4 rounded-xl bg-white/10 text-white text-center font-bold uppercase mb-4 text-xl border border-white/20 placeholder-white/40 focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-400/30 transition-all">
+            <button onclick="login()" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 py-4 rounded-xl font-bold text-xl shadow-lg active:scale-95 transition-all border border-blue-400/30" style="box-shadow: 0 4px 20px rgba(59,130,246,0.4);">ENTRA NEL GIOCO</button>
+        </div>
     </div>
 
 <div id="game-screen" class="hidden flex-col h-full">
-    <div class="bg-gray-800 p-4 flex justify-between items-center border-b border-gray-700">
+    <div class="glass-panel p-4 flex justify-between items-center border-b border-white/10">
         <div class="flex items-center gap-2">
-            <span id="my-name" class="font-bold text-yellow-400 uppercase tracking-widest">---</span>
-            <span id="streak-indicator" class="hidden text-xs bg-orange-600 px-2 py-1 rounded font-bold">🔥 0</span>
+            <span id="my-name" class="font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-orange-400 uppercase tracking-widest">---</span>
+            <span id="streak-indicator" class="hidden text-xs bg-gradient-to-r from-orange-600 to-red-600 px-2 py-1 rounded-full font-bold">🔥 0</span>
         </div>
         <div class="flex items-center gap-2">
-            <span id="finale-indicator" class="hidden text-xs bg-red-600 px-2 py-1 rounded font-bold animate-pulse">🔥 FINALE</span>
-            <span class="text-xs text-green-500 font-bold animate-pulse">● LIVE</span>
+            <span id="finale-indicator" class="hidden text-xs bg-red-600 px-2 py-1 rounded-full font-bold animate-pulse">🔥 FINALE</span>
+            <span class="text-xs font-bold animate-pulse"><span class="inline-block w-2 h-2 rounded-full bg-green-400 mr-1" style="box-shadow: 0 0 8px rgba(34,197,94,0.8);"></span>LIVE</span>
         </div>
     </div>
     
     <!-- TIMER VISIVO CIRCOLARE -->
-    <div id="timer-container" class="hidden bg-gray-800 p-4 border-b border-gray-700">
+    <div id="timer-container" class="hidden glass-panel p-4 border-b border-white/10">
         <div class="flex items-center justify-center gap-4">
             <div class="timer-circle-container">
                 <svg width="80" height="80" viewBox="0 0 80 80">
@@ -441,8 +492,8 @@
         if (d.modalita === 'buzzer') {
             const btn = document.getElementById('btn-buzzer');
             btn.classList.remove('hidden', 'pointer-events-none', 'opacity-50');
-            btn.className = "w-64 h-64 rounded-full bg-red-600 border-red-800 flex items-center justify-center animate-pulse shadow-[0_0_50px_rgba(255,0,0,0.5)] cursor-pointer";
-            btn.innerHTML = "<span class='text-4xl font-black text-white uppercase'>BUZZER!</span>";
+            btn.className = "w-64 h-64 rounded-full bg-gradient-to-br from-red-600 to-red-700 border-4 border-red-400/50 flex items-center justify-center cursor-pointer buzzer-active";
+            btn.innerHTML = "<span class='text-4xl font-black text-white uppercase font-display'>BUZZER!</span>";
             btn.onclick = () => {
                 socket.emit('buzzer_press', { time: Date.now() });
                 btn.classList.add('pointer-events-none', 'opacity-50');
@@ -465,13 +516,11 @@
             
             d.risposte.forEach((r, i) => {
                 const b = document.createElement('button');
-                b.className = "bg-blue-600 rounded-xl p-6 font-bold text-xl shadow-xl hover:bg-blue-700 transition-all active:scale-95";
+                b.className = "answer-btn";
                 b.innerText = r;
                 b.onclick = () => {
-                    // ✅ FEEDBACK VISIVO E VIBRAZIONE
                     addButtonFeedback(b);
-                    
-                    // ✅ Invia risposta (funziona sia per domande normali che per ruota)
+
                     if (d.isRuotaQuestion) {
                         socket.emit('ruota_answer', { risposta: r });
                     } else {
@@ -565,7 +614,7 @@
         
         window.allInQuestion.risposte.forEach(r => {
             const b = document.createElement('button');
-            b.className = "bg-blue-600 rounded-xl p-6 font-bold text-xl shadow-xl hover:bg-blue-700 transition-all active:scale-95";
+            b.className = "answer-btn";
             b.innerText = r;
             b.onclick = () => {
                 // ✅ FEEDBACK VISIVO E VIBRAZIONE

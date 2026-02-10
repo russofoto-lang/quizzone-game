@@ -2,49 +2,15 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <title>DISPLAY SHOW - Siponto Forever Young</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Siponto - Gioca</title>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="/audio-engine.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
     <style>
-        /* FORMATO 16:9 FISSO */
-        html, body {
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-            width: 100vw;
-            height: 100vh;
-            background: #070b14;
-        }
-
-        #app-container {
-            position: relative;
-            width: 100vw;
-            height: 56.25vw;
-            max-height: 100vh;
-            max-width: 177.78vh;
-            margin: auto;
-            background: #070b14;
-            color: white;
-            overflow: hidden;
-            font-family: 'Inter', sans-serif;
-            display: flex;
-            flex-direction: column;
-        }
-
-        @media (max-aspect-ratio: 16/9) {
-            #app-container {
-                width: 177.78vh;
-                height: 100vh;
-                margin: 0 auto;
-            }
-        }
-
         /* Animated gradient background */
-        .bg-animated {
+        body {
             background: linear-gradient(-45deg, #070b14, #0c1629, #111b33, #0a1022);
             background-size: 400% 400%;
             animation: gradientShift 15s ease infinite;
@@ -55,910 +21,269 @@
             100% { background-position: 0% 50%; }
         }
 
-        /* Particle stars background */
-        .stars-bg::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background-image:
-                radial-gradient(2px 2px at 20px 30px, rgba(255,255,255,0.3), transparent),
-                radial-gradient(2px 2px at 40px 70px, rgba(255,255,255,0.2), transparent),
-                radial-gradient(1px 1px at 90px 40px, rgba(255,255,255,0.4), transparent),
-                radial-gradient(1px 1px at 130px 80px, rgba(255,255,255,0.2), transparent),
-                radial-gradient(2px 2px at 160px 30px, rgba(255,255,255,0.3), transparent);
-            background-size: 200px 100px;
-            animation: twinkle 4s ease-in-out infinite alternate;
-            pointer-events: none;
-            z-index: 0;
-        }
-        @keyframes twinkle {
-            0% { opacity: 0.5; }
-            100% { opacity: 1; }
-        }
-
-        /* Enhanced glass effect */
-        .glass {
-            background: rgba(255, 255, 255, 0.06);
-            backdrop-filter: blur(16px) saturate(1.2);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255,255,255,0.08);
-        }
-
-        /* Neon glow utilities */
-        .neon-blue { text-shadow: 0 0 10px #3b82f6, 0 0 40px rgba(59,130,246,0.4); }
-        .neon-yellow { text-shadow: 0 0 10px #facc15, 0 0 40px rgba(250,204,21,0.4); }
-        .neon-red { text-shadow: 0 0 10px #ef4444, 0 0 40px rgba(239,68,68,0.4); }
-        .neon-green { text-shadow: 0 0 10px #22c55e, 0 0 40px rgba(34,197,94,0.4); }
-        .neon-purple { text-shadow: 0 0 10px #a855f7, 0 0 40px rgba(168,85,247,0.4); }
-
-        .glow-border-blue { box-shadow: 0 0 15px rgba(59,130,246,0.5), inset 0 0 15px rgba(59,130,246,0.1); }
-        .glow-border-yellow { box-shadow: 0 0 15px rgba(250,204,21,0.5), inset 0 0 15px rgba(250,204,21,0.1); }
-        .glow-border-red { box-shadow: 0 0 15px rgba(239,68,68,0.5), inset 0 0 15px rgba(239,68,68,0.1); }
-
-        /* Orbitron font for titles */
         .font-display { font-family: 'Orbitron', 'Inter', sans-serif; }
 
-        #qrcode img { margin: 0 auto; border: 15px solid white; border-radius: 16px; box-shadow: 0 0 40px rgba(255,255,255,0.2); }
+        /* Enhanced glass effect */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(16px) saturate(1.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
 
-    .view-section {
-        max-height: 100%;
-        overflow-y: auto;
-        overflow-x: hidden;
-    }
+        /* Animations */
+        @keyframes button-success {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); background-color: #10b981; }
+            100% { transform: scale(1); }
+        }
 
-    .view-section::-webkit-scrollbar {
-        width: 0px;
-        background: transparent;
-    }
+        .btn-feedback-success {
+            animation: button-success 0.4s ease-out;
+        }
 
-    /* Responsive text sizing */
-    .question-text { font-size: clamp(2rem, 4vw, 4rem); line-height: 1.2; }
-    .answer-option { font-size: clamp(1.5rem, 2.5vw, 2rem); }
-    .category-text { font-size: clamp(1rem, 1.5vw, 1.5rem); }
+        @keyframes pulse-ring {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(1.3); opacity: 0; }
+        }
 
-    /* Enhanced answer cards */
-    .answer-card {
-        background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
-        border: 2px solid rgba(255,255,255,0.15);
-        border-radius: 1.5rem;
-        padding: 1.5rem;
-        font-weight: 700;
-        transition: all 0.3s ease;
-        position: relative;
-        overflow: hidden;
-    }
-    .answer-card::before {
-        content: '';
-        position: absolute;
-        top: 0; left: 0; right: 0;
-        height: 3px;
-        background: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899);
-        opacity: 0.6;
-    }
-    .answer-card .letter-badge {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 2.5rem;
-        height: 2.5rem;
-        border-radius: 0.75rem;
-        background: linear-gradient(135deg, #3b82f6, #6366f1);
-        font-weight: 900;
-        margin-right: 1rem;
-        flex-shrink: 0;
-        box-shadow: 0 4px 12px rgba(59,130,246,0.4);
-    }
+        .pulse-ring {
+            animation: pulse-ring 0.6s ease-out;
+        }
 
-    /* Podium effect for top 3 */
-    .podium-gold { background: linear-gradient(135deg, rgba(250,204,21,0.15), rgba(245,158,11,0.1)); border-left: 4px solid #facc15; }
-    .podium-silver { background: linear-gradient(135deg, rgba(148,163,184,0.15), rgba(100,116,139,0.1)); border-left: 4px solid #94a3b8; }
-    .podium-bronze { background: linear-gradient(135deg, rgba(217,119,6,0.15), rgba(180,83,9,0.1)); border-left: 4px solid #d97706; }
+        /* Timer */
+        .timer-circle-container {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            margin: 0 auto;
+        }
 
-    @keyframes countdown-pulse {
-        0%, 100% { transform: scale(1); }
-        50% { transform: scale(1.1); }
-    }
-    .countdown-critical { animation: countdown-pulse 0.5s ease-in-out infinite; }
+        .timer-circle-bg {
+            fill: none;
+            stroke: #1e293b;
+            stroke-width: 8;
+        }
 
-    @keyframes confetti-fall {
-        0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
-        100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
-    }
-    @keyframes fall {
-        0% { transform: translateY(-100px) rotate(0deg); opacity: 1; }
-        100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
-    }
-    .confetti {
-        position: absolute;
-        width: 12px;
-        height: 12px;
-        border-radius: 2px;
-        animation: confetti-fall 3s linear infinite;
-    }
+        .timer-circle-progress {
+            fill: none;
+            stroke-width: 8;
+            stroke-linecap: round;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+            transition: stroke-dashoffset 1s linear, stroke 0.3s ease;
+        }
 
-    /* Enhanced timer bar */
-    .timer-bar-track {
-        background: rgba(255,255,255,0.08);
-        border-radius: 9999px;
-        height: 0.75rem;
-        overflow: hidden;
-        box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
-    }
-    .timer-bar-fill {
-        height: 100%;
-        border-radius: 9999px;
-        transition: all 1s linear;
-        box-shadow: 0 0 12px currentColor;
-    }
+        .timer-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.5rem;
+            font-weight: 900;
+        }
 
-    /* Spinning wheel enhancement */
-    .wheel-glow {
-        box-shadow: 0 0 60px rgba(250,204,21,0.5), 0 0 120px rgba(250,204,21,0.2);
-    }
+        .buzzer-with-timer {
+            position: relative;
+        }
 
-    /* Slide-in for leaderboard rows */
-    @keyframes slideInScore {
-        0% { transform: translateX(-40px); opacity: 0; }
-        100% { transform: translateX(0); opacity: 1; }
-    }
-    .score-row { animation: slideInScore 0.5s ease forwards; }
-</style>
+        .buzzer-timer-ring {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
 
+        /* Answer buttons */
+        .answer-btn {
+            background: linear-gradient(135deg, rgba(37,99,235,0.9), rgba(79,70,229,0.9));
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            font-weight: 700;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 16px rgba(37,99,235,0.3);
+            transition: all 0.2s ease;
+            color: white;
+        }
+        .answer-btn:active {
+            transform: scale(0.95);
+            box-shadow: 0 2px 8px rgba(37,99,235,0.2);
+        }
+
+        /* Buzzer glow */
+        @keyframes buzzerGlow {
+            0%, 100% { box-shadow: 0 0 40px rgba(239,68,68,0.5), 0 0 80px rgba(239,68,68,0.2); }
+            50% { box-shadow: 0 0 60px rgba(239,68,68,0.7), 0 0 120px rgba(239,68,68,0.3); }
+        }
+        .buzzer-active {
+            animation: buzzerGlow 1.5s ease-in-out infinite;
+        }
+    </style>
 </head>
-<body>
-<!-- OVERLAY ATTIVAZIONE AUDIO -->
-<div id="audio-unlock-overlay" class="fixed inset-0 bg-black/90 z-[9999] flex items-center justify-center">
-    <div class="text-center">
-        <div class="text-6xl mb-6">🔊</div>
-        <h2 class="text-4xl font-bold text-white mb-4">Attiva Audio</h2>
-        <p class="text-xl text-gray-300 mb-8">Clicca per abilitare gli effetti sonori</p>
-        <button id="unlock-audio-btn" class="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold text-2xl px-12 py-6 rounded-2xl shadow-2xl transition-all transform hover:scale-105">
-            ATTIVA AUDIO
-        </button>
-    </div>
-</div>
-
-<div id="app-container" class="flex flex-col p-6 bg-animated stars-bg">
-
-<div class="h-[10%] flex justify-between items-center border-b border-white/10 pb-2 relative z-10">
-    <h1 class="font-display text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-orange-400 to-red-500 tracking-wider">SIPONTO FOREVER YOUNG</h1>
-    <div id="mini-leaderboard" class="text-xl font-mono text-blue-300 neon-blue"></div>
-</div>
-
-<div class="h-[90%] relative flex items-center justify-center">
-
-    <!-- VISTA LOGO QR -->
-    <div id="view-logo" class="view-section absolute inset-0 flex flex-col items-center justify-center">
-        <div class="glass p-12 rounded-[3rem] shadow-2xl text-center animate__animated animate__fadeInDown glow-border-yellow">
-            <h2 class="text-3xl font-bold mb-6 text-white uppercase tracking-wider">Inquadra per partecipare</h2>
-            <div id="qrcode" class="shadow-2xl"></div>
-            <p class="mt-6 text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-400">quizzone-game.onrender.com</p>
-        </div>
-        <div class="mt-10 text-gray-400 animate-pulse text-xl uppercase tracking-[0.4em]">Attesa inizio sessione...</div>
-    </div>
-
-    <!-- VISTA GIOCO -->
-    <div id="view-gioco" class="view-section hidden absolute inset-0 flex flex-col items-center justify-center p-4">
-        <div id="buzzer-overlay" class="hidden absolute inset-0 bg-black/95 z-50 flex flex-col items-center justify-center p-6">
-            <p class="font-display text-5xl text-red-400 font-black mb-8 animate__animated animate__bounceIn neon-red">PRENOTAZIONI BUZZER</p>
-
-            <div class="bg-red-900/30 rounded-3xl p-6 max-w-4xl w-full max-h-[70vh] overflow-y-auto glass glow-border-red">
-                <div id="buzzer-queue-display" class="space-y-3"></div>
-            </div>
-        </div>
-
-        <div class="bg-gray-900/70 w-full max-w-7xl p-8 rounded-[2rem] border-t-4 border-blue-500 shadow-2xl text-center glass glow-border-blue max-h-[85vh] overflow-y-auto">
-
-            <!-- TIMER DISPLAY -->
-            <div id="timer-display-container" class="hidden mb-6">
-                <div class="flex justify-center items-center gap-4 mb-3">
-                    <span class="text-lg text-gray-300 font-semibold uppercase tracking-wider">Tempo rimasto</span>
-                    <span id="timer-display-text" class="text-7xl font-black font-display" style="color: #10b981;">20</span>
-                </div>
-                <div class="timer-bar-track">
-                    <div id="timer-display-bar" class="timer-bar-fill" style="background-color: #10b981; width: 100%;"></div>
-                </div>
-            </div>
-
-            <h2 id="cat" class="category-text font-bold text-blue-400 mb-4 uppercase tracking-[0.3em] neon-blue">CATEGORIA</h2>
-            <div id="q-text" class="question-text font-black leading-tight mb-8 text-white px-4">Caricamento domanda...</div>
-
-            <div id="opts" class="grid grid-cols-2 gap-5 hidden max-w-5xl mx-auto"></div>
-
-            <div id="solution" class="hidden mt-8 border-t border-white/10 pt-8 animate__animated animate__fadeInUp">
-                <div class="inline-block bg-gradient-to-r from-green-600 to-emerald-500 text-white px-10 py-5 rounded-full text-4xl font-black shadow-2xl uppercase italic neon-green glow-border-blue" style="box-shadow: 0 0 30px rgba(34,197,94,0.5);">
-                    <span id="sol-text">RISPOSTA</span>
-                </div>
-            </div>
+<body class="text-white h-screen flex flex-col">
+    <div id="login-screen" class="flex-1 flex flex-col items-center justify-center p-8 text-center">
+        <div class="glass-panel rounded-3xl p-8 w-full max-w-sm">
+            <h1 class="font-display text-3xl font-black mb-2 text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-orange-400 to-red-500 uppercase">SIPONTO</h1>
+            <h2 class="font-display text-2xl font-bold mb-8 text-white/80 uppercase tracking-wider">Forever Young</h2>
+            <input type="text" id="team-name" placeholder="Nome Squadra" class="w-full p-4 rounded-xl bg-white/10 text-white text-center font-bold uppercase mb-4 text-xl border border-white/20 placeholder-white/40 focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-400/30 transition-all">
+            <button onclick="login()" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 py-4 rounded-xl font-bold text-xl shadow-lg active:scale-95 transition-all border border-blue-400/30" style="box-shadow: 0 4px 20px rgba(59,130,246,0.4);">ENTRA NEL GIOCO</button>
         </div>
     </div>
 
-    <!-- VISTA CLASSIFICA ROUND -->
-    <div id="view-classifica_round" class="view-section hidden absolute inset-0 bg-animated z-40 flex flex-col items-center pt-10">
-        <h2 class="font-display text-5xl font-black text-white mb-8 bg-gradient-to-r from-indigo-600 to-purple-600 px-12 py-4 rounded-full shadow-2xl neon-purple" style="box-shadow: 0 0 30px rgba(99,102,241,0.5);">RISULTATI ROUND</h2>
-        <div class="w-full max-w-5xl h-[70vh] overflow-y-auto glass rounded-3xl p-6">
-            <table class="w-full text-left text-2xl border-collapse">
-                <thead class="text-indigo-300 border-b-2 border-indigo-700/50">
-                    <tr>
-                        <th class="p-4">POS</th>
-                        <th class="p-4">SQUADRA</th>
-                        <th class="p-4">RISPOSTA</th>
-                        <th class="p-4 text-right">TEMPO</th>
-                        <th class="p-4 text-right">PUNTI</th>
-                    </tr>
-                </thead>
-                <tbody id="round-list-body"></tbody>
-            </table>
+<div id="game-screen" class="hidden flex-col h-full">
+    <div class="glass-panel p-4 flex justify-between items-center border-b border-white/10">
+        <div class="flex items-center gap-2">
+            <span id="my-name" class="font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-orange-400 uppercase tracking-widest">---</span>
+            <span id="streak-indicator" class="hidden text-xs bg-gradient-to-r from-orange-600 to-red-600 px-2 py-1 rounded-full font-bold">🔥 0</span>
         </div>
-    </div>
-
-    <!-- VISTA CLASSIFICA GENERALE -->
-    <div id="view-classifica_gen" class="view-section hidden absolute inset-0 bg-animated stars-bg z-40 flex flex-col items-center pt-10">
-        <h2 class="font-display text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-yellow-400 to-amber-500 mb-10 uppercase tracking-wider neon-yellow">CLASSIFICA GENERALE</h2>
-        <div class="w-full max-w-4xl h-[70vh] overflow-y-auto glass rounded-[3rem] p-8">
-            <table class="w-full text-left text-3xl"><tbody id="full-leaderboard-body"></tbody></table>
-        </div>
-    </div>
-
-    <!-- VISTA VINCITORE CON CONFETTI -->
-    <div id="view-winner" class="view-section hidden absolute inset-0 bg-gradient-to-br from-yellow-900 via-orange-900 to-red-900 z-50 flex flex-col items-center justify-center" style="background: radial-gradient(ellipse at center, #3d1a00 0%, #1a0800 70%);">
-        <div id="confetti-container" class="absolute inset-0 overflow-hidden"></div>
-        <div class="relative z-10 text-center animate__animated animate__zoomIn">
-            <div class="text-9xl mb-6" style="animation: countdown-pulse 1.5s ease infinite;">🏆</div>
-            <h1 class="font-display text-8xl font-black uppercase mb-6 text-transparent bg-clip-text bg-gradient-to-b from-yellow-200 via-yellow-400 to-amber-600" style="text-shadow: none; filter: drop-shadow(0 0 30px rgba(250,204,21,0.6));">VINCITORE!</h1>
-            <div id="winner-name" class="font-display text-7xl font-black text-white mb-6 uppercase neon-yellow" style="text-shadow: 0 0 20px rgba(250,204,21,0.8), 0 0 60px rgba(250,204,21,0.4);"></div>
-            <div class="text-5xl font-bold text-yellow-200 mb-12">
-                <span id="winner-score" class="font-display text-7xl"></span> <span class="text-4xl">PUNTI</span>
-            </div>
-            <div class="text-3xl text-white/60 uppercase tracking-[0.5em]">Congratulazioni</div>
-        </div>
-    </div>
-
-    <!-- VISTA BENVENUTO -->
-    <div id="view-benvenuto" class="view-section hidden absolute inset-0 bg-gradient-to-br from-purple-900 via-pink-800 to-red-900 z-40 flex flex-col items-center justify-center">
-        <div class="text-center animate__animated animate__fadeInDown">
-            <div class="text-9xl mb-8">🎉</div>
-            <h1 class="text-8xl font-black text-white mb-6 tracking-tight">BENVENUTI!</h1>
-            <p class="text-5xl text-white/90 mb-4">Siponto Forever Young</p>
-            <p class="text-4xl text-yellow-300">Preparati a giocare!</p>
-        </div>
-    </div>
-
-    <!-- VISTA REGOLE -->
-    <div id="view-regole" class="view-section hidden absolute inset-0 bg-gradient-to-br from-blue-900 to-indigo-900 z-40 flex flex-col items-center justify-center p-6">
-        <div class="glass rounded-3xl p-6 max-w-6xl w-full animate__animated animate__zoomIn">
-            <h1 class="text-4xl font-black text-white mb-4 text-center">📋 REGOLAMENTO</h1>
-            
-            <!-- Grid 2 colonne per compattare -->
-            <div class="grid grid-cols-2 gap-4 text-white">
-                
-                <!-- Quiz ABCD -->
-                <div class="bg-white/10 rounded-2xl p-4">
-                    <div class="flex items-center gap-2 mb-2">
-                        <span class="text-3xl">✅</span>
-                        <p class="font-black text-yellow-300 text-xl">Quiz ABCD</p>
-                    </div>
-                    <p class="text-sm leading-tight">Rispondi veloce per bonus punti! Fino a +50 punti extra.</p>
-                </div>
-                
-                <!-- Buzzer -->
-                <div class="bg-white/10 rounded-2xl p-4">
-                    <div class="flex items-center gap-2 mb-2">
-                        <span class="text-3xl">⚡</span>
-                        <p class="font-black text-yellow-300 text-xl">Buzzer</p>
-                    </div>
-                    <p class="text-sm leading-tight">Primo che preme risponde! 100 punti se corretto.</p>
-                </div>
-                
-                <!-- Bonus Velocità -->
-                <div class="bg-white/10 rounded-2xl p-4">
-                    <div class="flex items-center gap-2 mb-2">
-                        <span class="text-3xl">🎯</span>
-                        <p class="font-black text-yellow-300 text-xl">Bonus Velocità</p>
-                    </div>
-                    <p class="text-sm leading-tight">2 sec = +145pt 🔥 | 10 sec = +125pt ⚡ | 20 sec = +100pt</p>
-                </div>
-                
-                <!-- Ruota della Fortuna -->
-                <div class="bg-gradient-to-br from-yellow-600/30 to-red-600/30 rounded-2xl p-4 border-2 border-yellow-400">
-                    <div class="flex items-center gap-2 mb-2">
-                        <span class="text-3xl">🎰</span>
-                        <p class="font-black text-yellow-300 text-xl">Ruota Fortuna</p>
-                    </div>
-                    <p class="text-sm leading-tight font-bold">💰 50pt sicuri | 🎯 +250pt/-100pt sfida</p>
-                </div>
-                
-                <!-- Duello Ruba-Punti -->
-                <div class="col-span-2 bg-gradient-to-r from-red-600/30 to-orange-600/30 rounded-2xl p-4 border-2 border-red-400">
-                    <div class="flex items-center gap-2 mb-2">
-                        <span class="text-3xl">🔥</span>
-                        <p class="font-black text-red-300 text-xl">Duello Ruba-Punti</p>
-                    </div>
-                    <p class="text-sm leading-tight font-bold">Sfida 1vs1 su 3 domande buzzer | Vinci: RUBI 250pt | Perdi: difensore +100pt</p>
-                </div>
-                
-            </div>
-        </div>
-    </div>
-
-    <!-- VISTA PUNTEGGI -->
-    <div id="view-punteggi" class="view-section hidden absolute inset-0 bg-gradient-to-br from-green-900 to-emerald-900 z-40 flex flex-col items-center justify-center">
-        <div class="glass rounded-[3rem] p-8 max-w-4xl animate__animated animate__flipInX">
-            <h1 class="text-5xl font-black text-white mb-6 text-center">💰 SISTEMA PUNTEGGI</h1>
-            <div class="text-2xl text-white space-y-3">
-                <div class="bg-white/10 rounded-2xl p-4 flex justify-between items-center">
-                    <span>Risposta in 2s:</span>
-                    <span class="text-4xl font-black text-green-400">145 pt 🔥</span>
-                </div>
-                <div class="bg-white/10 rounded-2xl p-4 flex justify-between items-center">
-                    <span>Risposta in 10s:</span>
-                    <span class="text-4xl font-black text-yellow-400">125 pt ⚡</span>
-                </div>
-                <div class="bg-white/10 rounded-2xl p-4 flex justify-between items-center">
-                    <span>Risposta in 20s:</span>
-                    <span class="text-4xl font-black text-white">100 pt ✓</span>
-                </div>
-                <div class="bg-white/10 rounded-2xl p-4 flex justify-between items-center">
-                    <span>Buzzer corretto:</span>
-                    <span class="text-4xl font-black text-blue-400">100 pt</span>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- VISTA PAUSA -->
-    <div id="view-pausa" class="view-section hidden absolute inset-0 bg-gradient-to-br from-orange-900 to-amber-900 z-40 flex flex-col items-center justify-center">
-        <div class="text-center animate__animated animate__bounceIn">
-            <div class="text-9xl mb-8">☕</div>
-            <h1 class="text-8xl font-black text-white mb-12">PAUSA</h1>
-            
-            <div class="glass rounded-[3rem] p-8 max-w-4xl">
-                <h2 class="text-4xl font-bold text-yellow-300 mb-6">📊 CLASSIFICA ATTUALE:</h2>
-                <div id="pause-leaderboard" class="space-y-3 text-3xl text-left"></div>
-            </div>
-            
-            <p class="text-5xl text-yellow-300 mt-12 animate-pulse">⏰ Riprenderemo tra pochissimo</p>
-        </div>
-    </div>
-
-    <!-- VISTA PROSSIMA DOMANDA -->
-    <div id="view-prossima" class="view-section hidden absolute inset-0 bg-gradient-to-br from-yellow-900 to-orange-900 z-40 flex flex-col items-center justify-center">
-        <div class="text-center animate__animated animate__pulse">
-            <div class="text-9xl mb-8">⏰</div>
-            <h1 class="text-8xl font-black text-white">PROSSIMA DOMANDA</h1>
-        </div>
-    </div>
-
-    <!-- VISTA LOGO FOREVER YOUNG -->
-    <div id="view-logo_forever" class="view-section hidden absolute inset-0 z-40 flex flex-col items-center justify-center" style="background: radial-gradient(ellipse at center, #1a0533 0%, #070011 70%);">
-        <div class="text-center animate__animated animate__zoomIn">
-            <div class="text-9xl mb-6" style="animation: countdown-pulse 2s ease infinite;">🎮</div>
-            <h1 class="font-display text-9xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-pink-400 to-purple-500 mb-6" style="filter: drop-shadow(0 0 40px rgba(236,72,153,0.5));">
-                FOREVER YOUNG
-            </h1>
-            <h2 class="font-display text-7xl font-bold text-white/90 tracking-[0.3em]">SIPONTO</h2>
-        </div>
-    </div>
-
-    <!-- VISTA CUSTOM -->
-    <div id="view-custom" class="view-section hidden absolute inset-0 bg-gradient-to-br from-gray-900 to-slate-900 z-40 flex flex-col items-center justify-center">
-        <div class="glass rounded-[3rem] p-16 max-w-5xl text-center animate__animated animate__fadeIn">
-            <div class="text-9xl mb-8">💬</div>
-            <p id="custom-text-display" class="text-6xl font-bold text-white leading-tight whitespace-pre-wrap">
-                Messaggio personalizzato
-            </p>
-        </div>
-    </div>
-
-    <!-- VISTA KARAOKE YOUTUBE -->
-    <div id="view-karaoke" class="view-section hidden absolute inset-0 bg-black z-50 flex flex-col">
-        <!-- Header Forever Young (resta sempre) -->
-        <div class="h-[10%] flex justify-center items-center bg-gradient-to-r from-yellow-600 to-red-600 border-b-4 border-yellow-400">
-            <h1 class="text-5xl font-black text-white tracking-wider drop-shadow-lg">
-                🎮 SIPONTO FOREVER YOUNG 🎮
-            </h1>
-        </div>
-        
-        <!-- YouTube Player -->
-        <div class="flex-1 relative bg-black flex items-center justify-center">
-            <iframe id="youtube-player" 
-                    class="w-full h-full" 
-                    frameborder="0" 
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                    allowfullscreen>
-            </iframe>
-        </div>
-        
-        <!-- Banner Karaoke -->
-        <div class="h-[8%] bg-gradient-to-r from-pink-600 via-purple-600 to-pink-600 flex items-center justify-center border-t-4 border-pink-400">
-            <div class="text-4xl font-black text-white tracking-widest animate-pulse">
-                🎤 KARAOKE TIME! 🎤
-            </div>
-        </div>
-    </div>
-
-    <!-- VISTA DUELLO RUBA-PUNTI -->
-    <div id="view-duello" class="view-section hidden absolute inset-0 bg-gradient-to-br from-red-900 via-orange-900 to-yellow-900 z-40 flex flex-col items-center justify-center p-6">
-        
-        <!-- Scoreboard -->
-        <div class="bg-black/50 rounded-3xl p-6 mb-8 flex items-center justify-center gap-12 glass animate__animated animate__fadeInDown">
-            <div class="text-center">
-                <div id="duello-attaccante-name" class="text-3xl font-black text-yellow-400 mb-2">ATTACCANTE</div>
-                <div id="duello-attaccante-score" class="text-8xl font-black text-white">0</div>
-            </div>
-            
-            <div class="text-6xl font-black text-white">-</div>
-            
-            <div class="text-center">
-                <div id="duello-difensore-name" class="text-3xl font-black text-blue-400 mb-2">DIFENSORE</div>
-                <div id="duello-difensore-score" class="text-8xl font-black text-white">0</div>
-            </div>
-        </div>
-        
-        <!-- Area Domanda -->
-        <div class="bg-gray-900/90 rounded-3xl p-8 max-w-6xl w-full glass animate__animated animate__fadeInUp">
-            <div class="flex items-center justify-between mb-6">
-                <div id="duello-categoria" class="text-2xl font-bold text-orange-400">CATEGORIA</div>
-                <div id="duello-question-number" class="text-2xl font-bold text-white">DOMANDA 1/3</div>
-            </div>
-            
-            <div id="duello-question-text" class="text-4xl font-black text-white mb-8 leading-tight">
-                Domanda del duello...
-            </div>
-            
-            <div id="duello-status" class="text-3xl font-bold text-center">
-                <span class="text-yellow-400 animate-pulse">⚡ In attesa di buzzer...</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- VISTA RUOTA FORTUNA - SPIEGAZIONE -->
-    <div id="view-ruota-explain" class="view-section hidden absolute inset-0 bg-gradient-to-br from-yellow-900 via-orange-900 to-red-900 z-50 flex flex-col items-center justify-center overflow-y-auto">
-        <div class="glass rounded-[2rem] p-8 max-w-4xl text-center animate__animated animate__bounceIn my-4">
-            <div class="text-6xl mb-4">🎰</div>
-            <h1 class="text-5xl font-black text-yellow-400 mb-6 tracking-wider">
-                RUOTA DELLA FORTUNA!
-            </h1>
-            <div class="text-2xl text-white leading-relaxed space-y-4">
-                <p>La ruota sceglierà<br><strong class="text-yellow-300">UNA squadra fortunata!</strong></p>
-                <div class="border-t-2 border-yellow-400 my-4"></div>
-                <p class="text-3xl font-bold">Avrai 2 scelte:</p>
-                <div class="grid grid-cols-2 gap-4 mt-4">
-                    <div class="bg-green-600/30 p-4 rounded-2xl border-2 border-green-400">
-                        <div class="text-5xl mb-2">💰</div>
-                        <div class="text-2xl font-bold">50 PUNTI</div>
-                        <div class="text-lg">GRATIS!</div>
-                    </div>
-                    <div class="bg-orange-600/30 p-4 rounded-2xl border-2 border-orange-400">
-                        <div class="text-5xl mb-2">🎯</div>
-                        <div class="text-2xl font-bold">150 PUNTI</div>
-                        <div class="text-lg">Con domanda!</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- VISTA RUOTA FORTUNA - SPINNING -->
-    <div id="view-ruota-spin" class="view-section hidden absolute inset-0 z-50 flex flex-col items-center justify-center" style="background: radial-gradient(ellipse at center, #2d1050 0%, #0a0015 80%);">
-        <div class="text-center animate__animated animate__fadeIn">
-            <h1 class="font-display text-7xl font-black text-yellow-400 mb-12 tracking-wider neon-yellow">
-                LA RUOTA GIRA...
-            </h1>
-            <div id="wheel-container" class="relative w-96 h-96 mx-auto">
-                <div id="wheel" class="absolute inset-0 rounded-full border-8 border-yellow-400 bg-gradient-to-br from-yellow-500 via-orange-500 to-red-500 flex items-center justify-center text-6xl font-black text-white shadow-2xl animate-spin wheel-glow">
-                    <span id="wheel-name">?</span>
-                </div>
-                <div class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-8 text-9xl" style="filter: drop-shadow(0 0 10px rgba(250,204,21,0.8));">
-                    ▼
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- VISTA RUOTA FORTUNA - VINCITORE -->
-    <div id="view-ruota-winner" class="view-section hidden absolute inset-0 bg-gradient-to-br from-yellow-900 via-orange-900 to-red-900 z-50 flex flex-col items-center justify-center">
-        <div class="text-center animate__animated animate__bounceIn">
-            <div class="text-9xl mb-8">🎊</div>
-            <h1 class="text-7xl font-black text-yellow-400 mb-8 tracking-wider">
-                SQUADRA FORTUNATA!
-            </h1>
-            <div class="bg-white/10 backdrop-blur-lg rounded-[3rem] p-16 border-8 border-yellow-400">
-                <div class="text-9xl font-black text-white mb-8">
-                    🏆 <span id="winner-team-name">TEAM</span> 🏆
-                </div>
-                <div class="text-5xl text-yellow-300 font-bold">
-                    Scegli la tua sorte!
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- VISTA DUELLO - ESTRAZIONE ATTACCANTE -->
-    <div id="view-duello-extraction" class="view-section hidden absolute inset-0 bg-gradient-to-br from-red-900 via-orange-900 to-yellow-900 z-50 flex flex-col items-center justify-center">
-        <div class="text-center animate__animated animate__fadeIn">
-            <h1 class="text-7xl font-black text-white mb-12 tracking-wider animate__animated animate__pulse animate__infinite">
-                🔥 DUELLO RUBA-PUNTI! 🔥
-            </h1>
-            <div id="duello-extraction-container" class="relative w-96 h-96 mx-auto">
-                <div id="duello-wheel" class="absolute inset-0 rounded-full border-8 border-red-400 bg-gradient-to-br from-red-500 to-orange-600 flex items-center justify-center text-5xl font-black text-white shadow-2xl animate-spin">
-                    <span id="duello-wheel-name">?</span>
-                </div>
-                <div class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-8 text-9xl">
-                    ⚔️
-                </div>
-            </div>
-            <div class="text-3xl text-yellow-300 font-bold mt-8 animate-pulse">
-                Chi sarà l'ATTACCANTE?
-            </div>
-        </div>
-    </div>
-
-    <!-- VISTA DUELLO - ATTACCANTE ESTRATTO -->
-    <div id="view-duello-attaccante" class="view-section hidden absolute inset-0 bg-gradient-to-br from-orange-900 via-red-900 to-pink-900 z-50 flex flex-col items-center justify-center">
-        <div class="text-center animate__animated animate__bounceIn">
-            <div class="text-9xl mb-8">⚔️</div>
-            <h1 class="text-6xl font-black text-red-400 mb-8 tracking-wider">
-                ATTACCANTE ESTRATTO!
-            </h1>
-            <div class="bg-white/10 backdrop-blur-lg rounded-[3rem] p-16 border-8 border-red-400">
-                <div class="text-9xl font-black text-white mb-8">
-                    🔥 <span id="duello-attaccante-name-display">TEAM</span> 🔥
-                </div>
-                <div class="text-4xl text-yellow-300 font-bold">
-                    Scegli chi sfidare!
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ✅ VISTA FINALE - SPIEGAZIONE -->
-    <div id="view-finale_explanation" class="view-section hidden absolute inset-0 bg-gradient-to-br from-red-900 via-orange-900 to-yellow-900 z-50 flex flex-col items-center justify-center overflow-y-auto">
-        <div class="relative z-10 max-w-5xl text-center animate__animated animate__zoomIn px-4 py-2">
-            <div class="text-5xl mb-2">🔥🔥🔥</div>
-            
-            <h1 class="text-5xl font-black text-white mb-2 uppercase tracking-tight animate__animated animate__fadeInDown">
-                SFIDA FINALE
-            </h1>
-            <p class="text-4xl font-bold text-yellow-300 mb-4 animate__animated animate__fadeInUp" style="animation-delay: 0.2s;">
-                5 PROVE
-            </p>
-            
-            <div class="bg-black/40 rounded-2xl p-4 mb-3 text-left space-y-3">
-                <!-- ALL IN -->
-                <div class="border-b border-yellow-500/30 pb-3 animate__animated animate__fadeInLeft" style="animation-delay: 0.4s;">
-                    <h2 class="text-2xl font-black text-yellow-300 mb-1">💰 PROVA 1: ALL IN</h2>
-                    <p class="text-lg text-white mb-1">Scommetti: 100 - 200 - 300 - 500</p>
-                    <div class="ml-4 space-y-0.5 text-sm">
-                        <p class="text-green-400">✅ Corretta → DOPPIO</p>
-                        <p class="text-red-400">❌ Sbagliata → PERDI</p>
-                    </div>
-                </div>
-                
-                <!-- PUNTI X2 -->
-                <div class="border-b border-orange-500/30 pb-3 animate__animated animate__fadeInLeft" style="animation-delay: 0.6s;">
-                    <h2 class="text-2xl font-black text-orange-300 mb-1">🔥 PROVE 2-5: PUNTI x2</h2>
-                    <p class="text-lg text-white">Ogni risposta vale il DOPPIO!</p>
-                </div>
-                
-                <!-- CLASSIFICA NASCOSTA -->
-                <div class="animate__animated animate__fadeInLeft" style="animation-delay: 0.8s;">
-                    <h2 class="text-2xl font-black text-red-300 mb-1">⚠️ CLASSIFICA NASCOSTA</h2>
-                    <p class="text-lg text-white">Punteggi segreti fino alla fine!</p>
-                </div>
-            </div>
-            
-            <p class="text-2xl text-white font-bold mb-3 animate__animated animate__fadeIn" style="animation-delay: 1s;">
-                Tutto può cambiare!
-            </p>
-            
-            <div class="text-4xl mb-2 animate__animated animate__bounceIn" style="animation-delay: 1.2s;">
-                🏆🏆🏆
-            </div>
-            
-            <div id="finale-countdown" class="text-5xl font-black text-yellow-300 animate-pulse">
-                PRONTI?
-            </div>
-        </div>
-    </div>
-
-    <!-- ✅ VISTA ALL IN BETTING -->
-    <div id="view-allin_betting" class="view-section hidden absolute inset-0 bg-gradient-to-br from-yellow-900 via-orange-900 to-red-900 z-50 flex flex-col items-center justify-center">
-        <div class="text-center animate__animated animate__zoomIn">
-            <div class="text-9xl mb-8 animate-bounce">💰</div>
-            <h1 class="text-9xl font-black text-white mb-6 uppercase">ALL IN!</h1>
-            <p class="text-6xl text-yellow-300 mb-12">Scommettete sui vostri telefoni!</p>
-            <div class="bg-black/40 rounded-3xl p-8 max-w-2xl mx-auto">
-                <p class="text-4xl text-white mb-4">Scegliete: 100 - 200 - 300 - 500</p>
-                <p class="text-3xl text-green-400 mb-2">✅ Corretta → Doppio</p>
-                <p class="text-3xl text-red-400">❌ Sbagliata → Perdi tutto</p>
-            </div>
-            <div class="mt-12 text-5xl text-yellow-300 animate-pulse">
-                📱 Guardate i vostri telefoni! 📱
-            </div>
-        </div>
-    </div>
-
-    <!-- ✅ VISTA ALL IN RESULTS -->
-    <div id="view-allin_results" class="view-section hidden absolute inset-0 bg-gradient-to-br from-yellow-900 via-orange-800 to-red-900 z-50 flex flex-col items-center justify-center p-6 overflow-y-auto">
-        <div class="w-full max-w-6xl animate__animated animate__fadeIn">
-            <!-- Risultati verranno popolati dinamicamente -->
-        </div>
-    </div>
-
-    <!-- VISTA MEMORY INTRO MANCHE -->
-    <div id="view-memory-intro" class="view-section hidden absolute inset-0 bg-gradient-to-br from-indigo-900 to-purple-900 z-50 flex flex-col items-center justify-center">
-        <div class="text-center animate__animated animate__zoomIn">
-            <div class="text-9xl mb-8">🧠</div>
-            <h1 class="text-8xl font-black text-white mb-6">MEMORY</h1>
-            <div id="memory-intro-manche" class="text-6xl font-bold text-yellow-400 mb-4">
-                MANCHE 1/3
-            </div>
-            <div id="memory-intro-pairs" class="text-4xl text-white">
-                3 COPPIE DA TROVARE
-            </div>
-        </div>
-    </div>
-
-    <!-- VISTA MEMORY GAME -->
-    <div id="view-memory" class="view-section hidden absolute inset-0 bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900 z-50 flex flex-col items-center justify-center p-8">
-        <!-- Header -->
-        <div class="text-center mb-8">
-            <h1 class="text-7xl font-black text-yellow-400 mb-4">🧠 MEMORY GAME</h1>
-            <div id="memory-manche-info" class="text-4xl font-bold text-white">
-                MANCHE 1/3
-            </div>
-            <div id="memory-phase-text" class="text-3xl font-bold text-white mt-2">
-                MEMORIZZA!
-            </div>
-        </div>
-        
-        <!-- Grid delle carte -->
-        <div id="memory-grid" class="grid gap-4 mb-8">
-            <!-- Popolato dinamicamente -->
-        </div>
-        
-        <!-- Timer -->
-        <div id="memory-timer" class="text-3xl font-bold text-yellow-300">
-            ⏱️ 5 secondi
-        </div>
-    </div>
-
-    <!-- ====================================== -->
-    <!-- 💀 IL PATTO COL DESTINO - VISTE -->
-    <!-- ====================================== -->
-    
-    <!-- VISTA REGOLE PARTE 1 -->
-    <div id="view-patto-regole-1" class="view-section hidden absolute inset-0 bg-gradient-to-br from-purple-900 via-indigo-900 to-black z-50 flex flex-col items-center justify-center overflow-y-auto p-6">
-        <div class="glass rounded-[2rem] p-8 max-w-5xl text-center animate__animated animate__fadeIn">
-            <div class="text-7xl mb-4">💀</div>
-            <h1 class="text-6xl font-black text-purple-300 mb-6 tracking-wider uppercase">
-                Il Patto col Destino
-            </h1>
-            
-            <div class="text-left text-white space-y-6 text-2xl leading-relaxed">
-                <div class="bg-purple-900/40 rounded-2xl p-6 border-2 border-purple-400">
-                    <h2 class="text-4xl font-black text-purple-300 mb-4">📋 Come Funziona</h2>
-                    <p class="mb-3">Le <span class="text-yellow-300 font-bold">PRIME 2 squadre</span> e <span class="text-yellow-300 font-bold">l'ULTIMA squadra</span> vengono selezionate.</p>
-                    <p class="text-purple-200">Avrete due fasi per decidere il vostro destino...</p>
-                </div>
-                
-                <div class="bg-blue-900/40 rounded-2xl p-6 border-2 border-blue-400">
-                    <h2 class="text-4xl font-black text-blue-300 mb-4">💬 FASE 1: Chat Segreta</h2>
-                    <p class="mb-3"><span class="text-yellow-300 font-bold">30 secondi</span> per comunicare SOLO tra voi 3</p>
-                    <p class="mb-3">Potete fare <span class="text-green-300 font-bold">accordi, promesse, minacce...</span></p>
-                    <p class="text-red-400 font-black text-3xl animate-pulse">⚠️ I PATTI POSSONO ESSERE VIOLATI ⚠️</p>
-                </div>
-                
-                <div class="bg-orange-900/40 rounded-2xl p-6 border-2 border-orange-400">
-                    <h2 class="text-4xl font-black text-orange-300 mb-4">🎲 FASE 2: Scelta Individuale</h2>
-                    <p class="mb-3"><span class="text-yellow-300 font-bold">25 secondi</span> per scegliere IN SEGRETO</p>
-                    <div class="grid grid-cols-2 gap-4 mt-4">
-                        <div class="bg-green-600/30 p-4 rounded-xl">
-                            <div class="text-5xl mb-2">🤝</div>
-                            <div class="text-3xl font-bold">PATTO</div>
-                        </div>
-                        <div class="bg-red-600/30 p-4 rounded-xl">
-                            <div class="text-5xl mb-2">💣</div>
-                            <div class="text-3xl font-bold">TRADIMENTO</div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="text-center text-2xl text-gray-300 animate-pulse mt-6">
-                    [ PREMI AVANTI PER I RISULTATI ]
-                </div>
-            </div>
+        <div class="flex items-center gap-2">
+            <span id="finale-indicator" class="hidden text-xs bg-red-600 px-2 py-1 rounded-full font-bold animate-pulse">🔥 FINALE</span>
+            <span class="text-xs font-bold animate-pulse"><span class="inline-block w-2 h-2 rounded-full bg-green-400 mr-1" style="box-shadow: 0 0 8px rgba(34,197,94,0.8);"></span>LIVE</span>
         </div>
     </div>
     
-    <!-- VISTA REGOLE PARTE 2 - RISULTATI -->
-    <div id="view-patto-regole-2" class="view-section hidden absolute inset-0 bg-gradient-to-br from-purple-900 via-indigo-900 to-black z-50 flex flex-col items-center justify-center overflow-y-auto p-6">
-        <div class="glass rounded-[2rem] p-8 max-w-5xl text-center animate__animated animate__fadeIn">
-            <div class="text-7xl mb-4">🎯</div>
-            <h1 class="text-6xl font-black text-purple-300 mb-6 tracking-wider uppercase">
-                Risultati Possibili
-            </h1>
-            
-            <div class="text-left text-white space-y-5 text-2xl leading-relaxed">
-                <div class="bg-green-900/40 rounded-2xl p-6 border-2 border-green-400">
-                    <h2 class="text-4xl font-black text-green-300 mb-3 flex items-center gap-3">
-                        ✅ TUTTI SCELGONO PATTO
-                    </h2>
-                    <p class="text-3xl font-bold text-yellow-300">→ +150 punti a ciascuno</p>
-                    <p class="text-xl text-gray-300 mt-2">Collaborazione totale! Tutti vincono.</p>
-                </div>
-                
-                <div class="bg-orange-900/40 rounded-2xl p-6 border-2 border-orange-400">
-                    <h2 class="text-4xl font-black text-orange-300 mb-3 flex items-center gap-3">
-                        ⚔️ QUALCUNO TRADISCE
-                    </h2>
-                    <p class="text-2xl mb-2">
-                        <span class="text-red-400 font-bold">Traditori:</span> 
-                        <span class="text-yellow-300 font-bold">+250 pt</span>
-                    </p>
-                    <p class="text-2xl">
-                        <span class="text-blue-400 font-bold">Fedeli:</span> 
-                        <span class="text-red-400 font-bold">-150 pt</span>
-                    </p>
-                    <p class="text-xl text-gray-300 mt-2">Il tradimento può essere redditizio...</p>
-                </div>
-                
-                <div class="bg-red-900/40 rounded-2xl p-6 border-2 border-red-400">
-                    <h2 class="text-4xl font-black text-red-300 mb-3 flex items-center gap-3">
-                        💥 TUTTI TRADISCONO
-                    </h2>
-                    <p class="text-3xl font-bold text-red-400 mb-2">→ -150 pt a tutti i traditori</p>
-                    <p class="text-2xl text-green-400 font-bold">
-                        → +150 pt all'ultima squadra<br/>(se non coinvolta)
-                    </p>
-                    <p class="text-xl text-gray-300 mt-2">Egoismo totale = punizione universale!</p>
-                </div>
-                
-                <div class="text-center mt-8 p-6 bg-purple-900/50 rounded-2xl border border-purple-400">
-                    <p class="text-3xl font-black text-yellow-300 animate-pulse">
-                        🎲 La fiducia è un rischio.<br/>
-                        Il tradimento è una tentazione.<br/>
-                        Scegli saggiamente.
-                    </p>
-                </div>
+    <!-- TIMER VISIVO CIRCOLARE -->
+    <div id="timer-container" class="hidden glass-panel p-4 border-b border-white/10">
+        <div class="flex items-center justify-center gap-4">
+            <div class="timer-circle-container">
+                <svg width="80" height="80" viewBox="0 0 80 80">
+                    <circle class="timer-circle-bg" cx="40" cy="40" r="36"></circle>
+                    <circle id="timer-circle" class="timer-circle-progress" 
+                            cx="40" cy="40" r="36"
+                            stroke="#10b981"
+                            stroke-dasharray="226.195"
+                            stroke-dashoffset="0">
+                    </circle>
+                </svg>
+                <div id="timer-display" class="timer-text" style="color: #10b981;">20</div>
+            </div>
+            <div class="text-left">
+                <div class="text-xs text-gray-400 uppercase tracking-wide">Tempo rimasto</div>
+                <div class="text-sm font-semibold text-white">Rispondi veloce!</div>
             </div>
         </div>
     </div>
-    
-    <!-- VISTA FASE CHAT -->
-    <div id="view-patto-chat" class="view-section hidden absolute inset-0 bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 z-50 flex flex-col items-center justify-center">
-        <div class="text-center animate__animated animate__fadeIn max-w-4xl">
-            <div class="text-7xl mb-6 animate-bounce">💬</div>
-            <h1 class="text-6xl font-black text-white mb-8 tracking-wider uppercase">
-                Fase 1: Comunicazione Segreta
-            </h1>
+
+    <div class="flex-1 flex flex-col p-4 overflow-y-auto">
+        <div id="msg-box" class="text-center w-full text-gray-400 font-bold text-lg px-4 mb-6 flex-shrink-0">In attesa...</div>
+        
+        <div class="flex-1 flex flex-col justify-center items-center min-h-0">
+            <!-- BOTTONI ALL IN -->
+            <div id="allin-buttons" class="hidden w-full max-w-md grid grid-cols-2 gap-4">
+                <button onclick="placeBet(0)" class="bg-gray-600 py-8 rounded-xl font-black text-3xl shadow-xl active:scale-95">0</button>
+                <button onclick="placeBet(50)" class="bg-blue-600 py-8 rounded-xl font-black text-3xl shadow-xl active:scale-95">50</button>
+                <button onclick="placeBet(100)" class="bg-orange-600 py-8 rounded-xl font-black text-3xl shadow-xl active:scale-95">100</button>
+                <button onclick="placeBet(200)" class="bg-red-600 py-8 rounded-xl font-black text-3xl shadow-xl active:scale-95">200</button>
+            </div>
             
-            <div class="bg-black/40 backdrop-blur-lg rounded-3xl p-8 mb-6">
-                <p class="text-3xl text-purple-300 font-bold mb-6">Squadre coinvolte:</p>
-                <div id="patto-squadre-coinvolte" class="space-y-3">
+            <!-- BOTTONI RUOTA FORTUNA -->
+            <div id="ruota-choice-buttons" class="hidden w-full max-w-md space-y-4">
+                <!-- Popolato dinamicamente -->
+            </div>
+            
+            <button id="btn-buzzer" onclick="prenota()" class="hidden w-64 h-64 rounded-full flex items-center justify-center border-8 shadow-2xl transition-all">
+                <span class="text-4xl font-black">PREMI!</span>
+            </button>
+
+            <div id="opts-grid" class="hidden grid grid-cols-2 gap-4 w-full h-full max-h-96"></div>
+            
+            <!-- MEMORY GRID PULSANTI -->
+            <div id="memory-buttons" class="hidden w-full max-w-md">
+                <div id="memory-button-grid" class="grid gap-2">
                     <!-- Popolato dinamicamente -->
                 </div>
             </div>
             
-            <div class="bg-blue-900/50 backdrop-blur-lg rounded-3xl p-6 mb-4">
-                <p class="text-4xl text-white font-black mb-3">💬 Stanno comunicando in segreto...</p>
-                <p class="text-2xl text-blue-300">Fate accordi, promesse, alleanze...</p>
-            </div>
+            <!-- ====================================== -->
+            <!-- PATTO COL DESTINO - CONTAINERS -->
+            <!-- ====================================== -->
             
-            <div class="bg-red-900/50 backdrop-blur-lg rounded-3xl p-6 mb-6 animate-pulse">
-                <p class="text-3xl text-red-300 font-black">⚠️ I patti possono essere violati ⚠️</p>
-            </div>
-            
-            <div class="text-center">
-                <div class="text-7xl font-black text-yellow-400 mb-2" id="patto-timer-chat">30</div>
-                <div class="text-2xl text-gray-300">secondi rimanenti</div>
-                <div class="w-full bg-gray-700 rounded-full h-4 overflow-hidden mt-4">
-                    <div id="patto-timer-bar-chat" class="h-4 bg-blue-500 rounded-full transition-all duration-1000" style="width: 100%;"></div>
+            <!-- PATTO - CHAT SEGRETA -->
+            <div id="patto-chat-container" class="hidden flex-col h-full bg-gradient-to-br from-purple-900 to-indigo-900">
+                <div class="bg-purple-800 p-4 border-b border-purple-700">
+                    <div class="flex justify-between items-center">
+                        <span class="font-bold text-yellow-400 uppercase">💬 Chat Segreta</span>
+                        <span id="patto-chat-timer" class="text-2xl font-black text-white">30</span>
+                    </div>
+                    <div class="w-full bg-gray-700 rounded-full h-2 overflow-hidden mt-2">
+                        <div id="patto-chat-timer-bar" class="h-2 bg-blue-500 rounded-full transition-all duration-1000" style="width: 100%;"></div>
+                    </div>
+                </div>
+                
+                <div id="patto-chat-messages" class="flex-1 overflow-y-auto p-4 space-y-2">
+                    <div class="text-center text-gray-400 text-sm mb-4">
+                        ⚠️ Solo voi 3 potete leggere questi messaggi<br/>
+                        Fate accordi... ma ricordate: i patti possono essere violati!
+                    </div>
+                </div>
+                
+                <div class="p-4 bg-purple-900 border-t border-purple-700">
+                    <div class="flex gap-2">
+                        <input type="text" id="patto-chat-input" placeholder="Scrivi un messaggio..." 
+                               class="flex-1 bg-gray-800 text-white p-3 rounded-lg border border-gray-700"
+                               maxlength="100">
+                        <button id="patto-chat-send" class="bg-blue-600 hover:bg-blue-500 px-6 rounded-lg font-bold">
+                            INVIA
+                        </button>
+                    </div>
                 </div>
             </div>
+            
+            <!-- PATTO - SCELTA -->
+            <div id="patto-scelta-container" class="hidden flex-col h-full bg-gradient-to-br from-orange-900 to-red-900">
+                <div class="bg-red-800 p-4 border-b border-red-700">
+                    <div class="flex justify-between items-center">
+                        <span class="font-bold text-yellow-400 uppercase">🎲 Scegli il tuo destino</span>
+                        <span id="patto-scelta-timer" class="text-2xl font-black text-white">25</span>
+                    </div>
+                    <div class="w-full bg-gray-700 rounded-full h-2 overflow-hidden mt-2">
+                        <div id="patto-scelta-timer-bar" class="h-2 bg-orange-500 rounded-full transition-all duration-1000" style="width: 100%;"></div>
+                    </div>
+                </div>
+                
+                <div class="flex-1 flex flex-col justify-center items-center p-6 gap-6">
+                    <div id="patto-scelta-info" class="text-center text-white text-lg mb-4">
+                        Scegli in segreto: PATTO o TRADIMENTO?<br/>
+                        <span class="text-yellow-300">La tua scelta è irreversibile!</span>
+                    </div>
+                    
+                    <button id="btn-patto" class="w-full max-w-md h-48 bg-green-600 hover:bg-green-500 rounded-2xl border-4 border-green-400 flex flex-col items-center justify-center transition-all shadow-2xl">
+                        <div class="text-7xl mb-3">🤝</div>
+                        <div class="text-3xl font-black text-white">PATTO</div>
+                        <div class="text-sm text-gray-200 mt-2">Collabora con gli altri</div>
+                    </button>
+                    
+                    <button id="btn-tradimento" class="w-full max-w-md h-48 bg-red-600 hover:bg-red-500 rounded-2xl border-4 border-red-400 flex flex-col items-center justify-center transition-all shadow-2xl">
+                        <div class="text-7xl mb-3">💣</div>
+                        <div class="text-3xl font-black text-white">TRADIMENTO</div>
+                        <div class="text-sm text-gray-200 mt-2">Prendi tutto per te</div>
+                    </button>
+                    
+                    <div id="patto-scelta-confermata" class="hidden text-center">
+                        <div class="text-5xl mb-4">✅</div>
+                        <div class="text-2xl font-bold text-green-400">Scelta inviata!</div>
+                        <div class="text-gray-300">Attendere gli altri...</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- PATTO - OSSERVATORE -->
+            <div id="patto-osservatore-container" class="hidden flex flex-col items-center justify-center h-full bg-gradient-to-br from-gray-900 to-gray-800 p-6 text-center">
+                <div class="text-6xl mb-6">👀</div>
+                <div class="text-3xl font-bold text-white mb-4">Osservatore</div>
+                <div id="patto-osservatore-message" class="text-xl text-gray-300">
+                    Altre squadre stanno giocando...<br/>
+                    Attendere il risultato!
+                </div>
+            </div>
+            
+            <!-- ====================================== -->
+            <!-- FINE PATTO COL DESTINO -->
+            <!-- ====================================== -->
         </div>
     </div>
-    
-    <!-- VISTA FASE SCELTA -->
-    <div id="view-patto-scelta" class="view-section hidden absolute inset-0 bg-gradient-to-br from-orange-900 via-red-900 to-purple-900 z-50 flex flex-col items-center justify-center">
-        <div class="text-center animate__animated animate__fadeIn max-w-4xl">
-            <div class="text-7xl mb-6 animate-pulse">🎲</div>
-            <h1 class="text-6xl font-black text-white mb-8 tracking-wider uppercase">
-                Fase 2: Scelta Individuale
-            </h1>
-            
-            <div class="bg-black/40 backdrop-blur-lg rounded-3xl p-8 mb-6">
-                <p class="text-3xl text-orange-300 font-bold mb-4">Le squadre stanno scegliendo...</p>
-                <div id="patto-squadre-scelta" class="space-y-3">
-                    <!-- Popolato dinamicamente -->
-                </div>
-            </div>
-            
-            <div class="grid grid-cols-2 gap-6 mb-6 max-w-3xl mx-auto">
-                <div class="bg-green-900/50 backdrop-blur-lg rounded-2xl p-6 border-4 border-green-400">
-                    <div class="text-6xl mb-3">🤝</div>
-                    <div class="text-4xl font-black text-green-300">PATTO</div>
-                    <div class="text-lg text-gray-300 mt-2">Fiducia reciproca</div>
-                </div>
-                <div class="bg-red-900/50 backdrop-blur-lg rounded-2xl p-6 border-4 border-red-400">
-                    <div class="text-6xl mb-3">💣</div>
-                    <div class="text-4xl font-black text-red-300">TRADIMENTO</div>
-                    <div class="text-lg text-gray-300 mt-2">Prendi tutto</div>
-                </div>
-            </div>
-            
-            <div class="text-center">
-                <div class="text-7xl font-black text-yellow-400 mb-2" id="patto-timer-scelta">25</div>
-                <div class="text-2xl text-gray-300">secondi rimanenti</div>
-                <div class="w-full bg-gray-700 rounded-full h-4 overflow-hidden mt-4">
-                    <div id="patto-timer-bar-scelta" class="h-4 bg-orange-500 rounded-full transition-all duration-1000" style="width: 100%;"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- VISTA REVEAL SUSPENSE -->
-    <div id="view-patto-reveal-suspense" class="view-section hidden absolute inset-0 bg-gradient-to-br from-black via-purple-900 to-black z-50 flex flex-col items-center justify-center">
-        <div class="text-center animate__animated animate__fadeIn">
-            <div class="text-8xl mb-8 animate-pulse">🎭</div>
-            <h1 class="text-7xl font-black text-white mb-12 tracking-wider uppercase animate-pulse">
-                Le scelte saranno rivelate...
-            </h1>
-            
-            <div id="patto-reveal-squadre" class="space-y-6 max-w-3xl mx-auto">
-                <!-- Popolato dinamicamente con ❓ -->
-            </div>
-        </div>
-    </div>
-    
-    <!-- VISTA REVEAL PROGRESSIVO -->
-    <div id="view-patto-reveal" class="view-section hidden absolute inset-0 bg-gradient-to-br from-purple-900 via-indigo-900 to-black z-50 flex flex-col items-center justify-center">
-        <div class="text-center max-w-4xl">
-            <h1 class="text-6xl font-black text-purple-300 mb-12 tracking-wider uppercase">
-                💀 Rivelazione delle Scelte
-            </h1>
-            
-            <div id="patto-reveal-results" class="space-y-6">
-                <!-- Popolato dinamicamente step by step -->
-            </div>
-        </div>
-    </div>
-    
-    <!-- VISTA RISULTATO FINALE -->
-    <div id="view-patto-finale" class="view-section hidden absolute inset-0 bg-gradient-to-br from-yellow-900 via-orange-900 to-red-900 z-50 flex flex-col items-center justify-center overflow-y-auto p-6">
-        <div class="text-center animate__animated animate__bounceIn max-w-5xl">
-            <div class="text-8xl mb-6">🎯</div>
-            <h1 class="text-7xl font-black text-white mb-8 tracking-wider uppercase">
-                Risultato Finale
-            </h1>
-            
-            <div id="patto-finale-results" class="space-y-4 mb-8">
-                <!-- Popolato dinamicamente con punti assegnati -->
-            </div>
-            
-            <div id="patto-bonus-ultima" class="hidden bg-green-900/50 backdrop-blur-lg rounded-3xl p-8 border-4 border-green-400 mb-6 animate__animated animate__fadeInUp">
-                <p class="text-4xl font-black text-green-300 mb-4">🌱 BONUS ULTIMA SQUADRA</p>
-                <p class="text-5xl font-black text-white">
-                    <span id="patto-bonus-team-name">---</span>
-                </p>
-                <p class="text-4xl text-yellow-300 font-bold">+150 punti</p>
-                <p class="text-xl text-gray-300 mt-2">(Tutti hanno tradito!)</p>
-            </div>
-            
-            <div class="bg-black/40 backdrop-blur-lg rounded-3xl p-6">
-                <p class="text-3xl text-purple-300 font-bold mb-4">🏆 Nuova Classifica</p>
-                <div id="patto-nuova-classifica" class="space-y-2">
-                    <!-- Popolato dinamicamente -->
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- ====================================== -->
-    <!-- FINE VISTE PATTO COL DESTINO -->
-    <!-- ====================================== -->
-
 </div>
 
 <script>
@@ -970,630 +295,443 @@
       reconnectionDelayMax: 5000,
       timeout: 10000
     });
+    let buzzerLocked = true;
     let timerInterval = null;
     let questionStartTime = 0;
     let maxTime = 20;
-    let memoryTimerInterval = null;
-    let audioTickInterval = null;
+    let currentStreak = 0;
 
-    // ════════════════════════════════════════════════════════════════
-    // 🔊 ATTIVAZIONE AUDIO - Risolve problema autoplay policy browser
-    // ════════════════════════════════════════════════════════════════
-    document.getElementById('unlock-audio-btn').addEventListener('click', function() {
+    // Initialize audio on first touch (mobile requires user gesture)
+    document.addEventListener('touchstart', function initAudio() {
         SipontoAudio.init();
-        document.getElementById('audio-unlock-overlay').style.display = 'none';
-        console.log('✅ Audio attivato dall\'utente');
-        
-        // Riproduci un breve suono di conferma
-        setTimeout(() => SipontoAudio.correct(), 100);
-    });
-
-    // Listen for audio commands from admin
-    socket.on('play_sfx', (data) => {
-        if (!SipontoAudio.isEnabled()) return;
-        const fn = SipontoAudio[data.effect];
-        if (typeof fn === 'function') fn(data.duration);
-    });
-    socket.on('audio_set_enabled', (data) => {
-        SipontoAudio.setEnabled(data.enabled);
-    });
-    socket.on('audio_set_volume', (data) => {
-        SipontoAudio.setVolume(data.volume);
-    });
-    
-    function showView(id) {
-        document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
-        const viewId = 'view-' + id;
-        const el = document.getElementById(viewId);
-        if(el) {
-            el.classList.remove('hidden');
-            console.log('Mostro vista:', viewId);
-        } else {
-            console.error('Vista non trovata:', viewId);
-        }
-    }
-
-    socket.on('connect', () => {
-        socket.join('display');
-        console.log('📺 Display connesso');
-        showView('logo');
-    });
+        SipontoAudio.setVolume(0.3); // Lower volume on mobile
+        document.removeEventListener('touchstart', initAudio);
+    }, { once: true });
+    document.addEventListener('click', function initAudio() {
+        SipontoAudio.init();
+        SipontoAudio.setVolume(0.3);
+        document.removeEventListener('click', initAudio);
+    }, { once: true });
 
     // ════════════════════════════════════════════════════════════════
-    // 🎰 RUOTA DELLA FORTUNA - DISPLAY COMPLETO
-    // ════════════════════════════════════════════════════════════════
-
-    // Riceve spiegazione ruota
-    socket.on('cambia_vista', (data) => {
-        console.log('Ricevuto comando regia:', data.view);
-        stopTimer();
-        
-        if (data.view === 'ruota_explain') {
-            showView('ruota-explain');
-            console.log('🎰 Mostrata spiegazione ruota');
-            return;
-        }
-        
-        if (data.view === 'ruota_spin') {
-            showView('ruota-spin');
-            console.log('🎰 Mostrata animazione ruota');
-            return;
-        }
-        
-        if (data.view === 'ruota_winner') {
-            showView('ruota-winner');
-            console.log('🎰 Mostrato vincitore ruota');
-            return;
-        }
-        
-        if (data.view === 'gioco') {
-            showView('gioco');
-            console.log('🎰 Mostrata vista gioco per sfida');
-            return;
-        }
-        
-        // ✅ NUOVO: Gestione viste finale
-        if (data.view === 'finale_explanation') {
-            showView('finale_explanation');
-            
-            // Countdown dopo 17 secondi
-            setTimeout(() => {
-                const countdownEl = document.getElementById('finale-countdown');
-                let count = 3;
-                countdownEl.textContent = count;
-                
-                const countInterval = setInterval(() => {
-                    count--;
-                    if(count > 0) {
-                        countdownEl.textContent = count;
-                        countdownEl.classList.add('animate__animated', 'animate__bounce');
-                        setTimeout(() => countdownEl.classList.remove('animate__animated', 'animate__bounce'), 1000);
-                    } else {
-                        countdownEl.textContent = 'VIA!';
-                        countdownEl.classList.add('animate__animated', 'animate__heartBeat');
-                        clearInterval(countInterval);
-                        
-                        // Torna alla classifica dopo 3 secondi
-                        setTimeout(() => {
-                            showView('classifica_gen');
-                        }, 3000);
-                    }
-                }, 1000);
-            }, 17000); // Dopo 17 secondi inizia countdown 3-2-1
-            
-            console.log('🔥 Mostrata spiegazione finale');
-            return;
-        }
-        
-        if (data.view === 'allin_betting') {
-            showView('allin_betting');
-            console.log('💰 Mostrata schermata ALL IN betting');
-            return;
-        }
-        
-        showView(data.view);
-        
-        // Genera QR code
-        if(data.view === 'logo') {
-            const qrDiv = document.getElementById("qrcode");
-            qrDiv.innerHTML = "";
-            try {
-                new QRCode(qrDiv, {
-                    text: window.location.origin || "https://quizzone-game.onrender.com",
-                    width: 320,
-                    height: 320,
-                    colorDark : "#000000",
-                    colorLight : "#ffffff"
-                });
-            } catch(e) {
-                console.error('Errore QR:', e);
-            }
-        }
-        
-        // Classifica round
-        if(data.view === 'classifica_round' && data.data) {
-            // ✅ FIX: Passa direttamente l'array results invece di tutto l'oggetto data
-            renderRoundList(data.data.results || []);
-        }
-        
-        // Schermata custom
-        if(data.view === 'custom' && data.data) {
-            console.log('📺 Ricevuto testo custom:', data.data.text);
-            document.getElementById('custom-text-display').textContent = data.data.text || 'Nessun messaggio';
-        }
-        
-        // VINCITORE CON CONFETTI
-        if(data.view === 'winner' && data.data) {
-            document.getElementById('winner-name').textContent = data.data.winnerName || 'Campione';
-            document.getElementById('winner-score').textContent = data.data.winnerScore || 0;
-            createConfetti();
-        }
-    });
-
-    // Animazione spinning della ruota
-    socket.on('ruota_spin', (data) => {
-        console.log('🎰 Ruota gira con squadre:', data.teams.length);
-        SipontoAudio.wheelSpin(5);
-        showView('ruota-spin');
-        
-        // Animazione ruota con nomi squadre
-        const wheelName = document.getElementById('wheel-name');
-        let index = 0;
-        const teamNames = data.teams.map(t => t.name);
-        
-        // Animazione veloce dei nomi
-        const interval = setInterval(() => {
-            wheelName.textContent = teamNames[index % teamNames.length];
-            index++;
-        }, 150);
-        
-        // Dopo 5 secondi mostra vincitore
-        setTimeout(() => {
-            clearInterval(interval);
-            wheelName.textContent = data.winner.name;
-            document.getElementById('wheel').classList.remove('animate-spin');
-            document.getElementById('wheel').classList.add('animate-pulse');
-            
-            // Dopo 1 secondo mostra schermata vincitore
-            setTimeout(() => {
-                showView('ruota-winner');
-                document.getElementById('winner-team-name').textContent = data.winner.name;
-            }, 1000);
-        }, 5000);
-    });
-
-    // Mostra vincitore ruota
-    socket.on('ruota_winner', (data) => {
-        console.log('🎰 Vincitore ruota:', data.winner.name);
-        showView('ruota-winner');
-        document.getElementById('winner-team-name').textContent = data.winner.name;
-    });
-
-    // ════════════════════════════════════════════════════════════════
-    // 💰 SFIDA FINALE - ALL IN REVEAL
+    // ✅ FUNZIONI FEEDBACK VISIVO E VIBRAZIONE
     // ════════════════════════════════════════════════════════════════
     
-    socket.on('finale_allin_results', (data) => {
-        console.log('💰 Ricevuti risultati ALL IN:', data);
-        showView('allin_results');
-        
-        const container = document.querySelector('#view-allin_results .max-w-6xl');
-        container.innerHTML = '';
-        
-        // Header risultati
-        container.innerHTML = `
-            <div class="text-center mb-8 animate__animated animate__fadeInDown">
-                <div class="text-9xl mb-6 animate-bounce">💰</div>
-                <h1 class="text-7xl font-black text-yellow-400 mb-4">RISULTATI ALL IN</h1>
-                <div class="bg-black/40 rounded-3xl p-6 mb-6">
-                    <p class="text-3xl text-white mb-2">Domanda: "${data.question}"</p>
-                    <p class="text-2xl text-green-400">Risposta corretta: <span class="font-black">${data.correctAnswer}</span></p>
-                </div>
-            </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        `;
-        
-        // Mostra risultati per ogni squadra
-        if(data.results && data.results.length > 0) {
-            data.results.forEach((result, index) => {
-                const bgClass = result.correct ? 'bg-green-900/40' : 'bg-red-900/40';
-                const emoji = result.correct ? '✅' : '❌';
-                const points = result.correct ? `+${result.pointsChange}` : result.pointsChange;
-                const pointsClass = result.correct ? 'text-green-400' : 'text-red-400';
-                
-                container.innerHTML += `
-                    <div class="${bgClass} p-6 rounded-2xl border-2 ${result.correct ? 'border-green-500' : 'border-red-500'} animate__animated animate__fadeInUp" style="animation-delay: ${index * 0.1}s">
-                        <div class="flex justify-between items-start mb-3">
-                            <div class="text-4xl">${emoji}</div>
-                            <div class="text-5xl font-black ${pointsClass}">${points}</div>
-                        </div>
-                        <div class="text-3xl font-black mb-2">${result.teamName}</div>
-                        <div class="text-lg text-gray-300 mb-1">Scommessa: ${result.bet} punti</div>
-                        <div class="text-lg">Risposta: "${result.answer}"</div>
-                        <div class="text-sm text-gray-400 mt-3">Nuovo totale: ${result.newScore} punti</div>
-                    </div>
-                `;
-            });
-        } else {
-            container.innerHTML += `
-                <div class="col-span-2 text-center p-8">
-                    <div class="text-6xl mb-4">😢</div>
-                    <p class="text-3xl text-gray-400">Nessuna scommessa ricevuta</p>
-                </div>
-            `;
-        }
-        
-        container.innerHTML += `
-            </div>
-            
-            <div class="text-center mt-8">
-                <div class="text-4xl text-yellow-300 animate-pulse">
-                    Prossima domanda tra 10 secondi...
-                </div>
-            </div>
-        `;
-        
-        // Dopo 15 secondi torna alla classifica
-        setTimeout(() => {
-            showView('classifica_gen');
-        }, 15000);
-        
-        console.log('💰 Risultati ALL IN mostrati:', data.results?.length, 'squadre');
-    });
-
-    // Compatibilità con vecchio evento
-    socket.on('finale_allin_reveal', (data) => {
-        console.log('💰 Ricevuti risultati ALL IN (compatibilità):', data);
-        showView('allin_results');
-        
-        const container = document.querySelector('#view-allin_results .max-w-6xl');
-        container.innerHTML = '';
-        
-        container.innerHTML = `
-            <div class="text-center mb-8">
-                <div class="text-9xl mb-6">💰</div>
-                <h1 class="text-7xl font-black text-yellow-400 mb-4">ALL IN - RISULTATI</h1>
-                <div class="bg-black/40 rounded-3xl p-6 mb-6">
-                    <p class="text-3xl text-white mb-2">${data.question}</p>
-                    <p class="text-2xl text-green-400">Risposta corretta: <span class="font-black">${data.correctAnswer}</span></p>
-                </div>
-            </div>
-            
-            <div class="space-y-4 max-w-4xl mx-auto">
-        `;
-        
-        if(data.bets && data.bets.length > 0) {
-            data.bets.forEach((bet, index) => {
-                const isCorrect = bet.answer === data.correctAnswer;
-                const points = isCorrect ? bet.bet : -bet.bet;
-                const rowClass = isCorrect ? 'bg-green-900/40 border-green-500' : 'bg-red-900/40 border-red-500';
-                
-                container.innerHTML += `
-                    <div class="${rowClass} p-6 rounded-2xl border-2 animate__animated animate__fadeInLeft" style="animation-delay: ${index * 0.1}s">
-                        <div class="flex justify-between items-center">
-                            <div>
-                                <div class="text-3xl font-black">${bet.teamName}</div>
-                                <div class="text-lg mt-1">"${bet.answer}"</div>
-                                <div class="text-sm text-gray-300 mt-2">Puntata: ${bet.bet} punti</div>
-                            </div>
-                            <div class="text-5xl font-black ${isCorrect ? 'text-green-400' : 'text-red-400'}">
-                                ${points > 0 ? '+' : ''}${points}
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-        }
-        
-        container.innerHTML += `
-            </div>
-            
-            <div class="text-center mt-8">
-                <div class="text-3xl text-yellow-300 animate-pulse">
-                    Prossima domanda tra 10 secondi...
-                </div>
-            </div>
-        `;
-        
-        // Dopo 15 secondi torna alla classifica
-        setTimeout(() => {
-            showView('classifica_gen');
-        }, 15000);
-    });
-
-    // Mostra risultato ruota
-    socket.on('ruota_result', (data) => {
-        console.log('🎰 Risultato ruota:', data.teamName, data.action, data.points);
-        
-        // Mostra messaggio sul display
-        showView('custom');
-        const actionText = data.action === 'safe' ? '50 PUNTI SICURI' : 
-                          data.action === 'challenge_win' ? '+150 PUNTI!' : '-50 PUNTI';
-        const emoji = data.action === 'safe' ? '💰' : 
-                     data.action === 'challenge_win' ? '🎯' : '😢';
-        const colorClass = data.action === 'challenge_lose' ? 'text-red-400' : 'text-green-400';
-        
-        document.getElementById('custom-text-display').innerHTML = `
-            <div class="text-9xl mb-6">${emoji}</div>
-            <div class="text-5xl font-black mb-4">${data.teamName}</div>
-            <div class="text-7xl font-black ${colorClass} mb-4">${data.action === 'challenge_lose' ? '-' : '+'}${Math.abs(data.points)} PUNTI</div>
-            <div class="text-4xl text-yellow-300">${actionText}</div>
-            <div class="text-3xl mt-6">Nuovo totale: ${data.newScore} punti</div>
-        `;
-        
-        // Torna alla classifica dopo 5 secondi
-        setTimeout(() => {
-            showView('classifica_gen');
-        }, 5000);
-    });
-
-    // Mostra domanda per sfida ruota (solo visualizzazione)
-    socket.on('display_question', (d) => {
-        console.log('🎰 Display question (solo visualizzazione):', d.domanda);
-        showView('gioco');
-        stopTimer();
-        
-        document.getElementById('buzzer-overlay').classList.add('hidden');
-        document.getElementById('solution').classList.add('hidden');
-        document.getElementById('cat').innerText = (d.categoria || "RUOTA DELLA FORTUNA").toUpperCase();
-        document.getElementById('q-text').innerHTML = `
-            <div class="text-4xl text-yellow-400 mb-4">🎯 SFIDA PER ${d.forTeam.toUpperCase()}</div>
-            <div class="text-3xl">${d.domanda}</div>
-        `;
-        
-        const o = document.getElementById('opts'); 
-        o.innerHTML = '';
-        
-        if(d.risposte && d.risposte.length > 0) { 
-            o.classList.remove('hidden'); 
-            d.risposte.forEach((r, idx) => {
-                o.innerHTML += `<div class="answer-card answer-option flex items-center text-3xl"><span class="letter-badge">${String.fromCharCode(65+idx)}</span>${r}</div>`;
-            });
-        }
-        
-        document.getElementById('timer-display-container').classList.add('hidden');
-    });
-
-    // CONFETTI ANIMATION
-    function createConfetti() {
-        const container = document.getElementById('confetti-container');
-        container.innerHTML = '';
-        const colors = ['#FFD700', '#FF6347', '#00CED1', '#FF69B4', '#32CD32', '#FF4500'];
-        
-        for(let i = 0; i < 100; i++) {
-            const confetti = document.createElement('div');
-            confetti.className = 'confetti';
-            confetti.style.left = Math.random() * 100 + '%';
-            confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-            confetti.style.animationDelay = Math.random() * 3 + 's';
-            confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
-            container.appendChild(confetti);
+    /**
+     * Vibra il dispositivo mobile
+     * @param {number} duration - Durata in millisecondi (default: 50ms)
+     */
+    function vibrate(duration = 50) {
+        if (navigator.vibrate) {
+            navigator.vibrate(duration);
         }
     }
-
-    // ✅ FIX: Riceve soluzione SOLO il display
-    socket.on('mostra_soluzione_display', (data) => {
-        // Nascondi tutto
-        document.getElementById('game-screen').classList.add('hidden');
-        document.getElementById('qr-screen').classList.add('hidden');
-        document.getElementById('benvenuto-screen').classList.add('hidden');
-        // ... (nascondi altri screen se esistono)
+    
+    /**
+     * Aggiunge feedback visivo di successo a un pulsante
+     * @param {HTMLElement} button - Il pulsante da animare
+     */
+    function addButtonFeedback(button) {
+        // Vibrazione
+        vibrate(50);
         
-        // Mostra schermata soluzione
-        const soluzioneScreen = document.getElementById('soluzione-screen') || createSoluzioneScreen();
-        soluzioneScreen.classList.remove('hidden');
+        // Animazione CSS
+        button.classList.add('btn-feedback-success');
         
-        document.getElementById('soluzione-text').textContent = data.soluzione;
+        // Crea anello pulsante
+        const ring = document.createElement('div');
+        ring.className = 'absolute inset-0 rounded-full border-4 border-green-400 pulse-ring pointer-events-none';
+        button.style.position = 'relative';
+        button.appendChild(ring);
         
-        function createSoluzioneScreen() {
-            const div = document.createElement('div');
-            div.id = 'soluzione-screen';
-            div.className = 'hidden flex flex-col items-center justify-center h-screen bg-gradient-to-br from-yellow-600 to-orange-600';
-            div.innerHTML = `
-                <div class="text-6xl font-black text-white mb-8">✅ RISPOSTA CORRETTA</div>
-                <div id="soluzione-text" class="text-8xl font-black text-white bg-black/30 px-16 py-8 rounded-3xl border-8 border-white"></div>
-            `;
-            document.body.appendChild(div);
-            return div;
+        // Rimuovi animazione dopo completamento
+        setTimeout(() => {
+            button.classList.remove('btn-feedback-success');
+            ring.remove();
+        }, 600);
+    }
+    
+    /**
+     * Aggiorna il timer circolare
+     * @param {number} timeLeft - Tempo rimanente in secondi
+     * @param {number} maxTime - Tempo massimo in secondi
+     */
+    function updateCircularTimer(timeLeft, maxTime) {
+        const display = document.getElementById('timer-display');
+        const circle = document.getElementById('timer-circle');
+        
+        if (!display || !circle) return;
+        
+        // Calcola percentuale rimanente
+        const percentage = timeLeft / maxTime;
+        const circumference = 226.195; // 2 * π * r (r=36)
+        const offset = circumference * (1 - percentage);
+        
+        // Aggiorna cerchio
+        circle.style.strokeDashoffset = offset;
+        
+        // Cambia colore in base al tempo rimanente
+        let color = '#10b981'; // Verde
+        if (timeLeft <= 5) {
+            color = '#ef4444'; // Rosso
+            circle.style.stroke = color;
+            display.style.color = color;
+        } else if (timeLeft <= 10) {
+            color = '#f59e0b'; // Arancione
+            circle.style.stroke = color;
+            display.style.color = color;
         }
+        
+        // Aggiorna numero
+        display.textContent = timeLeft;
+    }
+
+    function login() { const n = document.getElementById('team-name').value; if(n) socket.emit('login', n); }
+    
+    socket.on('login_success', (d) => { 
+        document.getElementById('login-screen').classList.add('hidden'); 
+        document.getElementById('game-screen').classList.remove('hidden'); 
+        document.getElementById('game-screen').classList.add('flex');
+        document.getElementById('my-name').innerText = d.name;
     });
 
-    // PAUSA GIOCO - MODIFICATO
-    socket.on('game_paused', (data) => {
-        showView('pausa');
-        
-        const leaderboard = document.getElementById('pause-leaderboard');
-        leaderboard.innerHTML = '';
-        
-        if (data.teams && data.teams.length > 0) {
-            data.teams.slice(0, 5).forEach((team, idx) => {
-                const medals = ['🥇', '🥈', '🥉'];
-                const medal = medals[idx] || `${idx + 1}°`;
-                
-                leaderboard.innerHTML += `
-                    <div class="flex justify-between items-center bg-white/10 rounded-xl p-4">
-                        <span>
-                            <span class="text-4xl mr-3">${medal}</span>
-                            <span class="font-bold">${team.name}</span>
-                        </span>
-                        <span class="font-black text-yellow-400">${team.score} pt</span>
-                    </div>
-                `;
-            });
-        } else {
-            leaderboard.innerHTML = '<p class="text-white/60">Nessuna squadra registrata</p>';
-        }
-        
-        console.log('⏸️ Pausa con classifica mostrata');
+    // ✅ RIMOSSO: La soluzione appare solo sul display
+
+    // ✅ PAUSA - Aggiungere notifiche visive
+    socket.on('game_paused', () => {
+        document.getElementById('msg-box').innerHTML = `
+            <div class="text-6xl mb-4">⏸️</div>
+            <div class="text-yellow-400 font-black text-2xl">PAUSA</div>
+        `;
+        // Disabilita pulsanti
+        document.querySelectorAll('button').forEach(btn => btn.disabled = true);
     });
 
     socket.on('game_resumed', () => {
-        console.log('Gioco ripreso');
-        showView('logo');
+        document.getElementById('msg-box').textContent = 'In attesa...';
+        // Riabilita pulsanti
+        document.querySelectorAll('button').forEach(btn => btn.disabled = false);
     });
 
-    function renderRoundList(data) {
-        const tbody = document.getElementById('round-list-body'); 
-        tbody.innerHTML = '';
+    // ════════════════════════════════════════════════════════════════
+    // CORREZIONI INDEX.HTML (Cellulari)
+    // ════════════════════════════════════════════════════════════════
+
+    // ✅ Listener per mostrare scelta ruota (SOLO alla squadra estratta) - AGGIORNATO
+    socket.on('ruota_choice', (data) => {
+        console.log('🎰 Ricevuta scelta ruota:', data);
+        resetUI();
         
-        // ✅ FIX: Gestisce sia array vuoto che undefined/null
-        if(!data || data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="p-10 text-center text-gray-500 text-4xl">Nessun punteggio in questo round</td></tr>';
-            return;
+        document.getElementById('msg-box').innerHTML = `
+            <div class="text-4xl font-black mb-8 animate-pulse text-yellow-400">🎰 HAI VINTO LA RUOTA! 🎰</div>
+            <div class="text-2xl font-bold mb-6 text-white">${data.message}</div>
+        `;
+        
+        // Crea pulsanti per le opzioni
+        const container = document.getElementById('ruota-choice-buttons');
+        container.innerHTML = '';
+        container.classList.remove('hidden');
+        
+        data.options.forEach(option => {
+            const btn = document.createElement('button');
+            
+            if(option.id === 'safe') {
+                // Bottone 50 punti sicuri
+                btn.className = 'bg-gradient-to-r from-green-500 to-emerald-600 text-white font-black text-3xl py-12 px-8 rounded-3xl shadow-2xl active:scale-95 transition-all mb-6 hover:scale-105';
+                btn.innerHTML = `
+                    <div class="text-6xl mb-4">💰</div>
+                    <div class="text-2xl mb-2">${option.label}</div>
+                    <div class="text-3xl mt-4 text-yellow-300 font-black">+${option.value} PUNTI</div>
+                `;
+            } else {
+                // Bottone sfida
+                btn.className = 'bg-gradient-to-r from-red-500 to-orange-600 text-white font-black text-3xl py-12 px-8 rounded-3xl shadow-2xl active:scale-95 transition-all mb-6 hover:scale-105';
+                btn.innerHTML = `
+                    <div class="text-6xl mb-4">🎯</div>
+                    <div class="text-2xl mb-2">${option.label}</div>
+                    <div class="text-xl mt-4 text-yellow-300">Rischi 50 punti per vincerne 150!</div>
+                `;
+            }
+            
+            btn.onclick = () => {
+                // ✅ VIBRAZIONE E FEEDBACK per scelta ruota
+                vibrate(80);
+                
+                // Invia la scelta al server
+                socket.emit('ruota_choice_made', { choice: option.id });
+                
+                // Mostra feedback
+                container.classList.add('hidden');
+                document.getElementById('msg-box').innerHTML = `
+                    <div class="bg-gradient-to-r ${option.id === 'safe' ? 'from-green-500 to-emerald-600' : 'from-orange-500 to-red-600'} p-8 rounded-3xl animate-pulse">
+                        <div class="text-7xl mb-6">${option.id === 'safe' ? '💰' : '🎯'}</div>
+                        <div class="text-4xl font-black">${option.id === 'safe' ? 'HAI SCELTO 50 PUNTI SICURI!' : 'HAI SCELTO LA SFIDA!'}</div>
+                        <div class="text-2xl mt-4">${option.id === 'safe' ? 'Punti aggiunti al tuo punteggio' : 'Preparati alla domanda...'}</div>
+                    </div>
+                `;
+            };
+            
+            container.appendChild(btn);
+        });
+    });
+
+    // Feedback dopo scelta
+    socket.on('ruota_feedback', (data) => {
+        document.getElementById('msg-box').innerHTML = `
+            <div class="text-4xl font-black mb-4">${data.message}</div>
+            ${data.points ? `<div class="text-6xl mt-4 text-yellow-400 font-black">${data.points > 0 ? '+' : ''}${data.points} PUNTI</div>` : ''}
+        `;
+    });
+
+    // Risultato ruota (per tutti)
+    socket.on('ruota_result', (data) => {
+        console.log('🎰 Risultato ruota:', data);
+    });
+
+    // ✅ MODIFICA la gestione risposte per includere ruota
+    socket.on('nuova_domanda', (d) => {
+        SipontoAudio.tick();
+        resetUI();
+        
+        // ✅ Se è una domanda della ruota, mostra messaggio speciale
+        if (d.isRuotaQuestion) {
+            document.getElementById('msg-box').innerHTML = `
+                <div class="text-4xl font-black text-yellow-400 mb-4">🎯 SFIDA RUOTA DELLA FORTUNA!</div>
+                <div class="text-2xl text-white mb-6">Rispondi correttamente per vincere 150 punti!</div>
+                <div class="text-3xl font-bold">${d.domanda}</div>
+            `;
+        } else {
+            document.getElementById('msg-box').innerText = d.domanda;
         }
 
-        // ✅ FIX: Ordina per roundPoints (per podio) o punti (per risultati domanda)
-        const sorted = [...data].sort((a, b) => {
-            const puntiA = a.roundPoints !== undefined ? a.roundPoints : (a.punti || 0);
-            const puntiB = b.roundPoints !== undefined ? b.roundPoints : (b.punti || 0);
-            return puntiB - puntiA;
-        });
+        // Indicatore finale
+        if(d.finaleQuestion) {
+            document.getElementById('finale-indicator').classList.remove('hidden');
+            document.getElementById('finale-indicator').textContent = `🔥 ${d.finaleQuestion}/${d.totalFinaleQuestions}`;
+        }
 
-        sorted.forEach((entry, i) => {
-            // ✅ FIX: Gestisce sia struttura podio (roundPoints) che risultati domanda (corretta/punti)
-            const isPodioMode = entry.roundPoints !== undefined;
-            
-            if(isPodioMode) {
-                // Modalità PODIO: mostra punteggio round
-                const rowClass = entry.roundPoints > 0 ? 'bg-green-500/20 text-green-400' : 'text-white opacity-80';
-                tbody.innerHTML += `
-                    <tr class="border-b border-white/5 ${rowClass} animate__animated animate__fadeInLeft" style="animation-delay: ${i*0.1}s">
-                        <td class="p-6 font-mono text-3xl text-indigo-400">${i+1}</td>
-                        <td class="p-6 font-black">${entry.name || entry.teamName || 'Unknown'}</td>
-                        <td class="p-6 italic">-</td>
-                        <td class="p-6 text-right font-mono">-</td>
-                        <td class="p-6 text-right font-black text-2xl ${entry.roundPoints > 0 ? 'text-green-400' : 'text-gray-400'}">
-                            ${entry.roundPoints > 0 ? '+' : ''}${entry.roundPoints}
-                        </td>
-                    </tr>`;
-            } else {
-                // Modalità RISULTATI DOMANDA: mostra risposta, tempo e correttezza
-                const isCorrect = entry.corretta;
-                const rowClass = isCorrect ? 'bg-green-500/20 text-green-400' : 'text-white opacity-80';
-                const punti = entry.punti || 0;
-                tbody.innerHTML += `
-                    <tr class="border-b border-white/5 ${rowClass} animate__animated animate__fadeInLeft" style="animation-delay: ${i*0.1}s">
-                        <td class="p-6 font-mono text-3xl text-indigo-400">${i+1}</td>
-                        <td class="p-6 font-black">${entry.teamName || entry.name || 'Unknown'}</td>
-                        <td class="p-6 italic">${entry.risposta || '-'}</td>
-                        <td class="p-6 text-right font-mono">${entry.tempo ? entry.tempo + 's' : '-'}</td>
-                        <td class="p-6 text-right font-black text-2xl ${isCorrect ? 'text-green-400' : 'text-red-400'}">
-                            ${isCorrect ? '+' + punti : punti}
-                        </td>
-                    </tr>`;
+        if (d.modalita === 'buzzer') {
+            const btn = document.getElementById('btn-buzzer');
+            btn.classList.remove('hidden', 'pointer-events-none', 'opacity-50');
+            btn.className = "w-64 h-64 rounded-full bg-gradient-to-br from-red-600 to-red-700 border-4 border-red-400/50 flex items-center justify-center cursor-pointer buzzer-active";
+            btn.innerHTML = "<span class='text-4xl font-black text-white uppercase font-display'>BUZZER!</span>";
+            btn.onclick = () => {
+                socket.emit('buzzer_press', { time: Date.now() });
+                btn.classList.add('pointer-events-none', 'opacity-50');
+                btn.innerHTML = "<span class='text-3xl font-black'>PRENOTATO!</span>";
+            };
+            document.getElementById('timer-container').classList.add('hidden');
+        } else if (d.risposte && d.risposte.length > 0) {
+            // Timer visivo
+            if (d.startTime && !d.isRuotaQuestion) {
+                const networkDelay = Date.now() - d.serverTimestamp;
+                questionStartTime = d.startTime + networkDelay;
+                maxTime = 20;
+                startTimer();
             }
+            
+            // Mostra opzioni
+            const g = document.getElementById('opts-grid');
+            g.classList.remove('hidden', 'pointer-events-none', 'opacity-75');
+            g.innerHTML = '';
+            
+            d.risposte.forEach((r, i) => {
+                const b = document.createElement('button');
+                b.className = "answer-btn";
+                b.innerText = r;
+                b.onclick = () => {
+                    addButtonFeedback(b);
+
+                    if (d.isRuotaQuestion) {
+                        socket.emit('ruota_answer', { risposta: r });
+                    } else {
+                        socket.emit('risposta', { risposta: r });
+                    }
+                    
+                    g.classList.add('pointer-events-none', 'opacity-50');
+                    b.classList.add('ring-4', 'ring-yellow-400', 'bg-blue-800');
+                    
+                    document.getElementById('msg-box').innerHTML = `
+                        <div class="bg-yellow-600 p-4 rounded-xl">
+                            <p class="text-2xl font-bold">⏳ Risposta inviata!</p>
+                            <p class="text-lg mt-2">Attendi il risultato...</p>
+                        </div>
+                    `;
+                };
+                g.appendChild(b);
+            });
+            
+            document.getElementById('btn-buzzer').classList.add('hidden');
+        }
+    });
+
+    // ✅ Feedback risposta inviata - SOLO CONFERMA, SENZA DETTAGLI
+    socket.on('risposta_inviata', (data) => {
+        SipontoAudio.pointScored();
+        stopTimer();
+        document.getElementById('opts-grid').classList.add('pointer-events-none', 'opacity-50');
+        
+        // NON mostrare se corretta/sbagliata, tempo o punti sui cellulari
+        // Solo conferma che la risposta è stata ricevuta
+        document.getElementById('msg-box').innerHTML = `
+            <div class="bg-blue-600 p-6 rounded-xl">
+                <div class="text-6xl mb-3">✓</div>
+                <h2 class="text-4xl font-black mb-2">RISPOSTA INVIATA!</h2>
+                <p class="text-lg mt-3">Attendi il risultato sul display...</p>
+            </div>
+        `;
+    });
+    
+    // ════════════════════════════════════════════════════════════════
+    // 💰 SFIDA FINALE - ALL IN
+    // ════════════════════════════════════════════════════════════════
+    
+    // ALL IN - Mostra bottoni scommessa (EVENTO CORRETTO)
+    socket.on('finale_allin_betting', (d) => {
+        console.log('📱 Ricevuto evento scommesse ALL IN FINALE:', d);
+        resetUI();
+        
+        document.getElementById('msg-box').innerHTML = `
+            <div class="text-center">
+                <div class="text-7xl mb-4 animate-pulse">💰</div>
+                <div class="text-3xl font-black text-yellow-400 mb-2">ALL IN!</div>
+                <div class="text-xl text-white">Punta i tuoi punti sulla risposta</div>
+            </div>
+        `;
+        
+        document.getElementById('allin-buttons').classList.remove('hidden');
+        document.getElementById('finale-indicator').classList.remove('hidden');
+        document.getElementById('finale-indicator').textContent = `🔥 FINALE 1/5`;
+        
+        // Salva la domanda per dopo
+        window.allInQuestion = d.question;
+    });
+
+    // ALL IN - Scommessa (CORRETTO: invia bet E risposta insieme)
+    function placeBet(amount) {
+        // ✅ VIBRAZIONE per conferma scommessa
+        vibrate(60);
+        
+        if(!window.allInQuestion) {
+            console.error('❌ Nessuna domanda ALL IN caricata');
+            return;
+        }
+        
+        // Salva la scommessa e mostra la domanda
+        window.currentBet = amount;
+        
+        document.getElementById('allin-buttons').classList.add('hidden');
+        
+        // Mostra la domanda con le opzioni
+        document.getElementById('msg-box').innerHTML = `
+            <div class="bg-yellow-900/50 p-4 rounded-xl mb-4">
+                <div class="text-sm text-yellow-400">💰 HAI PUNTATO: ${amount} PUNTI</div>
+            </div>
+            <div class="text-2xl font-bold mb-4">${window.allInQuestion.domanda}</div>
+        `;
+        
+        const g = document.getElementById('opts-grid');
+        g.classList.remove('hidden');
+        g.innerHTML = '';
+        
+        window.allInQuestion.risposte.forEach(r => {
+            const b = document.createElement('button');
+            b.className = "answer-btn";
+            b.innerText = r;
+            b.onclick = () => {
+                // ✅ FEEDBACK VISIVO E VIBRAZIONE
+                addButtonFeedback(b);
+                
+                // Invia scommessa + risposta al server
+                socket.emit('finale_allin_bet', { 
+                    bet: amount, 
+                    answer: r 
+                });
+                
+                g.classList.add('opacity-50', 'pointer-events-none');
+                b.classList.add('ring-4', 'ring-yellow-400', 'bg-blue-800');
+                
+                document.getElementById('msg-box').innerHTML = `
+                    <div class="bg-green-600 p-6 rounded-xl">
+                        <div class="text-6xl mb-4">✓</div>
+                        <div class="text-3xl font-black mb-2">SCOMMESSA CONFERMATA!</div>
+                        <div class="text-xl">💰 ${amount} punti su "${r}"</div>
+                        <div class="text-lg mt-4 text-yellow-300">Attendi il risultato...</div>
+                    </div>
+                `;
+            };
+            g.appendChild(b);
         });
     }
-
-    // NUOVA DOMANDA
-    socket.on('nuova_domanda', (d) => {
-        console.log('Nuova domanda:', d.modalita);
-        SipontoAudio.gong();
-        stopAudioTick();
-        showView('gioco');
-        stopTimer();
+    
+    // ALL IN - Rivelazione risultati
+    socket.on('finale_allin_reveal', (data) => {
+        console.log('📱 Rivelazione ALL IN:', data);
+        resetUI();
         
-        document.getElementById('buzzer-overlay').classList.add('hidden');
-        document.getElementById('solution').classList.add('hidden');
-        document.getElementById('cat').innerText = (d.categoria || "PROVA").toUpperCase();
+        // Trova la mia scommessa
+        const myBet = data.bets.find(b => b.teamId === socket.id);
         
-        // ALL IN: Mostra schermata attesa scommesse
-        if(d.isAllIn) {
-            document.getElementById('q-text').innerText = "💰 ALL IN";
-            document.getElementById('opts').classList.add('hidden');
-            document.getElementById('timer-display-container').classList.add('hidden');
+        if(myBet) {
+            const isCorrect = myBet.answer === data.correctAnswer;
+            const points = isCorrect ? myBet.bet : -myBet.bet;
             
-            // Mostra messaggio attesa
-            const qText = document.getElementById('q-text');
-            qText.innerHTML = `
-                <div class="text-center">
-                    <div class="text-9xl mb-6 animate-pulse">💰</div>
-                    <div class="text-7xl font-black mb-4">ALL IN</div>
-                    <div class="text-5xl text-yellow-400">Le squadre stanno scommettendo...</div>
+            document.getElementById('msg-box').innerHTML = `
+                <div class="bg-gradient-to-r ${isCorrect ? 'from-green-500 to-emerald-600' : 'from-red-500 to-red-700'} p-8 rounded-3xl">
+                    <div class="text-8xl mb-6">${isCorrect ? '🎉' : '😢'}</div>
+                    <div class="text-4xl font-black mb-4">${isCorrect ? 'CORRETTO!' : 'SBAGLIATO!'}</div>
+                    <div class="text-2xl mb-2">Risposta: ${data.correctAnswer}</div>
+                    <div class="text-5xl font-black mt-4 text-yellow-300">
+                        ${points > 0 ? '+' : ''}${points} PUNTI
+                    </div>
                 </div>
             `;
-            return;
         }
-        
-        document.getElementById('q-text').innerText = d.domanda;
-        
-        const o = document.getElementById('opts'); 
-        o.innerHTML = '';
-        
-        if(d.risposte && d.modalita !== 'buzzer' && d.modalita !== 'stima' && d.modalita !== 'anagramma') { 
-            o.classList.remove('hidden'); 
-            d.risposte.forEach((r, idx) => {
-                o.innerHTML += `<div class="answer-card answer-option flex items-center"><span class="letter-badge">${String.fromCharCode(65+idx)}</span>${r}</div>`;
-            });
-        
-        // ✅ PATCH 2: Calcola offset di rete
-        const networkDelay = Date.now() - d.serverTimestamp;
-        questionStartTime = d.startTime + networkDelay;
-        maxTime = 20;
-        startTimer();
-        } else {
-            o.classList.add('hidden');
-            document.getElementById('timer-display-container').classList.add('hidden');
+    });
+    
+    // LEGACY: Mantieni compatibilità con vecchio sistema (se presente)
+    socket.on('show_allin_betting', (d) => {
+        console.log('📱 [LEGACY] Ricevuto evento scommesse ALL IN');
+        resetUI();
+        document.getElementById('msg-box').innerText = "💰 ALL IN - Scommetti!";
+        document.getElementById('allin-buttons').classList.remove('hidden');
+        document.getElementById('finale-indicator').classList.remove('hidden');
+        document.getElementById('finale-indicator').textContent = `🔥 1/${d.totalFinaleQuestions || 5}`;
+    });
+
+    // BUZZER STANDALONE MODE
+    socket.on('buzzer_standalone_mode', (data) => {
+        if(data.active) {
+            resetUI();
+            document.getElementById('msg-box').innerText = "🎵 Premi quando sai la risposta!";
+            document.getElementById('btn-buzzer').classList.remove('hidden');
+            const btn = document.getElementById('btn-buzzer');
+            btn.className = "w-64 h-64 rounded-full bg-red-600 border-red-800 flex items-center justify-center animate-pulse shadow-[0_0_50px_rgba(255,0,0,0.5)]";
+            btn.innerHTML = "<span class='text-4xl font-black text-white uppercase tracking-widest'>VAI!</span>";
+            btn.onclick = prenota;
+            buzzerLocked = false;
         }
     });
 
-    // TIMER
-    let lastTickSecond = -1;
     function startTimer() {
         // ✅ PATCH 9: Doppio controllo memory leak
         if(timerInterval) {
             clearInterval(timerInterval);
             timerInterval = null;
         }
-        lastTickSecond = -1;
-
-        document.getElementById('timer-display-container').classList.remove('hidden');
-
-        const timerText = document.getElementById('timer-display-text');
-        const timerBar = document.getElementById('timer-display-bar');
-
-        timerBar.style.width = '100%';
-        timerBar.style.backgroundColor = '#10b981';
-        timerText.style.color = '#10b981';
-        timerText.classList.remove('countdown-critical');
-
+        
+        document.getElementById('timer-container').classList.remove('hidden');
+        
         timerInterval = setInterval(() => {
             const elapsed = (Date.now() - questionStartTime) / 1000;
             const remaining = Math.max(0, maxTime - elapsed);
-            const sec = Math.ceil(remaining);
-
-            timerText.textContent = sec;
-            timerBar.style.width = `${(remaining / maxTime) * 100}%`;
-
-            // Audio tick per ogni secondo
-            if (sec !== lastTickSecond && sec > 0) {
-                lastTickSecond = sec;
-                if (sec <= 5) {
-                    SipontoAudio.tickUrgent();
-                } else if (sec <= 10) {
-                    SipontoAudio.tick();
-                }
-            }
-
-            if(remaining <= 5) {
-                timerBar.style.backgroundColor = '#ef4444';
-                timerText.style.color = '#ef4444';
-                timerText.classList.add('countdown-critical');
-            } else if(remaining <= 10) {
-                timerBar.style.backgroundColor = '#f59e0b';
-                timerText.style.color = '#f59e0b';
-                timerText.classList.remove('countdown-critical');
-            } else {
-                timerBar.style.backgroundColor = '#10b981';
-                timerText.style.color = '#10b981';
-                timerText.classList.remove('countdown-critical');
-            }
-
+            
+            // ✅ Aggiorna timer circolare
+            updateCircularTimer(Math.ceil(remaining), maxTime);
+            
             if(remaining <= 0) {
                 stopTimer();
-                timerText.textContent = '0';
-                SipontoAudio.timesUp();
+                updateCircularTimer(0, maxTime);
             }
         }, 100);
     }
@@ -1603,701 +741,576 @@
             clearInterval(timerInterval);
             timerInterval = null;
         }
-        lastTickSecond = -1;
     }
 
-    function stopAudioTick() {
-        if(audioTickInterval) {
-            clearInterval(audioTickInterval);
-            audioTickInterval = null;
+    socket.on('buzzer_position', (data) => {
+        const b = document.getElementById('btn-buzzer');
+        const medals = ['🥇', '🥈', '🥉'];
+        const medal = medals[data.position - 1] || `${data.position}°`;
+        
+        b.className = "w-64 h-64 rounded-full bg-green-500 border-8 border-green-700 flex flex-col items-center justify-center shadow-[0_0_50px_rgba(0,255,0,0.6)]";
+        b.innerHTML = `
+            <span class='text-6xl mb-2'>${medal}</span>
+            <span class='text-2xl font-black text-black uppercase'>Prenotato!</span>
+            <span class='text-lg text-black mt-2'>${data.time}s</span>
+        `;
+        if(navigator.vibrate) navigator.vibrate([200, 100, 200]);
+        
+        b.onclick = null;
+        b.classList.add('opacity-75');
+    });
+
+    socket.on('stato_buzzer', (d) => {
+        const btn = document.getElementById('btn-buzzer');
+        if(!d.attiva) {
+            btn.classList.add('hidden');
+            return;
         }
-    }
-
-    // BUZZER
-    socket.on('buzzer_queue_update', (d) => {
-        const queueDiv = document.getElementById('buzzer-queue-display');
-        if(!queueDiv) return;
-        if(d.queue && d.queue.length > 0) SipontoAudio.buzzer();
-
-        // Mostra vista gioco con overlay buzzer
-        showView('gioco');
-        document.getElementById('buzzer-overlay').classList.remove('hidden');
-        document.getElementById('q-text').innerText = "🎵 GIOCO MUSICALE";
-        document.getElementById('cat').innerText = "IN ATTESA";
-        document.getElementById('opts').classList.add('hidden');
-        document.getElementById('timer-display-container').classList.add('hidden');
         
-        queueDiv.innerHTML = '';
+        buzzerLocked = d.locked;
         
-        if(d.queue && d.queue.length > 0) {
-            d.queue.forEach((player, idx) => {
-                const medals = ['🥇', '🥈', '🥉'];
-                const medal = medals[idx] || `${idx + 1}°`;
-                
-                queueDiv.innerHTML += `
-                    <div class="bg-white/10 rounded-2xl p-6 flex justify-between items-center animate__animated animate__fadeInLeft" style="animation-delay: ${idx * 0.1}s">
-                        <div class="flex items-center gap-6">
-                            <span class="text-6xl">${medal}</span>
-                            <span class="text-5xl font-black text-white uppercase">${player.name}</span>
-                        </div>
-                        <span class="text-4xl text-yellow-400 font-mono">${player.time}s</span>
-                    </div>
-                `;
-            });
+        if(buzzerLocked) {
+            btn.className = "w-64 h-64 rounded-full bg-gray-700 border-gray-800 opacity-50 flex items-center justify-center";
+            btn.innerHTML = "<span class='text-2xl font-bold text-gray-400 uppercase'>Bloccato</span>";
+            btn.onclick = null;
         } else {
-            queueDiv.innerHTML = '<p class="text-white/60 text-3xl">In attesa di prenotazioni...</p>';
+            btn.classList.remove('hidden');
+            btn.className = "w-64 h-64 rounded-full bg-red-600 border-red-800 flex items-center justify-center animate-pulse shadow-[0_0_50px_rgba(255,0,0,0.5)]";
+            btn.innerHTML = "<span class='text-4xl font-black text-white uppercase tracking-widest'>VAI!</span>";
+            btn.onclick = prenota;
         }
     });
 
-    socket.on('reset_buzzer_display', () => { 
-        document.getElementById('buzzer-overlay').classList.add('hidden'); 
-    });
-
-    // SOLUZIONE
-    socket.on('mostra_soluzione', (d) => {
+    function prenota() { 
+        if(!buzzerLocked) {
+            // ✅ VIBRAZIONE FORTE per il buzzer
+            vibrate([100, 50, 100]); // Pattern: vibra-pausa-vibra
+            SipontoAudio.buzzer();
+            socket.emit('prenoto');
+        }
+    }
+    
+    function resetUI() {
         stopTimer();
-        SipontoAudio.reveal();
-        showView('gioco');
-        document.getElementById('solution').classList.remove('hidden');
-        document.getElementById('sol-text').innerText = d.soluzione;
-        document.getElementById('buzzer-overlay').classList.add('hidden');
-        document.getElementById('timer-display-container').classList.add('hidden');
+        document.getElementById('btn-buzzer').classList.add('hidden');
+        document.getElementById('opts-grid').classList.add('hidden');
+        document.getElementById('opts-grid').innerHTML = '';
+        document.getElementById('opts-grid').classList.remove('opacity-40','pointer-events-none');
+        document.getElementById('timer-container').classList.add('hidden');
+        document.getElementById('allin-buttons').classList.add('hidden');
+        document.getElementById('memory-buttons').classList.add('hidden');
+        document.getElementById('ruota-choice-buttons').classList.add('hidden');
+        
+        // Nascondi container duello
+        const opponentsDiv = document.getElementById('duello-opponents-container');
+        if(opponentsDiv) opponentsDiv.classList.add('hidden');
+        const categoriesDiv = document.getElementById('duello-categories-container');
+        if(categoriesDiv) categoriesDiv.classList.add('hidden');
+        const questionDiv = document.getElementById('duello-question-container');
+        if(questionDiv) questionDiv.classList.add('hidden');
+    }
+    
+    socket.on('game_paused', () => {
+        resetUI();
+        document.getElementById('msg-box').innerHTML = `
+            <div class="bg-orange-600 p-6 rounded-xl">
+                <div class="text-6xl mb-4">☕</div>
+                <div class="text-3xl font-black">PAUSA</div>
+                <div class="text-xl mt-2">Torniamo tra pochissimo!</div>
+            </div>
+        `;
     });
     
-    // MOSTRA DOMANDA ALL IN (dopo scommesse)
-    socket.on('show_allin_question', (d) => {
-        console.log('📺 Mostro domanda ALL IN dopo scommesse');
-        document.getElementById('q-text').innerText = d.domanda;
-        
-        const o = document.getElementById('opts');
-        o.innerHTML = '';
-        o.classList.remove('hidden');
-        
-        d.risposte.forEach((r, idx) => {
-            o.innerHTML += `<div class="answer-card answer-option flex items-center text-4xl"><span class="letter-badge">${String.fromCharCode(65+idx)}</span>${r}</div>`;
-        });
-        
-        questionStartTime = d.startTime;
-        maxTime = 20;
-        startTimer();
+    socket.on('game_resumed', () => {
+        document.getElementById('msg-box').innerHTML = 'In attesa...';
+        document.getElementById('msg-box').className = 'absolute top-4 text-center w-full text-gray-400 font-bold text-lg px-4';
     });
-
-    // CLASSIFICA
-    socket.on('update_teams', (t) => {
-        // ✅ PATCH 6: Filtra preview
-        const realTeams = t.filter(team => !team.isPreview);
-        realTeams.sort((a,b) => b.score - a.score);
-        
-        const fb = document.getElementById('full-leaderboard-body');
-        fb.innerHTML = '';
-        realTeams.forEach((x,i) => {
-            const medal = i === 0 ? '🥇' : (i === 1 ? '🥈' : (i === 2 ? '🥉' : i+1));
-            const podiumClass = i === 0 ? 'podium-gold' : (i === 1 ? 'podium-silver' : (i === 2 ? 'podium-bronze' : ''));
-            const scoreClass = i === 0 ? 'text-yellow-400 neon-yellow' : (i === 1 ? 'text-gray-300' : (i === 2 ? 'text-amber-500' : 'text-yellow-500/80'));
-            fb.innerHTML += `
-            <tr class="border-b border-white/5 ${podiumClass} score-row" style="animation-delay: ${i*0.08}s">
-                <td class="p-6 font-black text-4xl w-24">${medal}</td>
-                <td class="p-6 text-4xl font-bold uppercase">${x.name}</td>
-                <td class="p-6 text-right text-5xl font-black ${scoreClass}">${x.score}</td>
-            </tr>`;
-        });
-        
-        const mini = document.getElementById('mini-leaderboard');
-        mini.innerText = realTeams.slice(0,3).map(x => `${x.name}: ${x.score}`).join(' | ');
-    });
-
-    // ════════════════════════════════════════════════════════════════
-    // 🎤 KARAOKE YOUTUBE
-    // ════════════════════════════════════════════════════════════════
-
-    socket.on('play_youtube_karaoke', (data) => {
-        console.log('🎤 Avvio karaoke YouTube:', data.videoId);
-        const player = document.getElementById('youtube-player');
-        player.src = `https://www.youtube.com/embed/${data.videoId}?autoplay=1&controls=1&rel=0`;
-        showView('karaoke');
-    });
-
-    socket.on('stop_karaoke', () => {
-        console.log('⏹️ Stop karaoke');
-        const player = document.getElementById('youtube-player');
-        player.src = '';
-        showView('logo');
-    });
-
-    // Ruota della Fortuna Events
-    socket.on('ruota_explain', () => {
-        console.log('🎰 Spiegazione Ruota');
-        showView('ruota-explain');
-    });
-
-    // DISPLAY_QUESTION - Per ruota della fortuna (visualizza solo sul display, no interazione)
-    socket.on('display_question', (d) => {
-        console.log('Display question (solo visualizzazione):', d.domanda);
-        showView('gioco');
-        stopTimer();
-        
-        document.getElementById('buzzer-overlay').classList.add('hidden');
-        document.getElementById('solution').classList.add('hidden');
-        document.getElementById('cat').innerText = (d.categoria || "RUOTA DELLA FORTUNA").toUpperCase();
-        document.getElementById('q-text').innerText = d.domanda;
-        
-        const o = document.getElementById('opts'); 
-        o.innerHTML = '';
-        
-        if(d.risposte) { 
-            o.classList.remove('hidden'); 
-            d.risposte.forEach((r, idx) => {
-                o.innerHTML += `<div class="answer-card answer-option flex items-center"><span class="letter-badge">${String.fromCharCode(65+idx)}</span>${r}</div>`;
-            });
-        }
-        
-        document.getElementById('timer-display-container').classList.add('hidden');
-    });
-
-    // RESET CLIENT UI - Reset completo display
+    
     socket.on('reset_client_ui', () => {
-        console.log('🔄 Reset client UI');
-        stopTimer();
-        document.getElementById('buzzer-overlay').classList.add('hidden');
-        document.getElementById('solution').classList.add('hidden');
-        document.getElementById('opts').classList.add('hidden');
-        document.getElementById('timer-display-container').classList.add('hidden');
-        document.getElementById('q-text').innerText = 'Caricamento domanda...';
-        document.getElementById('cat').innerText = 'CATEGORIA';
+        resetUI();
+        document.getElementById('msg-box').innerHTML = 'In attesa...';
+        document.getElementById('msg-box').className = 'absolute top-4 text-center w-full text-gray-400 font-bold text-lg px-4';
+        document.getElementById('finale-indicator').classList.add('hidden');
     });
-
+    
     // ════════════════════════════════════════════════════════════════
     // 🔥 DUELLO RUBA-PUNTI
     // ════════════════════════════════════════════════════════════════
     
-    socket.on('duello_explain', () => {
-        showView('custom');
-        document.getElementById('custom-text-display').innerHTML = `
-            <div class="text-6xl mb-6">⚔️</div>
-            <div class="text-5xl font-black mb-4">DUELLO RUBA-PUNTI!</div>
-            <div class="text-3xl mb-4">Una squadra sarà estratta per sfidare un avversario</div>
-            <div class="text-2xl text-red-400 font-bold mb-2">🔥 Vinci: RUBI 250 punti!</div>
-            <div class="text-2xl text-blue-400 font-bold">🛡️ Perdi: +100pt bonus difesa</div>
-        `;
-    });
-    
-    // Animazione estrazione attaccante duello
-    socket.on('duello_extraction_animation', (data) => {
-        SipontoAudio.drumroll(3);
-        showView('duello-extraction');
-        
-        const wheel = document.getElementById('duello-wheel');
-        const wheelName = document.getElementById('duello-wheel-name');
-        
-        let currentIndex = 0;
-        const teams = data.teams;
-        
-        // Cambia nome rapidamente per effetto spinning
-        const spinInterval = setInterval(() => {
-            wheelName.textContent = teams[currentIndex];
-            currentIndex = (currentIndex + 1) % teams.length;
-        }, 150);
-        
-        // Dopo 3 secondi mostra il vincitore
-        setTimeout(() => {
-            clearInterval(spinInterval);
-            wheel.style.animation = 'none';
-            wheelName.textContent = data.winner.name;
-            
-            // Dopo 1 secondo mostra schermata vincitore
-            setTimeout(() => {
-                showView('duello-attaccante');
-                document.getElementById('duello-attaccante-name-display').textContent = data.winner.name;
-            }, 1000);
-        }, 3000);
-    });
-    
-    socket.on('duello_question_display', (data) => {
-        showView('duello');
-        
-        document.getElementById('duello-attaccante-name').textContent = data.attaccante.name.toUpperCase();
-        document.getElementById('duello-difensore-name').textContent = data.difensore.name.toUpperCase();
-        document.getElementById('duello-attaccante-score').textContent = data.scoreAttaccante;
-        document.getElementById('duello-difensore-score').textContent = data.scoreDifensore;
-        
-        document.getElementById('duello-categoria').textContent = (data.question.categoria || 'DUELLO').toUpperCase();
-        document.getElementById('duello-question-number').textContent = `DOMANDA ${data.questionNumber}/3`;
-        document.getElementById('duello-question-text').textContent = data.question.domanda;
-        document.getElementById('duello-status').innerHTML = '<span class="text-yellow-400 animate-pulse">⚡ In attesa di buzzer...</span>';
-    });
-    
-    socket.on('duello_buzzer_pressed', (data) => {
-        SipontoAudio.buzzer();
-        document.getElementById('duello-status').innerHTML = `
-            <div class="bg-yellow-500 text-black p-4 rounded-2xl inline-block animate__animated animate__bounceIn">
-                <span class="text-4xl">🎤 ${data.teamName.toUpperCase()}</span><br>
-                <span class="text-xl">sta rispondendo... (${data.time}s)</span>
+    socket.on('duello_choose_opponent', (data) => {
+        resetUI();
+        document.getElementById('msg-box').innerHTML = `
+            <div class="bg-red-600 p-4 rounded-xl">
+                <div class="text-4xl mb-2">🔥</div>
+                <div class="text-xl font-black mb-2">SCEGLI IL TUO AVVERSARIO</div>
+                <div class="text-xs">Chi vuoi sfidare?</div>
             </div>
         `;
+        
+        // Crea container per i pulsanti se non esiste
+        let opponentsDiv = document.getElementById('duello-opponents-container');
+        if(!opponentsDiv) {
+            opponentsDiv = document.createElement('div');
+            opponentsDiv.id = 'duello-opponents-container';
+            opponentsDiv.className = 'w-full max-w-md space-y-2 mt-4';
+            document.querySelector('.flex-1.flex.flex-col.p-4').appendChild(opponentsDiv);
+        }
+        opponentsDiv.innerHTML = '';
+        opponentsDiv.classList.remove('hidden');
+        
+        data.opponents.forEach(opp => {
+            const btn = document.createElement('button');
+            btn.className = 'w-full bg-gradient-to-r from-orange-500 to-red-600 p-3 rounded-xl font-black text-lg hover:scale-105 transition shadow-xl active:scale-95';
+            btn.innerHTML = `${opp.name} <span class="text-xs font-normal">(${opp.score}pt)</span>`;
+            btn.onclick = () => {
+                socket.emit('duello_opponent_chosen', { opponentId: opp.id });
+                opponentsDiv.innerHTML = '';
+                opponentsDiv.classList.add('hidden');
+                document.getElementById('msg-box').innerHTML = `
+                    <div class="bg-green-600 p-6 rounded-xl">
+                        <div class="text-5xl mb-4">✅</div>
+                        <div class="text-2xl font-black">Hai sfidato ${opp.name}!</div>
+                        <div class="text-sm mt-2">Ora scegli la categoria...</div>
+                    </div>
+                `;
+            };
+            opponentsDiv.appendChild(btn);
+        });
+    });
+    
+    socket.on('duello_choose_category', (data) => {
+        resetUI();
+        document.getElementById('msg-box').innerHTML = `
+            <div class="bg-purple-600 p-6 rounded-xl">
+                <div class="text-5xl mb-4">📚</div>
+                <div class="text-2xl font-black mb-4">SCEGLI LA CATEGORIA</div>
+                <div class="text-sm mb-4">In quale categoria vuoi sfidare?</div>
+            </div>
+        `;
+        
+        // Crea container per le categorie se non esiste
+        let categoriesDiv = document.getElementById('duello-categories-container');
+        if(!categoriesDiv) {
+            categoriesDiv = document.createElement('div');
+            categoriesDiv.id = 'duello-categories-container';
+            categoriesDiv.className = 'w-full max-w-md grid grid-cols-2 gap-3 mt-6';
+            document.querySelector('.flex-1.flex.flex-col.p-4').appendChild(categoriesDiv);
+        }
+        categoriesDiv.innerHTML = '';
+        categoriesDiv.classList.remove('hidden');
+        
+        data.categories.forEach(cat => {
+            const btn = document.createElement('button');
+            btn.className = 'bg-gradient-to-r from-indigo-500 to-purple-600 p-4 rounded-xl font-black text-lg hover:scale-105 transition shadow-xl active:scale-95';
+            btn.textContent = cat.toUpperCase();
+            btn.onclick = () => {
+                socket.emit('duello_category_chosen', { category: cat });
+                categoriesDiv.innerHTML = '';
+                categoriesDiv.classList.add('hidden');
+                document.getElementById('msg-box').innerHTML = `
+                    <div class="bg-green-600 p-6 rounded-xl animate-pulse">
+                        <div class="text-5xl mb-4">✅</div>
+                        <div class="text-2xl font-black">Categoria: ${cat.toUpperCase()}</div>
+                        <div class="text-sm mt-2">Preparati al duello!</div>
+                    </div>
+                `;
+            };
+            categoriesDiv.appendChild(btn);
+        });
+    });
+    
+    socket.on('duello_question', (d) => {
+        resetUI();
+        
+        document.getElementById('msg-box').innerHTML = `
+            <div class="bg-gradient-to-r from-red-600 to-orange-600 p-4 rounded-xl">
+                <div class="text-3xl mb-2">⚔️ DUELLO</div>
+                <div class="text-sm">${d.categoria.toUpperCase()}</div>
+            </div>
+        `;
+        
+        // Crea container per domanda e buzzer
+        let duelloQuestionDiv = document.getElementById('duello-question-container');
+        if(!duelloQuestionDiv) {
+            duelloQuestionDiv = document.createElement('div');
+            duelloQuestionDiv.id = 'duello-question-container';
+            duelloQuestionDiv.className = 'w-full max-w-md mt-6';
+            document.querySelector('.flex-1.flex.flex-col.p-4').appendChild(duelloQuestionDiv);
+        }
+        duelloQuestionDiv.classList.remove('hidden');
+        duelloQuestionDiv.innerHTML = `
+            <div class="text-2xl font-black mb-6 leading-tight text-center">${d.domanda}</div>
+            <button onclick="pressDuelloBuzzer()" class="w-full bg-gradient-to-r from-yellow-400 to-red-600 p-8 rounded-2xl font-black text-4xl hover:scale-105 transition shadow-2xl animate-pulse active:scale-95">
+                ⚡ BUZZER ⚡
+            </button>
+        `;
+    });
+    
+    function pressDuelloBuzzer() {
+        socket.emit('duello_buzzer_press', { teamId: socket.id });
+        const duelloQuestionDiv = document.getElementById('duello-question-container');
+        if(duelloQuestionDiv) {
+            duelloQuestionDiv.innerHTML = `
+                <div class="bg-blue-600 p-8 rounded-xl text-center">
+                    <div class="text-5xl mb-4">⚡</div>
+                    <div class="text-3xl font-black">HAI PREMUTO!</div>
+                    <div class="text-lg mt-2">Rispondi vocalmente alla domanda</div>
+                </div>
+            `;
+        }
+    }
+    
+    socket.on('duello_buzzer_pressed', (data) => {
+        // Mostra chi ha premuto
+        const myId = socket.id;
+        if(data.teamId === myId) {
+            document.getElementById('msg-box').innerHTML = `
+                <div class="bg-yellow-400 text-black p-4 rounded-xl font-black text-xl">
+                    🎤 TU HAI PREMUTO! Rispondi vocalmente
+                </div>
+            `;
+        } else {
+            document.getElementById('msg-box').innerHTML = `
+                <div class="bg-gray-600 p-4 rounded-xl">
+                    ⏳ ${data.teamName} sta rispondendo...
+                </div>
+            `;
+            const duelloQuestionDiv = document.getElementById('duello-question-container');
+            if(duelloQuestionDiv) duelloQuestionDiv.innerHTML = '';
+        }
     });
     
     socket.on('duello_point_scored', (data) => {
-        SipontoAudio.correct();
-        document.getElementById('duello-attaccante-score').textContent = data.scoreAttaccante;
-        document.getElementById('duello-difensore-score').textContent = data.scoreDifensore;
-
-        document.getElementById('duello-status').innerHTML = `
-            <div class="bg-green-600 p-6 rounded-2xl inline-block animate__animated animate__bounceIn">
-                <span class="text-5xl">✅ ${data.teamName.toUpperCase()} SEGNA!</span><br>
-                <span class="text-2xl">${data.scoreAttaccante} - ${data.scoreDifensore}</span>
+        document.getElementById('msg-box').innerHTML = `
+            <div class="bg-green-600 p-6 rounded-xl">
+                <div class="text-5xl mb-4">✅</div>
+                <div class="text-2xl font-black">${data.teamName} SEGNA!</div>
+                <div class="text-4xl mt-4">${data.scoreAttaccante} - ${data.scoreDifensore}</div>
             </div>
         `;
+        const duelloQuestionDiv = document.getElementById('duello-question-container');
+        if(duelloQuestionDiv) duelloQuestionDiv.innerHTML = '';
     });
     
     socket.on('duello_wrong_answer', (data) => {
-        SipontoAudio.wrong();
-        document.getElementById('duello-status').innerHTML = `
-            <div class="bg-red-600 p-6 rounded-2xl inline-block animate__animated animate__shakeX">
-                <span class="text-4xl">❌ ${data.wrongTeamName.toUpperCase()} HA SBAGLIATO!</span>
+        document.getElementById('msg-box').innerHTML = `
+            <div class="bg-red-600 p-6 rounded-xl">
+                <div class="text-5xl mb-4">❌</div>
+                <div class="text-xl font-black">${data.wrongTeamName} ha sbagliato!</div>
             </div>
         `;
     });
     
     socket.on('duello_end', (data) => {
-        SipontoAudio.fanfare();
-        showView('custom');
+        resetUI();
+        const isWinner = socket.id === data.winner.id;
         
-        const winnerEmoji = data.attaccanteWins ? '🔥' : '🛡️';
-        const winnerColor = data.attaccanteWins ? 'text-orange-400' : 'text-blue-400';
-        const pointsMsg = data.attaccanteWins ? 
-            `${data.winner.name} ruba 250 punti a ${data.loser.name}!` :
-            `${data.winner.name} difende e guadagna 100 punti bonus!`;
-        
-        document.getElementById('custom-text-display').innerHTML = `
-            <div class="text-9xl mb-6">${winnerEmoji}</div>
-            <div class="text-6xl font-black ${winnerColor} mb-6">
-                ${data.winner.name.toUpperCase()} VINCE!
-            </div>
-            <div class="text-4xl font-bold mb-4">
-                ${data.finalScore.attaccante} - ${data.finalScore.difensore}
-            </div>
-            <div class="text-3xl text-yellow-300">
-                ${pointsMsg}
+        document.getElementById('msg-box').innerHTML = `
+            <div class="bg-gradient-to-r ${isWinner ? 'from-green-500 to-emerald-600' : 'from-gray-600 to-slate-700'} p-8 rounded-xl">
+                <div class="text-8xl mb-6">${isWinner ? '🏆' : '😔'}</div>
+                <div class="text-4xl font-black mb-4">${isWinner ? 'HAI VINTO!' : 'HAI PERSO'}</div>
+                <div class="text-2xl">${data.pointsChange}</div>
             </div>
         `;
-        
-        setTimeout(() => {
-            showView('classifica_gen');
-        }, 5000);
     });
 
     // ════════════════════════════════════════════════════════════════
-    // 🏆 VINCITORE FINALE
+    // 🧠 MEMORY GAME - CLIENT
     // ════════════════════════════════════════════════════════════════
-    
-    socket.on('show_winner_screen', (data) => {
-        console.log('🏆 Mostra vincitore:', data.winner);
-        SipontoAudio.fanfare();
-        showView('winner');
-
-        document.getElementById('winner-name').textContent = data.winner.name;
-        document.getElementById('winner-score').textContent = data.winner.score;
-
-        // Crea confetti
-        createConfetti();
-    });
-    
-    function createConfetti() {
-        const container = document.getElementById('confetti-container');
-        container.innerHTML = '';
-        const colors = ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#FF69B4', '#7C3AED', '#22C55E'];
-        const shapes = ['circle', 'square', 'rect'];
-
-        for(let i = 0; i < 150; i++) {
-            const confetto = document.createElement('div');
-            const shape = shapes[Math.floor(Math.random() * shapes.length)];
-            const size = 6 + Math.random() * 10;
-            confetto.className = 'confetti';
-            confetto.style.left = Math.random() * 100 + '%';
-            confetto.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-            confetto.style.width = shape === 'rect' ? size * 2 + 'px' : size + 'px';
-            confetto.style.height = size + 'px';
-            confetto.style.borderRadius = shape === 'circle' ? '50%' : '2px';
-            confetto.style.animationDuration = (2 + Math.random() * 3) + 's';
-            confetto.style.animationDelay = Math.random() * 3 + 's';
-            confetto.style.opacity = 0.8 + Math.random() * 0.2;
-            container.appendChild(confetto);
-        }
-    }
-
-    // ════════════════════════════════════════════════════════════════
-    // 🧠 MEMORY GAME - DISPLAY
-    // ════════════════════════════════════════════════════════════════
-
-    socket.on('memory_manche_intro', (data) => {
-        SipontoAudio.gong();
-        showView('memory-intro');
-        document.getElementById('memory-intro-manche').textContent = `MANCHE ${data.manche}/${data.totalManches}`;
-        document.getElementById('memory-intro-pairs').textContent = `${data.pairsCount} COPPIE DA TROVARE`;
-        console.log(`🧠 Intro Manche ${data.manche}`);
-    });
-
-    socket.on('memory_show_all', (data) => {
-        showView('memory');
-        
-        // Configura grid
-        const grid = document.getElementById('memory-grid');
-        grid.className = 'grid gap-4 mb-8';
-        
-        if(data.grid === '2x3') {
-            grid.style.gridTemplateColumns = 'repeat(3, 180px)';
-            grid.style.gridTemplateRows = 'repeat(2, 180px)';
-        } else if(data.grid === '2x5') {
-            grid.style.gridTemplateColumns = 'repeat(5, 150px)';
-            grid.style.gridTemplateRows = 'repeat(2, 150px)';
-        } else if(data.grid === '2x7') {
-            grid.style.gridTemplateColumns = 'repeat(7, 130px)';
-            grid.style.gridTemplateRows = 'repeat(2, 130px)';
-        }
-        
-        // Popola carte
-        grid.innerHTML = '';
-        data.cards.forEach((emoji, index) => {
-            const card = document.createElement('div');
-            card.className = 'flex items-center justify-center bg-white/20 rounded-2xl border-4 border-white/40 text-8xl animate__animated animate__flipInY';
-            card.style.animationDelay = `${index * 0.05}s`;
-            card.textContent = emoji;
-            grid.appendChild(card);
-        });
-        
-        // Info e timer
-        document.getElementById('memory-manche-info').textContent = `MANCHE ${data.manche}/3 - ROUND ${data.round}`;
-        document.getElementById('memory-phase-text').textContent = 'MEMORIZZA LE CARTE!';
-        document.getElementById('memory-timer').textContent = `⏱️ ${data.duration} secondi`;
-        
-        // Countdown
-        let timeLeft = data.duration;
-        if(memoryTimerInterval) clearInterval(memoryTimerInterval);
-        memoryTimerInterval = setInterval(() => {
-            timeLeft--;
-            document.getElementById('memory-timer').textContent = `⏱️ ${timeLeft} secondi`;
-            if(timeLeft <= 0) clearInterval(memoryTimerInterval);
-        }, 1000);
-        
-        console.log('🧠 Mostra tutte le carte');
-    });
-
-    socket.on('memory_cover_all', () => {
-        const grid = document.getElementById('memory-grid');
-        const cards = grid.children;
-        
-        for(let i = 0; i < cards.length; i++) {
-            cards[i].className = 'flex items-center justify-center bg-gray-700 rounded-2xl border-4 border-gray-500 text-6xl font-black text-white animate__animated animate__flipOutY';
-            setTimeout(() => {
-                cards[i].textContent = i + 1; // Numero posizione
-                cards[i].className = 'flex items-center justify-center bg-gray-700 rounded-2xl border-4 border-gray-500 text-6xl font-black text-white';
-            }, 300);
-        }
-        
-        document.getElementById('memory-phase-text').textContent = 'CARTE COPERTE!';
-        document.getElementById('memory-timer').textContent = '';
-        
-        if(memoryTimerInterval) clearInterval(memoryTimerInterval);
-        
-        console.log('🧠 Carte coperte');
-    });
 
     socket.on('memory_reveal_one', (data) => {
-        SipontoAudio.reveal();
-        const grid = document.getElementById('memory-grid');
-        const cards = grid.children;
-
-        // Rivela la carta scelta
-        const revealedCard = cards[data.position];
-        revealedCard.className = 'flex items-center justify-center bg-yellow-500 rounded-2xl border-4 border-yellow-300 text-8xl animate__animated animate__pulse animate__infinite';
-        revealedCard.textContent = data.image;
+        resetUI();
         
-        document.getElementById('memory-phase-text').textContent = `TROVA LA COPPIA DI ${data.image}`;
-        document.getElementById('memory-timer').textContent = `⏱️ ${data.duration} secondi`;
-        
-        // Countdown
-        let timeLeft = data.duration;
-        if(memoryTimerInterval) clearInterval(memoryTimerInterval);
-        memoryTimerInterval = setInterval(() => {
-            timeLeft--;
-            document.getElementById('memory-timer').textContent = `⏱️ ${timeLeft} secondi`;
-            if(timeLeft <= 0) clearInterval(memoryTimerInterval);
-        }, 1000);
-        
-        console.log('🧠 Rivelata carta:', data.image, 'in posizione', data.position);
-    });
-
-    socket.on('memory_show_results', (data) => {
-        if(memoryTimerInterval) clearInterval(memoryTimerInterval);
-        
-        const grid = document.getElementById('memory-grid');
-        const cards = grid.children;
-        
-        // Mostra la carta corretta
-        const correctCard = cards[data.correctPosition];
-        correctCard.className = 'flex items-center justify-center bg-green-500 rounded-2xl border-4 border-green-300 text-8xl animate__animated animate__bounceIn';
-        correctCard.textContent = data.correctImage;
-        
-        // Conta corretti
-        const correctCount = data.results.filter(r => r.correct).length;
-        const totalCount = data.results.length;
-        
-        document.getElementById('memory-phase-text').innerHTML = `
-            <div class="text-5xl text-green-400 mb-4">✅ Posizione ${data.correctPosition + 1}</div>
-            <div class="text-3xl">${correctCount}/${totalCount} squadre corrette!</div>
+        document.getElementById('msg-box').innerHTML = `
+            <div class="text-4xl mb-2">🧠 MEMORY</div>
+            <div class="text-2xl">Trova la coppia di ${data.image}!</div>
         `;
-        document.getElementById('memory-timer').textContent = `+${data.points}pt`;
         
-        console.log('🧠 Risultati -', correctCount, 'corretti su', totalCount);
-    });
-
-    socket.on('memory_game_end', () => {
-        showView('custom');
-        document.getElementById('custom-text-display').innerHTML = `
-            <div class="text-9xl mb-6">🧠</div>
-            <div class="text-6xl font-black mb-4">MEMORY COMPLETATO!</div>
-            <div class="text-4xl text-yellow-300">Ottimo lavoro!</div>
-        `;
-        console.log('🧠 Memory Game terminato');
-    });
-
-    // ════════════════════════════════════════════════════════════════
-    // 📊 LISTENER PER RISULTATI DEL ROUND
-    // ════════════════════════════════════════════════════════════════
-    socket.on('update_round_leaderboard', (data) => {
-        console.log('📊 Ricevuti risultati round:', data);
+        const buttonsDiv = document.getElementById('memory-buttons');
+        const gridDiv = document.getElementById('memory-button-grid');
         
-        const tbody = document.getElementById('round-list-body');
-        tbody.innerHTML = '';
+        buttonsDiv.classList.remove('hidden');
+        gridDiv.innerHTML = '';
         
-        if (!data.results || data.results.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="p-10 text-center text-gray-500 text-4xl">Nessun punteggio in questo round</td></tr>';
-            return;
+        // Configura grid in base alla manche
+        if(data.grid === '2x3') {
+            gridDiv.className = 'grid grid-cols-3 gap-2';
+        } else if(data.grid === '2x5') {
+            gridDiv.className = 'grid grid-cols-5 gap-2';
+        } else if(data.grid === '2x7') {
+            gridDiv.className = 'grid grid-cols-7 gap-2';
         }
         
-        // Ordina per punteggio del round (decrescente)
-        const sorted = [...data.results].sort((a, b) => b.roundPoints - a.roundPoints);
+        // Crea pulsanti per ogni posizione
+        const totalCards = data.grid === '2x3' ? 6 : data.grid === '2x5' ? 10 : 14;
         
-        sorted.forEach((team, i) => {
-            const rowClass = team.roundPoints > 0 ? 'bg-green-500/20 text-green-400' : 'text-white opacity-80';
-            tbody.innerHTML += `
-                <tr class="border-b border-white/5 ${rowClass} animate__animated animate__fadeInLeft" style="animation-delay: ${i*0.1}s">
-                    <td class="p-6 font-mono text-3xl text-indigo-400">${i+1}</td>
-                    <td class="p-6 font-black">${team.name}</td>
-                    <td class="p-6 italic">-</td>
-                    <td class="p-6 text-right font-mono">-</td>
-                    <td class="p-6 text-right font-black text-2xl ${team.roundPoints > 0 ? 'text-green-400' : 'text-gray-400'}">
-                        ${team.roundPoints > 0 ? '+' : ''}${team.roundPoints}
-                    </td>
-                </tr>`;
-        });
+        for(let i = 0; i < totalCards; i++) {
+            const btn = document.createElement('button');
+            btn.className = 'bg-gray-700 hover:bg-gray-600 text-white font-black text-2xl py-4 rounded-lg active:scale-95 transition-all';
+            btn.textContent = i + 1;
+            
+            // Disabilita il pulsante della carta rivelata
+            if(i === data.position) {
+                btn.className = 'bg-yellow-600 text-white font-black text-2xl py-4 rounded-lg opacity-50';
+                btn.disabled = true;
+            } else {
+                btn.onclick = () => sendMemoryAnswer(i);
+            }
+            
+            gridDiv.appendChild(btn);
+        }
     });
 
-    // ============================================
-    // 💀 IL PATTO COL DESTINO - SOCKET HANDLERS
-    // ============================================
-    
-    let pattoTimerInterval = null;
-    let pattoCurrentPhase = null;
-    
-    // Mostra regole (2 schermate con avanti manuale)
-    socket.on('patto_regole_display', () => {
-        showView('patto-regole-1');
+    function sendMemoryAnswer(position) {
+        // ✅ VIBRAZIONE per risposta memory
+        vibrate(50);
         
-        // Dopo 15 secondi passa automaticamente alla parte 2
+        socket.emit('memory_answer', { position: position });
+        
+        // Disabilita tutti i pulsanti
+        const gridDiv = document.getElementById('memory-button-grid');
+        Array.from(gridDiv.children).forEach(btn => {
+            btn.disabled = true;
+            btn.className = 'bg-gray-800 text-gray-500 font-black text-2xl py-4 rounded-lg opacity-50';
+        });
+        
+        // Evidenzia risposta data
+        gridDiv.children[position].className = 'bg-blue-600 text-white font-black text-2xl py-4 rounded-lg border-4 border-blue-300';
+        
+        document.getElementById('msg-box').innerHTML = `
+            <div class="text-3xl text-green-400">✅ Risposta inviata!</div>
+            <div class="text-xl mt-2">Posizione: ${position + 1}</div>
+        `;
+    }
+
+    socket.on('memory_show_results', (data) => {
+        const myAnswer = data.results.find(r => r.teamId === socket.id);
+        
+        if(myAnswer) {
+            if(myAnswer.correct) {
+                document.getElementById('msg-box').innerHTML = `
+                    <div class="text-5xl mb-4">🎉</div>
+                    <div class="text-3xl font-black text-green-400 mb-2">CORRETTO!</div>
+                    <div class="text-xl">+150 punti${myAnswer.bonus ? ' +50 bonus velocità!' : ''}</div>
+                `;
+            } else {
+                document.getElementById('msg-box').innerHTML = `
+                    <div class="text-5xl mb-4">❌</div>
+                    <div class="text-2xl font-bold text-red-400">Sbagliato!</div>
+                    <div class="text-lg mt-2">La risposta era: ${data.correctPosition + 1}</div>
+                `;
+            }
+        }
+        
         setTimeout(() => {
-            showView('patto-regole-2');
-        }, 15000);
+            document.getElementById('memory-buttons').classList.add('hidden');
+        }, 3000);
     });
+    
+    // ============================================
+    // 💀 IL PATTO COL DESTINO - MOBILE HANDLERS
+    // ============================================
+    
+    let pattoMobileTimerInterval = null;
+    let pattoIsCoinvolto = false;
+    let pattoHasChosen = false;
     
     // FASE 1: Chat Segreta
     socket.on('patto_fase_chat_start', (data) => {
-        showView('patto-chat');
-        pattoCurrentPhase = 'chat';
+        // Nascondi tutto
+        document.getElementById('msg-box').classList.add('hidden');
+        document.getElementById('btn-buzzer').classList.add('hidden');
+        document.getElementById('opts-grid').classList.add('hidden');
         
-        // Popola squadre coinvolte
-        const container = document.getElementById('patto-squadre-coinvolte');
-        container.innerHTML = '';
-        data.squadreCoinvolte.forEach(squadra => {
-            container.innerHTML += `
-                <div class="flex items-center justify-center gap-4 bg-white/10 backdrop-blur-lg rounded-2xl p-4 border-2" style="border-color: ${squadra.color}">
-                    <div class="w-8 h-8 rounded-full" style="background-color: ${squadra.color}"></div>
-                    <div class="text-3xl font-black text-white">${squadra.name}</div>
+        // Controlla se questa squadra è coinvolta
+        pattoIsCoinvolto = data.squadreCoinvolte.some(s => s.id === socket.id);
+        
+        if (pattoIsCoinvolto) {
+            // Mostra chat
+            document.getElementById('patto-chat-container').classList.remove('hidden');
+            document.getElementById('patto-chat-messages').innerHTML = `
+                <div class="text-center text-gray-400 text-sm mb-4">
+                    ⚠️ Solo voi 3 potete leggere questi messaggi<br/>
+                    Fate accordi... ma ricordate: i patti possono essere violati!
                 </div>
             `;
-        });
+            pattoStartMobileTimer(data.tempoChat, 'chat');
+        } else {
+            // Mostra schermata osservatore
+            document.getElementById('patto-osservatore-container').classList.remove('hidden');
+            document.getElementById('patto-osservatore-message').innerHTML = 
+                'Altre squadre stanno comunicando in segreto...<br/>Attendere!';
+        }
+    });
+    
+    // Ricevi messaggio chat
+    socket.on('patto_chat_message', (data) => {
+        if (!pattoIsCoinvolto) return;
         
-        // Avvia timer 30s
-        pattoStartTimer(data.tempoChat, 'chat');
+        const container = document.getElementById('patto-chat-messages');
+        const isMe = data.teamId === socket.id;
+        const alignment = isMe ? 'justify-end' : 'justify-start';
+        const bgColor = isMe ? 'bg-blue-600' : 'bg-gray-700';
+        
+        container.innerHTML += `
+            <div class="flex ${alignment}">
+                <div class="${bgColor} rounded-lg p-3 max-w-[80%]">
+                    <div class="text-xs text-gray-300 mb-1">${data.playerName}</div>
+                    <div class="text-white">${data.msg}</div>
+                </div>
+            </div>
+        `;
+        
+        // Scroll automatico
+        container.scrollTop = container.scrollHeight;
+    });
+    
+    // Invia messaggio chat
+    document.getElementById('patto-chat-send').addEventListener('click', () => {
+        const input = document.getElementById('patto-chat-input');
+        const msg = input.value.trim();
+        if (msg.length === 0) return;
+        
+        socket.emit('patto_send_chat_message', { msg });
+        input.value = '';
+    });
+    
+    // Enter per inviare
+    document.getElementById('patto-chat-input').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            document.getElementById('patto-chat-send').click();
+        }
     });
     
     // FASE 2: Scelta Individuale
     socket.on('patto_fase_scelta_start', (data) => {
-        showView('patto-scelta');
-        pattoCurrentPhase = 'scelta';
+        pattoHasChosen = false;
         
-        // Avvia timer 25s
-        pattoStartTimer(data.tempoScelta, 'scelta');
-    });
-    
-    // Reveal: Suspense iniziale
-    socket.on('patto_reveal_suspense', () => {
-        pattoStopTimer();
-        SipontoAudio.suspense(3);
-        showView('patto-reveal-suspense');
-    });
-    
-    // Reveal: Step by step
-    let pattoRevealedTeams = [];
-    socket.on('patto_reveal_step', (data) => {
-        SipontoAudio.reveal();
-        if (data.stepNum === 1) {
-            // Prima rivelazione: passa alla vista reveal e inizia a popolare
-            showView('patto-reveal');
-            pattoRevealedTeams = [];
-        }
-
-        pattoRevealedTeams.push(data);
+        // Nascondi chat
+        document.getElementById('patto-chat-container').classList.add('hidden');
         
-        // Aggiorna display con le scelte rivelate finora
-        const container = document.getElementById('patto-reveal-results');
-        container.innerHTML = '';
-        
-        pattoRevealedTeams.forEach((team, index) => {
-            const icon = team.scelta === 'patto' ? '🤝' : '💣';
-            const bgColor = team.scelta === 'patto' ? 'bg-green-900/50 border-green-400' : 'bg-red-900/50 border-red-400';
-            const textColor = team.scelta === 'patto' ? 'text-green-300' : 'text-red-300';
-            const sceltaText = team.scelta === 'patto' ? 'PATTO' : 'TRADIMENTO';
-            
-            container.innerHTML += `
-                <div class="${bgColor} backdrop-blur-lg rounded-2xl p-6 border-4 animate__animated animate__flipInX">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-4">
-                            <div class="w-12 h-12 rounded-full" style="background-color: ${team.teamColor}"></div>
-                            <div class="text-4xl font-black text-white">${team.teamName}</div>
-                        </div>
-                        <div class="flex items-center gap-4">
-                            <div class="text-6xl">${icon}</div>
-                            <div class="text-4xl font-black ${textColor}">${sceltaText}</div>
-                        </div>
-                    </div>
-                </div>
-            `;
-        });
-    });
-    
-    // Risultato Finale
-    socket.on('patto_risultato_finale', (data) => {
-        showView('patto-finale');
-        
-        // Popola risultati con punti assegnati
-        const container = document.getElementById('patto-finale-results');
-        container.innerHTML = '';
-        
-        data.risultati.forEach(r => {
-            const icon = r.scelta === 'patto' ? '🤝' : '💣';
-            const puntiColor = r.puntiAssegnati > 0 ? 'text-green-400' : 'text-red-400';
-            const puntiSign = r.puntiAssegnati > 0 ? '+' : '';
-            const bgColor = r.puntiAssegnati > 0 ? 'bg-green-900/30 border-green-500' : 'bg-red-900/30 border-red-500';
-            
-            let descrizione = '';
-            if (r.tipo === 'collaborazione') descrizione = 'Tutti hanno collaborato!';
-            else if (r.tipo === 'tradimento_riuscito') descrizione = 'Tradimento riuscito!';
-            else if (r.tipo === 'tradito') descrizione = 'Sei stato tradito!';
-            else if (r.tipo === 'egoismo') descrizione = 'Egoismo punito!';
-            
-            container.innerHTML += `
-                <div class="${bgColor} backdrop-blur-lg rounded-2xl p-6 border-2 animate__animated animate__fadeInUp" style="animation-delay: ${container.children.length * 0.2}s">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-4">
-                            <div class="text-5xl">${icon}</div>
-                            <div class="text-3xl font-black text-white">${r.teamName}</div>
-                        </div>
-                        <div class="text-right">
-                            <div class="text-5xl font-black ${puntiColor}">${puntiSign}${r.puntiAssegnati} pt</div>
-                            <div class="text-lg text-gray-300">${descrizione}</div>
-                        </div>
-                    </div>
-                </div>
-            `;
-        });
-        
-        // Mostra bonus ultima squadra se presente
-        if (data.bonusUltimaSquadra) {
-            document.getElementById('patto-bonus-ultima').classList.remove('hidden');
-            document.getElementById('patto-bonus-team-name').textContent = data.bonusUltimaSquadra.teamName;
+        if (pattoIsCoinvolto) {
+            // Mostra pulsanti scelta
+            document.getElementById('patto-scelta-container').classList.remove('hidden');
+            document.getElementById('patto-scelta-confermata').classList.add('hidden');
+            document.getElementById('btn-patto').disabled = false;
+            document.getElementById('btn-tradimento').disabled = false;
+            pattoStartMobileTimer(data.tempoScelta, 'scelta');
         } else {
-            document.getElementById('patto-bonus-ultima').classList.add('hidden');
+            // Rimani osservatore
+            document.getElementById('patto-osservatore-message').innerHTML = 
+                'Le squadre stanno scegliendo...<br/>PATTO o TRADIMENTO?';
         }
+    });
+    
+    // Click PATTO
+    document.getElementById('btn-patto').addEventListener('click', () => {
+        if (pattoHasChosen) return;
+        pattoInviaScelta('patto');
+    });
+    
+    // Click TRADIMENTO
+    document.getElementById('btn-tradimento').addEventListener('click', () => {
+        if (pattoHasChosen) return;
+        pattoInviaScelta('tradimento');
+    });
+    
+    function pattoInviaScelta(scelta) {
+        pattoHasChosen = true;
+        socket.emit('patto_invia_scelta', { scelta });
         
-        // Mostra nuova classifica
-        const classificaContainer = document.getElementById('patto-nuova-classifica');
-        classificaContainer.innerHTML = '';
+        // Disabilita pulsanti
+        document.getElementById('btn-patto').disabled = true;
+        document.getElementById('btn-tradimento').disabled = true;
         
-        data.nuovaClassifica.forEach((team, index) => {
-            const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}°`;
-            classificaContainer.innerHTML += `
-                <div class="flex justify-between items-center bg-white/10 rounded-lg p-3">
-                    <div class="flex items-center gap-3">
-                        <span class="text-3xl">${medal}</span>
-                        <span class="text-2xl font-bold text-white">${team.name}</span>
-                    </div>
-                    <span class="text-3xl font-black text-yellow-400">${team.score}</span>
-                </div>
-            `;
-        });
+        // Mostra conferma
+        document.getElementById('btn-patto').classList.add('opacity-50');
+        document.getElementById('btn-tradimento').classList.add('opacity-50');
+        document.getElementById('patto-scelta-confermata').classList.remove('hidden');
+    }
+    
+    // Reveal e risultato finale - Resetta UI mobile
+    socket.on('patto_reveal_suspense', () => {
+        pattoResetMobileUI();
+        document.getElementById('msg-box').classList.remove('hidden');
+        document.getElementById('msg-box').innerHTML = `
+            <div class="text-center">
+                <div class="text-5xl mb-4 animate-pulse">🎭</div>
+                <div class="text-2xl font-bold">Le scelte saranno rivelate...</div>
+            </div>
+        `;
+    });
+    
+    socket.on('patto_risultato_finale', () => {
+        pattoResetMobileUI();
+        document.getElementById('msg-box').classList.remove('hidden');
+        document.getElementById('msg-box').innerHTML = `
+            <div class="text-center">
+                <div class="text-5xl mb-4">🎯</div>
+                <div class="text-2xl font-bold">Guarda il display per i risultati!</div>
+            </div>
+        `;
     });
     
     // Reset
     socket.on('patto_reset', () => {
-        pattoStopTimer();
-        pattoCurrentPhase = null;
-        pattoRevealedTeams = [];
+        pattoResetMobileUI();
     });
     
-    // Funzioni helper timer
-    function pattoStartTimer(seconds, phase) {
-        pattoStopTimer();
+    // Funzioni helper
+    function pattoStartMobileTimer(seconds, phase) {
+        pattoStopMobileTimer();
         
-        const timerDisplay = document.getElementById(`patto-timer-${phase}`);
-        const timerBar = document.getElementById(`patto-timer-bar-${phase}`);
+        const timerDisplay = document.getElementById(`patto-${phase}-timer`);
+        const timerBar = document.getElementById(`patto-${phase}-timer-bar`);
         
         let timeLeft = seconds;
         timerDisplay.textContent = timeLeft;
         timerBar.style.width = '100%';
         
-        pattoTimerInterval = setInterval(() => {
+        pattoMobileTimerInterval = setInterval(() => {
             timeLeft--;
             timerDisplay.textContent = timeLeft;
             timerBar.style.width = `${(timeLeft / seconds) * 100}%`;
             
             if (timeLeft <= 5) {
                 timerBar.style.backgroundColor = '#ef4444';
-                timerDisplay.style.color = '#ef4444';
             } else if (timeLeft <= 10) {
                 timerBar.style.backgroundColor = '#f59e0b';
-                timerDisplay.style.color = '#f59e0b';
             }
             
             if (timeLeft <= 0) {
-                pattoStopTimer();
+                pattoStopMobileTimer();
             }
         }, 1000);
     }
     
-    function pattoStopTimer() {
-        if (pattoTimerInterval) {
-            clearInterval(pattoTimerInterval);
-            pattoTimerInterval = null;
+    function pattoStopMobileTimer() {
+        if (pattoMobileTimerInterval) {
+            clearInterval(pattoMobileTimerInterval);
+            pattoMobileTimerInterval = null;
         }
     }
     
+    function pattoResetMobileUI() {
+        pattoStopMobileTimer();
+        pattoIsCoinvolto = false;
+        pattoHasChosen = false;
+        
+        document.getElementById('patto-chat-container').classList.add('hidden');
+        document.getElementById('patto-scelta-container').classList.add('hidden');
+        document.getElementById('patto-osservatore-container').classList.add('hidden');
+        document.getElementById('patto-scelta-confermata').classList.add('hidden');
+        
+        document.getElementById('btn-patto').classList.remove('opacity-50');
+        document.getElementById('btn-tradimento').classList.remove('opacity-50');
+    }
+    
     // ============================================
-    // FINE SOCKET HANDLERS PATTO COL DESTINO
+    // FINE HANDLERS PATTO COL DESTINO
     // ============================================
-
+    
     socket.on('force_reload', () => window.location.reload());
 </script>
-</div>
 </body>
 </html>

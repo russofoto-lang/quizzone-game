@@ -1,7 +1,16 @@
 const express = require('express');
 const app = express();
 const http = require('http').createServer(app);
-const io = require('socket.io')(http);
+const io = require('socket.io')(http, {
+  transports: ['websocket', 'polling'], // Prefer WebSocket, fallback to polling
+  pingInterval: 10000,     // Ping ogni 10s (default 25s) - rileva disconnessioni più veloce
+  pingTimeout: 5000,       // Timeout 5s (default 20s) - rileva disconnessioni più veloce
+  upgradeTimeout: 5000,    // Timeout upgrade da polling a websocket
+  maxHttpBufferSize: 1e6,  // 1MB max payload
+  perMessageDeflate: {     // Compressione messaggi
+    threshold: 256         // Comprimi solo messaggi > 256 bytes
+  }
+});
 const path = require('path');
 const fs = require('fs');
 
@@ -259,6 +268,47 @@ const db = {
   questions: questionsData.questions || []
 };
 
+// ============================================
+// OTTIMIZZAZIONI PERFORMANCE
+// ============================================
+
+// Debounce per broadcast update_teams (evita invii multipli ravvicinati)
+let _broadcastTeamsTimer = null;
+function broadcastTeams() {
+  if (_broadcastTeamsTimer) clearTimeout(_broadcastTeamsTimer);
+  _broadcastTeamsTimer = setTimeout(() => {
+    const realTeams = Object.values(gameState.teams).filter(t => !t.isPreview);
+    io.emit('update_teams', realTeams);
+    _broadcastTeamsTimer = null;
+  }, 50); // 50ms debounce - raggruppa emissioni ravvicinate
+}
+
+// Broadcast immediato (per quando serve risposta istantanea)
+function broadcastTeamsNow() {
+  if (_broadcastTeamsTimer) clearTimeout(_broadcastTeamsTimer);
+  _broadcastTeamsTimer = null;
+  const realTeams = Object.values(gameState.teams).filter(t => !t.isPreview);
+  io.emit('update_teams', realTeams);
+}
+
+// Rate limiter per buzzer (previene spam)
+const buzzerCooldowns = new Map();
+function canPressBuzzer(socketId) {
+  const now = Date.now();
+  const lastPress = buzzerCooldowns.get(socketId) || 0;
+  if (now - lastPress < 300) return false; // 300ms cooldown
+  buzzerCooldowns.set(socketId, now);
+  return true;
+}
+
+// Pulizia periodica cooldowns buzzer (ogni 60s)
+setInterval(() => {
+  const now = Date.now();
+  for (const [id, time] of buzzerCooldowns.entries()) {
+    if (now - time > 60000) buzzerCooldowns.delete(id);
+  }
+}, 60000);
+
 function getQuestionsByCategory(category) {
   return db.questions.filter(q => q.categoria === category);
 }
@@ -471,10 +521,8 @@ function processMemoryAnswers() {
     }
   });
   
-  const realTeams = Object.values(gameState.teams).filter(t => !t.isPreview);
-  io.emit('update_teams', realTeams);
-  io.to('admin').emit('update_teams', realTeams);
-  
+  broadcastTeamsNow();
+
   io.emit('memory_show_results', {
     results: results,
     correctPosition: correctPosition,
@@ -549,11 +597,8 @@ function finalizeDuello() {
     console.log(`🔥 ${attaccante.name} PERDE: 0 punti`);
   }
   
-  const realTeams = Object.values(gameState.teams).filter(t => !t.isPreview);
-  
-  io.emit('update_teams', realTeams);
-  io.to('admin').emit('update_teams', realTeams);
-  
+  broadcastTeamsNow();
+
   io.emit('duello_end', {
     attaccanteWins: attaccanteWins,
     winner: attaccanteWins ? 
@@ -665,10 +710,8 @@ function processAllInResults() {
   });
   
   // Aggiorna classifica generale
-  const realTeams = Object.values(gameState.teams).filter(t => !t.isPreview);
-  io.emit('update_teams', realTeams);
-  io.to('admin').emit('update_teams', realTeams);
-  
+  broadcastTeamsNow();
+
   // Notifica admin
   io.to('admin').emit('allin_results_processed', {
     totalBets: results.length,
@@ -824,10 +867,11 @@ io.on('connection', (socket) => {
     
     socket.emit('login_success', { teamId: socket.id, name: name });
     
-    const realTeams = Object.values(gameState.teams).filter(t => !t.isPreview);
-    io.emit('update_teams', realTeams);
-    io.to('admin').emit('update_teams', realTeams);
-    
+    broadcastTeams();
+
+    // Notifica admin del nuovo team
+    io.to('admin').emit('team_joined', { name: name, isPreview: isPreview });
+
     console.log(`? Login: ${name} (${isPreview ? 'Preview' : 'Giocatore'})`);
   });
 
@@ -910,18 +954,17 @@ io.on('connection', (socket) => {
       points: pointsEarned
     });
     
-    const realTeams = Object.values(gameState.teams).filter(t => !t.isPreview);
-    
+    const realTeamCount = Object.values(gameState.teams).filter(t => !t.isPreview).length;
+
     // ✅ Invia risposte aggiornate all'admin
     io.to('admin').emit('update_answers', {
       answers: gameState.roundAnswers,
-      totalTeams: realTeams.length,
+      totalTeams: realTeamCount,
       correctAnswer: gameState.currentQuestion.corretta
     });
-    
-    // ✅ Aggiorna classifica in tempo reale
-    io.emit('update_teams', realTeams);
-    io.to('admin').emit('update_teams', realTeams);
+
+    // ✅ Aggiorna classifica in tempo reale (debounced)
+    broadcastTeams();
   });
 
   socket.on('regia_cmd', (cmd) => {
@@ -1044,10 +1087,8 @@ io.on('connection', (socket) => {
         });
       }
       
-      const realTeams = Object.values(gameState.teams).filter(t => !t.isPreview);
-      io.emit('update_teams', realTeams);
-      io.to('admin').emit('update_teams', realTeams);
-      
+      broadcastTeamsNow(); // Immediato per feedback manuale
+
       console.log(`? ${team.name}: ${data.points > 0 ? '+' : ''}${data.points} punti (totale: ${team.score})`);
     }
   });
@@ -1140,9 +1181,15 @@ io.on('connection', (socket) => {
   // ? FIX 3: Migliorato buzzer per gioco musicale e assegnazione punti
   socket.on('prenoto', () => {
     if (gameState.buzzerLocked || !gameState.currentQuestion) return;
-    
+
     const team = gameState.teams[socket.id];
     if (!team || team.isPreview) return;
+
+    // Rate limiting: previeni spam buzzer (300ms cooldown)
+    if (!canPressBuzzer(socket.id)) return;
+
+    // Previeni doppia prenotazione
+    if (gameState.buzzerQueue.some(b => b.id === socket.id)) return;
     
     const time = ((Date.now() - gameState.currentQuestion.startTime) / 1000).toFixed(2);
     
@@ -1332,15 +1379,13 @@ io.on('connection', (socket) => {
       console.log(`🎰 ${team.name}: +50 punti sicuri`);
       
       // Aggiorna classifica
-      const realTeams = Object.values(gameState.teams).filter(t => !t.isPreview);
-      io.emit('update_teams', realTeams);
-      io.to('admin').emit('update_teams', realTeams);
-      
+      broadcastTeamsNow();
+
       // Torna alla classifica
       setTimeout(() => {
         io.emit('cambia_vista', { view: 'classifica_gen' });
       }, 3000);
-      
+
     } else if (data.choice === 'challenge') {
       // Ha scelto la sfida
       gameState.ruotaChallenge = {
@@ -1408,10 +1453,8 @@ io.on('connection', (socket) => {
     }, 2000);
     
     // Aggiorna classifica
-    const realTeams = Object.values(gameState.teams).filter(t => !t.isPreview);
-    io.emit('update_teams', realTeams);
-    io.to('admin').emit('update_teams', realTeams);
-    
+    broadcastTeamsNow();
+
     // Torna alla classifica
     setTimeout(() => {
       io.emit('cambia_vista', { view: 'classifica_gen' });
@@ -1953,8 +1996,8 @@ io.on('connection', (socket) => {
       bonusUltimaSquadra: bonusUltima,
       nuovaClassifica: classifica
     });
-    
-    io.emit('update_teams', realTeams);
+
+    broadcastTeamsNow();
     
     // Reset dopo 10 secondi
     setTimeout(() => {
@@ -1975,10 +2018,26 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => {
     const team = gameState.teams[socket.id];
     if (team) {
+      const teamName = team.name;
+      const wasPreview = team.isPreview;
       delete gameState.teams[socket.id];
-      const realTeams = Object.values(gameState.teams).filter(t => !t.isPreview);
-      io.emit('update_teams', realTeams);
-      io.to('admin').emit('update_teams', realTeams);
+
+      // Pulisci buzzerQueue da riferimenti orfani
+      gameState.buzzerQueue = gameState.buzzerQueue.filter(b => b.id !== socket.id);
+
+      // Pulisci roundAnswers da riferimenti orfani
+      // (non rimuoviamo le risposte già date, solo il riferimento)
+
+      // Pulisci cooldown buzzer
+      buzzerCooldowns.delete(socket.id);
+
+      broadcastTeams();
+
+      // Notifica admin della disconnessione
+      if (!wasPreview) {
+        io.to('admin').emit('team_left', { name: teamName });
+        console.log(`? Disconnesso: ${teamName}`);
+      }
     }
   });
 });

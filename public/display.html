@@ -962,7 +962,14 @@
 </div>
 
 <script>
-    const socket = io();
+    const socket = io({
+      transports: ['websocket', 'polling'],
+      reconnection: true,
+      reconnectionAttempts: Infinity,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
+      timeout: 10000
+    });
     let timerInterval = null;
     let questionStartTime = 0;
     let maxTime = 20;

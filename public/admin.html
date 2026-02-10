@@ -5,35 +5,38 @@
     <title>Control Center - Siponto</title>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
     <style>
-        body { background: #0a0e1a; color: white; font-family: 'Inter', sans-serif; margin: 0; padding: 0; }
-        .btn-primary { background: #3b82f6; transition: all 0.15s; }
-        .btn-primary:hover { background: #2563eb; transform: scale(1.02); }
+        body { background: #070b14; color: white; font-family: 'Inter', sans-serif; margin: 0; padding: 0; }
+        .font-display { font-family: 'Orbitron', 'Inter', sans-serif; }
+        .btn-primary { background: linear-gradient(135deg, #3b82f6, #6366f1); transition: all 0.15s; border: 1px solid rgba(99,102,241,0.3); }
+        .btn-primary:hover { background: linear-gradient(135deg, #2563eb, #4f46e5); transform: scale(1.02); box-shadow: 0 0 16px rgba(59,130,246,0.4); }
         .btn-primary:active { transform: scale(0.98); }
-        .btn-success { background: #10b981; }
-        .btn-success:hover { background: #059669; }
-        .btn-warning { background: #f59e0b; }
-        .btn-warning:hover { background: #d97706; }
-        .btn-danger { background: #ef4444; }
-        .btn-danger:hover { background: #dc2626; }
-        .btn-scene { background: #1f2937; transition: all 0.15s; padding: 8px; border-radius: 6px; cursor: pointer; }
-        .btn-scene:hover { background: #374151; transform: scale(1.05); }
-        .btn-scene.active { background: #10b981; box-shadow: 0 0 12px #10b981; }
-        .progress-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin: 0 2px; background: #374151; }
-        .progress-dot.active { background: #ef4444; box-shadow: 0 0 8px #ef4444; animation: pulse 1s infinite; }
+        .btn-success { background: linear-gradient(135deg, #10b981, #059669); border: 1px solid rgba(16,185,129,0.3); }
+        .btn-success:hover { background: linear-gradient(135deg, #059669, #047857); box-shadow: 0 0 16px rgba(16,185,129,0.4); }
+        .btn-warning { background: linear-gradient(135deg, #f59e0b, #d97706); border: 1px solid rgba(245,158,11,0.3); }
+        .btn-warning:hover { background: linear-gradient(135deg, #d97706, #b45309); box-shadow: 0 0 16px rgba(245,158,11,0.4); }
+        .btn-danger { background: linear-gradient(135deg, #ef4444, #dc2626); border: 1px solid rgba(239,68,68,0.3); }
+        .btn-danger:hover { background: linear-gradient(135deg, #dc2626, #b91c1c); box-shadow: 0 0 16px rgba(239,68,68,0.4); }
+        .btn-scene { background: rgba(31,41,55,0.8); transition: all 0.15s; padding: 8px; border-radius: 8px; cursor: pointer; border: 1px solid rgba(255,255,255,0.06); }
+        .btn-scene:hover { background: rgba(55,65,81,0.8); transform: scale(1.05); border-color: rgba(255,255,255,0.12); }
+        .btn-scene.active { background: rgba(16,185,129,0.3); border-color: #10b981; box-shadow: 0 0 16px rgba(16,185,129,0.3); }
+        .progress-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin: 0 2px; background: #1e293b; }
+        .progress-dot.active { background: #ef4444; box-shadow: 0 0 10px rgba(239,68,68,0.6); animation: pulse 1s infinite; }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
         .step-btn { opacity: 0.4; pointer-events: none; }
         .step-btn.active { opacity: 1; pointer-events: auto; }
-        .preview-frame { background: #000; border: 2px solid #374151; border-radius: 12px; }
+        .preview-frame { background: #000; border: 2px solid rgba(255,255,255,0.1); border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+        .admin-panel { background: rgba(15,23,42,0.6); border: 1px solid rgba(255,255,255,0.06); border-radius: 0.5rem; }
     </style>
 </head>
 <body class="h-screen flex flex-col overflow-hidden">
 
 <!-- HEADER MINIMAL -->
-<div class="bg-gradient-to-r from-gray-900 to-gray-800 px-4 py-2 border-b border-gray-700">
+<div class="px-4 py-2 border-b border-white/10" style="background: linear-gradient(90deg, rgba(7,11,20,0.95), rgba(15,23,42,0.95));">
     <div class="flex justify-between items-center">
         <div class="flex items-center gap-4">
-            <h1 class="font-black text-xl text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-red-600">CONTROL CENTER</h1>
+            <h1 class="font-display font-black text-xl text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-orange-400 to-red-500">CONTROL CENTER</h1>
             <span id="question-counter" class="text-lg font-bold text-gray-400">Q: 0</span>
         </div>
         
@@ -63,7 +66,7 @@
     <!-- COLONNA SINISTRA: MOTORE (20%) -->
     <div id="column-left" class="w-1/5 flex flex-col gap-2 transition-all duration-300">
         <!-- Selezione -->
-        <div class="bg-gray-900/50 rounded-lg p-2 border border-gray-800">
+        <div class="admin-panel p-2">
             <div class="text-sm font-bold text-blue-400 mb-1 uppercase">📚 Selezione</div>
             <select id="sel-tipo" class="w-full bg-gray-800 text-white p-2 rounded text-sm font-bold border border-gray-700 mb-1">
                 <option value="">Tipo</option>
@@ -78,7 +81,7 @@
         </div>
 
         <!-- Lista Domande -->
-        <div class="flex-1 bg-gray-900/50 rounded-lg p-2 border border-gray-800 overflow-hidden">
+        <div class="flex-1 admin-panel p-2 overflow-hidden">
             <div class="text-sm font-bold text-blue-400 mb-1 uppercase">📋 Domande</div>
             <div id="questions-container" class="overflow-y-auto h-full text-xs">
                 <div class="text-gray-500 text-center py-4">Seleziona tipo...</div>
@@ -86,7 +89,7 @@
         </div>
 
         <!-- Azioni Lancio -->
-        <div class="bg-gray-900/50 rounded-lg p-2 border border-gray-800">
+        <div class="admin-panel p-2">
             <button onclick="lanciaQuiz()" class="w-full btn-primary text-white font-bold py-3 rounded-lg mb-1 text-sm">
                 🎯 LANCIA QUIZ
             </button>
@@ -99,7 +102,7 @@
     <!-- COLONNA CENTRO: PREVIEW + RISPOSTE + CLASSIFICA (40%) -->
     <div id="column-center" class="w-2/5 flex flex-col gap-2 transition-all duration-300">
         <!-- Preview Ridotta -->
-        <div class="h-40 bg-gray-900/50 rounded-lg p-2 border border-gray-800 overflow-hidden">
+        <div class="h-40 admin-panel p-2 overflow-hidden">
             <div class="flex justify-between items-center mb-1">
                 <div class="text-sm font-bold text-purple-400 uppercase">📱 Preview</div>
                 <button onclick="refreshPreview()" class="text-xs bg-gray-800 px-2 py-0.5 rounded hover:bg-gray-700 font-bold">🔄</button>
@@ -110,7 +113,7 @@
         </div>
 
         <!-- Monitor Risposte - PIÙ GRANDE -->
-        <div class="h-56 bg-gray-900/50 rounded-lg p-2 border border-gray-800 overflow-hidden">
+        <div class="h-56 admin-panel p-2 overflow-hidden">
             <div class="flex justify-between items-center mb-1">
                 <div class="text-sm font-bold text-green-400 uppercase">⚡ Risposte</div>
                 <span id="answers-count" class="text-xs bg-gray-800 px-2 py-0.5 rounded font-bold">0/10</span>
@@ -126,7 +129,7 @@
         </div>
 
         <!-- Classifica 2 Colonne - RIDOTTA -->
-        <div class="flex-1 bg-gray-900/50 rounded-lg p-2 border border-gray-800 overflow-hidden">
+        <div class="flex-1 admin-panel p-2 overflow-hidden">
             <div class="text-sm font-bold text-yellow-400 mb-1 uppercase">📊 Classifica</div>
             <div id="leaderboard-center" class="grid grid-cols-2 gap-1 text-sm overflow-y-auto max-h-40"></div>
         </div>
@@ -136,7 +139,7 @@
     <div id="column-right" class="w-2/5 flex flex-col gap-2 overflow-y-auto transition-all duration-300">
         
         <!-- Scene/Display -->
-        <div class="bg-gray-900/50 rounded-lg p-2 border border-gray-800">
+        <div class="admin-panel p-2">
             <div class="text-sm font-bold text-blue-400 mb-2 uppercase">📺 Scene</div>
             <div class="grid grid-cols-4 gap-1 mb-2">
                 <div onclick="regia('logo')" class="btn-scene text-center text-xs font-bold">
@@ -190,7 +193,7 @@
         </div>
 
         <!-- Azioni Rapide -->
-        <div class="bg-gray-900/50 rounded-lg p-2 border border-gray-800">
+        <div class="admin-panel p-2">
             <div class="text-sm font-bold text-green-400 mb-2 uppercase">⚡ Azioni</div>
             <div class="grid grid-cols-2 gap-1">
                 <!-- BOTTONE SOLUZIONE CORRETTO -->

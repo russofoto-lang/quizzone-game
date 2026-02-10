@@ -1,0 +1,3 @@
+node_modules/
+gamestate_backup.json
+package-lock.json

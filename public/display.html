@@ -206,6 +206,18 @@
 
 </head>
 <body>
+<!-- OVERLAY ATTIVAZIONE AUDIO -->
+<div id="audio-unlock-overlay" class="fixed inset-0 bg-black/90 z-[9999] flex items-center justify-center">
+    <div class="text-center">
+        <div class="text-6xl mb-6">🔊</div>
+        <h2 class="text-4xl font-bold text-white mb-4">Attiva Audio</h2>
+        <p class="text-xl text-gray-300 mb-8">Clicca per abilitare gli effetti sonori</p>
+        <button id="unlock-audio-btn" class="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold text-2xl px-12 py-6 rounded-2xl shadow-2xl transition-all transform hover:scale-105">
+            ATTIVA AUDIO
+        </button>
+    </div>
+</div>
+
 <div id="app-container" class="flex flex-col p-6 bg-animated stars-bg">
 
 <div class="h-[10%] flex justify-between items-center border-b border-white/10 pb-2 relative z-10">
@@ -957,11 +969,17 @@
     let memoryTimerInterval = null;
     let audioTickInterval = null;
 
-    // Initialize audio on first click
-    document.addEventListener('click', function initAudio() {
+    // ════════════════════════════════════════════════════════════════
+    // 🔊 ATTIVAZIONE AUDIO - Risolve problema autoplay policy browser
+    // ════════════════════════════════════════════════════════════════
+    document.getElementById('unlock-audio-btn').addEventListener('click', function() {
         SipontoAudio.init();
-        document.removeEventListener('click', initAudio);
-    }, { once: true });
+        document.getElementById('audio-unlock-overlay').style.display = 'none';
+        console.log('✅ Audio attivato dall\'utente');
+        
+        // Riproduci un breve suono di conferma
+        setTimeout(() => SipontoAudio.correct(), 100);
+    });
 
     // Listen for audio commands from admin
     socket.on('play_sfx', (data) => {

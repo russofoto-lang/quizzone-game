@@ -5,6 +5,7 @@
     <title>DISPLAY SHOW - Siponto Forever Young</title>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/audio-engine.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
@@ -954,6 +955,26 @@
     let questionStartTime = 0;
     let maxTime = 20;
     let memoryTimerInterval = null;
+    let audioTickInterval = null;
+
+    // Initialize audio on first click
+    document.addEventListener('click', function initAudio() {
+        SipontoAudio.init();
+        document.removeEventListener('click', initAudio);
+    }, { once: true });
+
+    // Listen for audio commands from admin
+    socket.on('play_sfx', (data) => {
+        if (!SipontoAudio.isEnabled()) return;
+        const fn = SipontoAudio[data.effect];
+        if (typeof fn === 'function') fn(data.duration);
+    });
+    socket.on('audio_set_enabled', (data) => {
+        SipontoAudio.setEnabled(data.enabled);
+    });
+    socket.on('audio_set_volume', (data) => {
+        SipontoAudio.setVolume(data.volume);
+    });
     
     function showView(id) {
         document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
@@ -1087,6 +1108,7 @@
     // Animazione spinning della ruota
     socket.on('ruota_spin', (data) => {
         console.log('🎰 Ruota gira con squadre:', data.teams.length);
+        SipontoAudio.wheelSpin(5);
         showView('ruota-spin');
         
         // Animazione ruota con nomi squadre
@@ -1442,6 +1464,8 @@
     // NUOVA DOMANDA
     socket.on('nuova_domanda', (d) => {
         console.log('Nuova domanda:', d.modalita);
+        SipontoAudio.gong();
+        stopAudioTick();
         showView('gioco');
         stopTimer();
         
@@ -1490,30 +1514,43 @@
     });
 
     // TIMER
+    let lastTickSecond = -1;
     function startTimer() {
         // ✅ PATCH 9: Doppio controllo memory leak
         if(timerInterval) {
             clearInterval(timerInterval);
             timerInterval = null;
         }
-        
+        lastTickSecond = -1;
+
         document.getElementById('timer-display-container').classList.remove('hidden');
-        
+
         const timerText = document.getElementById('timer-display-text');
         const timerBar = document.getElementById('timer-display-bar');
-        
+
         timerBar.style.width = '100%';
         timerBar.style.backgroundColor = '#10b981';
         timerText.style.color = '#10b981';
         timerText.classList.remove('countdown-critical');
-        
+
         timerInterval = setInterval(() => {
             const elapsed = (Date.now() - questionStartTime) / 1000;
             const remaining = Math.max(0, maxTime - elapsed);
-            
-            timerText.textContent = Math.ceil(remaining);
+            const sec = Math.ceil(remaining);
+
+            timerText.textContent = sec;
             timerBar.style.width = `${(remaining / maxTime) * 100}%`;
-            
+
+            // Audio tick per ogni secondo
+            if (sec !== lastTickSecond && sec > 0) {
+                lastTickSecond = sec;
+                if (sec <= 5) {
+                    SipontoAudio.tickUrgent();
+                } else if (sec <= 10) {
+                    SipontoAudio.tick();
+                }
+            }
+
             if(remaining <= 5) {
                 timerBar.style.backgroundColor = '#ef4444';
                 timerText.style.color = '#ef4444';
@@ -1527,10 +1564,11 @@
                 timerText.style.color = '#10b981';
                 timerText.classList.remove('countdown-critical');
             }
-            
+
             if(remaining <= 0) {
                 stopTimer();
                 timerText.textContent = '0';
+                SipontoAudio.timesUp();
             }
         }, 100);
     }
@@ -1540,13 +1578,22 @@
             clearInterval(timerInterval);
             timerInterval = null;
         }
+        lastTickSecond = -1;
+    }
+
+    function stopAudioTick() {
+        if(audioTickInterval) {
+            clearInterval(audioTickInterval);
+            audioTickInterval = null;
+        }
     }
 
     // BUZZER
     socket.on('buzzer_queue_update', (d) => {
         const queueDiv = document.getElementById('buzzer-queue-display');
         if(!queueDiv) return;
-        
+        if(d.queue && d.queue.length > 0) SipontoAudio.buzzer();
+
         // Mostra vista gioco con overlay buzzer
         showView('gioco');
         document.getElementById('buzzer-overlay').classList.remove('hidden');
@@ -1584,6 +1631,7 @@
     // SOLUZIONE
     socket.on('mostra_soluzione', (d) => {
         stopTimer();
+        SipontoAudio.reveal();
         showView('gioco');
         document.getElementById('solution').classList.remove('hidden');
         document.getElementById('sol-text').innerText = d.soluzione;
@@ -1710,6 +1758,7 @@
     
     // Animazione estrazione attaccante duello
     socket.on('duello_extraction_animation', (data) => {
+        SipontoAudio.drumroll(3);
         showView('duello-extraction');
         
         const wheel = document.getElementById('duello-wheel');
@@ -1753,6 +1802,7 @@
     });
     
     socket.on('duello_buzzer_pressed', (data) => {
+        SipontoAudio.buzzer();
         document.getElementById('duello-status').innerHTML = `
             <div class="bg-yellow-500 text-black p-4 rounded-2xl inline-block animate__animated animate__bounceIn">
                 <span class="text-4xl">🎤 ${data.teamName.toUpperCase()}</span><br>
@@ -1762,9 +1812,10 @@
     });
     
     socket.on('duello_point_scored', (data) => {
+        SipontoAudio.correct();
         document.getElementById('duello-attaccante-score').textContent = data.scoreAttaccante;
         document.getElementById('duello-difensore-score').textContent = data.scoreDifensore;
-        
+
         document.getElementById('duello-status').innerHTML = `
             <div class="bg-green-600 p-6 rounded-2xl inline-block animate__animated animate__bounceIn">
                 <span class="text-5xl">✅ ${data.teamName.toUpperCase()} SEGNA!</span><br>
@@ -1774,6 +1825,7 @@
     });
     
     socket.on('duello_wrong_answer', (data) => {
+        SipontoAudio.wrong();
         document.getElementById('duello-status').innerHTML = `
             <div class="bg-red-600 p-6 rounded-2xl inline-block animate__animated animate__shakeX">
                 <span class="text-4xl">❌ ${data.wrongTeamName.toUpperCase()} HA SBAGLIATO!</span>
@@ -1782,6 +1834,7 @@
     });
     
     socket.on('duello_end', (data) => {
+        SipontoAudio.fanfare();
         showView('custom');
         
         const winnerEmoji = data.attaccanteWins ? '🔥' : '🛡️';
@@ -1814,11 +1867,12 @@
     
     socket.on('show_winner_screen', (data) => {
         console.log('🏆 Mostra vincitore:', data.winner);
+        SipontoAudio.fanfare();
         showView('winner');
-        
+
         document.getElementById('winner-name').textContent = data.winner.name;
         document.getElementById('winner-score').textContent = data.winner.score;
-        
+
         // Crea confetti
         createConfetti();
     });
@@ -1851,6 +1905,7 @@
     // ════════════════════════════════════════════════════════════════
 
     socket.on('memory_manche_intro', (data) => {
+        SipontoAudio.gong();
         showView('memory-intro');
         document.getElementById('memory-intro-manche').textContent = `MANCHE ${data.manche}/${data.totalManches}`;
         document.getElementById('memory-intro-pairs').textContent = `${data.pairsCount} COPPIE DA TROVARE`;
@@ -1923,9 +1978,10 @@
     });
 
     socket.on('memory_reveal_one', (data) => {
+        SipontoAudio.reveal();
         const grid = document.getElementById('memory-grid');
         const cards = grid.children;
-        
+
         // Rivela la carta scelta
         const revealedCard = cards[data.position];
         revealedCard.className = 'flex items-center justify-center bg-yellow-500 rounded-2xl border-4 border-yellow-300 text-8xl animate__animated animate__pulse animate__infinite';
@@ -2062,18 +2118,20 @@
     // Reveal: Suspense iniziale
     socket.on('patto_reveal_suspense', () => {
         pattoStopTimer();
+        SipontoAudio.suspense(3);
         showView('patto-reveal-suspense');
     });
     
     // Reveal: Step by step
     let pattoRevealedTeams = [];
     socket.on('patto_reveal_step', (data) => {
+        SipontoAudio.reveal();
         if (data.stepNum === 1) {
             // Prima rivelazione: passa alla vista reveal e inizia a popolare
             showView('patto-reveal');
             pattoRevealedTeams = [];
         }
-        
+
         pattoRevealedTeams.push(data);
         
         // Aggiorna display con le scelte rivelate finora

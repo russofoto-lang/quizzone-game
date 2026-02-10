@@ -1026,6 +1026,24 @@ io.on('connection', (socket) => {
     io.emit('stop_karaoke');
   });
 
+  // ════════════════════════════════════════════════════════════════
+  // 🔊 AUDIO EFFECTS - Relay comandi audio dall'admin al display
+  // ════════════════════════════════════════════════════════════════
+  socket.on('play_sfx', (data) => {
+    io.emit('play_sfx', data);
+    console.log('🔊 SFX:', data.effect);
+  });
+
+  socket.on('audio_set_enabled', (data) => {
+    io.emit('audio_set_enabled', data);
+    console.log('🔊 Audio:', data.enabled ? 'ON' : 'OFF');
+  });
+
+  socket.on('audio_set_volume', (data) => {
+    io.emit('audio_set_volume', data);
+    console.log('🔊 Volume:', data.volume);
+  });
+
   socket.on('toggle_leaderboard', () => {
     gameState.hideLeaderboard = !gameState.hideLeaderboard;
     io.emit('leaderboard_visibility', { hidden: gameState.hideLeaderboard });

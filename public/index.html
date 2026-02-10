@@ -6,6 +6,7 @@
     <title>Siponto - Gioca</title>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/audio-engine.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
     <style>
         /* Animated gradient background */
@@ -293,6 +294,18 @@
     let maxTime = 20;
     let currentStreak = 0;
 
+    // Initialize audio on first touch (mobile requires user gesture)
+    document.addEventListener('touchstart', function initAudio() {
+        SipontoAudio.init();
+        SipontoAudio.setVolume(0.3); // Lower volume on mobile
+        document.removeEventListener('touchstart', initAudio);
+    }, { once: true });
+    document.addEventListener('click', function initAudio() {
+        SipontoAudio.init();
+        SipontoAudio.setVolume(0.3);
+        document.removeEventListener('click', initAudio);
+    }, { once: true });
+
     // ════════════════════════════════════════════════════════════════
     // ✅ FUNZIONI FEEDBACK VISIVO E VIBRAZIONE
     // ════════════════════════════════════════════════════════════════
@@ -470,6 +483,7 @@
 
     // ✅ MODIFICA la gestione risposte per includere ruota
     socket.on('nuova_domanda', (d) => {
+        SipontoAudio.tick();
         resetUI();
         
         // ✅ Se è una domanda della ruota, mostra messaggio speciale
@@ -546,6 +560,7 @@
 
     // ✅ Feedback risposta inviata - SOLO CONFERMA, SENZA DETTAGLI
     socket.on('risposta_inviata', (data) => {
+        SipontoAudio.pointScored();
         stopTimer();
         document.getElementById('opts-grid').classList.add('pointer-events-none', 'opacity-50');
         
@@ -763,6 +778,7 @@
         if(!buzzerLocked) {
             // ✅ VIBRAZIONE FORTE per il buzzer
             vibrate([100, 50, 100]); // Pattern: vibra-pausa-vibra
+            SipontoAudio.buzzer();
             socket.emit('prenoto');
         }
     }

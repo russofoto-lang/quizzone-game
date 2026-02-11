@@ -1031,10 +1031,18 @@ io.on('connection', (socket) => {
     }
 
     const key = teamName.toLowerCase().trim();
-    const saved = disconnectedTeams.get(key);
 
+    // CASO 1: Se questo socket ha GIA' un team attivo (doppio connect), rispondi subito
+    if (gameState.teams[socket.id] && gameState.teams[socket.id].name.toLowerCase().trim() === key) {
+      const team = gameState.teams[socket.id];
+      socket.emit('rejoin_success', { teamId: socket.id, name: team.name, score: team.score });
+      console.log(`🔄 REJOIN-SAME: ${team.name} già connesso con questo socket (score: ${team.score})`);
+      return;
+    }
+
+    // CASO 2: Cerca in disconnectedTeams (caso normale: disconnect processato)
+    const saved = disconnectedTeams.get(key);
     if (saved && (Date.now() - saved.disconnectedAt < RECONNECT_GRACE_PERIOD)) {
-      // Trovato! Ripristina il team con il nuovo socket.id
       const oldId = saved.oldSocketId;
       const team = saved.team;
       team.id = socket.id;
@@ -1042,49 +1050,94 @@ io.on('connection', (socket) => {
       gameState.teams[socket.id] = team;
       disconnectedTeams.delete(key);
 
-      // Migra tutti i riferimenti dal vecchio al nuovo socket.id
       migrateSocketId(oldId, socket.id);
 
-      socket.emit('rejoin_success', {
-        teamId: socket.id,
-        name: team.name,
-        score: team.score
-      });
-
+      socket.emit('rejoin_success', { teamId: socket.id, name: team.name, score: team.score });
       broadcastTeams();
       io.to('admin').emit('team_rejoined', { name: team.name, score: team.score });
       console.log(`🔄 REJOIN: ${team.name} riconnesso (score: ${team.score}, ${oldId} → ${socket.id})`);
-    } else {
-      // Non trovato o scaduto - deve fare login normale
-      socket.emit('rejoin_failed', { reason: 'Sessione non trovata o scaduta' });
+      return;
     }
+
+    // CASO 3: Cerca in gameState.teams per un team con lo stesso nome ma socket.id diverso
+    // (succede quando la riconnessione è più veloce del disconnect del vecchio socket)
+    const existingEntry = Object.entries(gameState.teams).find(
+      ([id, t]) => !t.isPreview && t.name.toLowerCase().trim() === key && id !== socket.id
+    );
+    if (existingEntry) {
+      const [oldId, oldTeam] = existingEntry;
+      const team = { ...oldTeam, id: socket.id };
+
+      delete gameState.teams[oldId];
+      gameState.teams[socket.id] = team;
+
+      migrateSocketId(oldId, socket.id);
+
+      // Disconnetti il vecchio socket se ancora attivo
+      const oldSocket = io.sockets.sockets.get(oldId);
+      if (oldSocket) oldSocket.disconnect(true);
+
+      socket.emit('rejoin_success', { teamId: socket.id, name: team.name, score: team.score });
+      broadcastTeams();
+      io.to('admin').emit('team_rejoined', { name: team.name, score: team.score });
+      console.log(`🔄 REJOIN-TAKEOVER: ${team.name} preso da vecchio socket (score: ${team.score}, ${oldId} → ${socket.id})`);
+      return;
+    }
+
+    // Non trovato da nessuna parte
+    socket.emit('rejoin_failed', { reason: 'Sessione non trovata o scaduta' });
   });
 
   socket.on('login', (name) => {
     const isPreview = name.includes('PREVIEW') || name.includes('?');
-
-    // Controlla se c'è un team disconnesso con lo stesso nome (auto-recovery al login)
     const key = name.toLowerCase().trim();
-    const saved = disconnectedTeams.get(key);
 
-    if (!isPreview && saved && (Date.now() - saved.disconnectedAt < RECONNECT_GRACE_PERIOD)) {
-      // Ripristina come rejoin
-      const oldId = saved.oldSocketId;
-      const team = saved.team;
-      team.id = socket.id;
+    if (!isPreview) {
+      // CASO 1: Cerca in disconnectedTeams
+      const saved = disconnectedTeams.get(key);
+      if (saved && (Date.now() - saved.disconnectedAt < RECONNECT_GRACE_PERIOD)) {
+        const oldId = saved.oldSocketId;
+        const team = saved.team;
+        team.id = socket.id;
 
-      gameState.teams[socket.id] = team;
-      disconnectedTeams.delete(key);
+        gameState.teams[socket.id] = team;
+        disconnectedTeams.delete(key);
 
-      migrateSocketId(oldId, socket.id);
+        migrateSocketId(oldId, socket.id);
 
-      socket.emit('login_success', { teamId: socket.id, name: team.name, score: team.score, restored: true });
-      broadcastTeams();
-      io.to('admin').emit('team_rejoined', { name: team.name, score: team.score });
-      console.log(`🔄 LOGIN-RECOVERY: ${team.name} riconnesso con punteggio ${team.score}`);
-      return;
+        socket.emit('login_success', { teamId: socket.id, name: team.name, score: team.score, restored: true });
+        broadcastTeams();
+        io.to('admin').emit('team_rejoined', { name: team.name, score: team.score });
+        console.log(`🔄 LOGIN-RECOVERY: ${team.name} riconnesso con punteggio ${team.score}`);
+        return;
+      }
+
+      // CASO 2: Cerca in gameState.teams per un team con lo stesso nome ma socket diverso
+      // (il vecchio disconnect non è ancora stato processato)
+      const existingEntry = Object.entries(gameState.teams).find(
+        ([id, t]) => !t.isPreview && t.name.toLowerCase().trim() === key && id !== socket.id
+      );
+      if (existingEntry) {
+        const [oldId, oldTeam] = existingEntry;
+        const team = { ...oldTeam, id: socket.id };
+
+        delete gameState.teams[oldId];
+        gameState.teams[socket.id] = team;
+
+        migrateSocketId(oldId, socket.id);
+
+        const oldSocket = io.sockets.sockets.get(oldId);
+        if (oldSocket) oldSocket.disconnect(true);
+
+        socket.emit('login_success', { teamId: socket.id, name: team.name, score: team.score, restored: true });
+        broadcastTeams();
+        io.to('admin').emit('team_rejoined', { name: team.name, score: team.score });
+        console.log(`🔄 LOGIN-TAKEOVER: ${team.name} preso da vecchio socket (score: ${team.score}, ${oldId} → ${socket.id})`);
+        return;
+      }
     }
 
+    // CASO 3: Nuovo team - nessun punteggio da recuperare
     gameState.teams[socket.id] = {
       id: socket.id,
       name: name,
@@ -1096,7 +1149,6 @@ io.on('connection', (socket) => {
 
     broadcastTeams();
 
-    // Notifica admin del nuovo team
     io.to('admin').emit('team_joined', { name: name, isPreview: isPreview });
 
     console.log(`🟢 Login: ${name} (${isPreview ? 'Preview' : 'Giocatore'})`);

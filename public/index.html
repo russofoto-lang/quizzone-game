@@ -426,7 +426,7 @@
     socket.on('connect', () => {
         console.log('🔌 Connesso al server');
         const savedName = getSavedSession();
-        if (savedName && !isLoggedIn) {
+        if (savedName) {
             console.log('🔄 Tentativo di rejoin come:', savedName);
             socket.emit('rejoin', { name: savedName });
         }
@@ -434,6 +434,8 @@
 
     socket.on('disconnect', () => {
         console.log('⚠️ Disconnesso dal server - riconnessione automatica in corso...');
+        // IMPORTANTE: resetta isLoggedIn così al reconnect si ritenta il rejoin
+        isLoggedIn = false;
     });
 
     socket.on('reconnect_attempt', (n) => {

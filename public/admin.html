@@ -1272,10 +1272,14 @@
             showToast('Seleziona una domanda per ALL IN!', 'error');
             return;
         }
-        
+
         // Modifica i punti della domanda per i pulsanti 100-500
         selectedQ.allInOptions = [100, 200, 300, 500];
-        
+
+        // ALL IN è la domanda 1 della finale
+        finaleQuestionCount = 1;
+        updateFinaleProgress();
+
         socket.emit('prepare_allin', selectedQ);
         activateStep(4);
         
@@ -1316,6 +1320,18 @@
             console.log('🏆 Vincitore finale rivelato');
         }
     }
+
+    // Auto-reveal: il server rivela automaticamente il vincitore dopo l'ultima domanda
+    socket.on('show_winner', (data) => {
+        if(finaleActive) {
+            finaleActive = false;
+            setGameMode('idle');
+            document.getElementById('finale-progress').classList.add('hidden');
+            activateStep(1);
+            showToast(`VINCITORE: ${data.winner.name} con ${data.winner.score} punti!`, 'success', 8000);
+            console.log('🏆 Auto-reveal vincitore:', data.winner.name);
+        }
+    });
 
     socket.on('allin_bet_placed', (data) => {
         document.getElementById('allin-counter').textContent = data.betsCount;

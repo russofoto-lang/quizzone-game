@@ -480,7 +480,9 @@ function sendQuestion(questionData, modalita = 'multipla') {
     modalita: modalita,
     categoria: questionData.categoria,
     startTime: Date.now(),
-    serverTimestamp: Date.now()
+    serverTimestamp: Date.now(),
+    finaleQuestion: questionData.finaleQuestion || null,
+    totalFinaleQuestions: questionData.totalFinaleQuestions || null
   };
   
   gameState.currentQuestion.corretta = questionData.corretta;
@@ -1306,6 +1308,39 @@ io.on('connection', (socket) => {
 
     // ✅ Aggiorna classifica in tempo reale (debounced)
     broadcastTeams();
+
+    // ✅ Auto-reveal vincitore dopo ultima domanda finale (domanda 5)
+    if (gameState.finaleMode && gameState.finaleMode.active && gameState.finaleMode.questionCount >= 5) {
+      if (gameState.roundAnswers.length >= realTeamCount) {
+        console.log('🏆 Tutte le squadre hanno risposto all\'ultima domanda finale! Auto-reveal vincitore tra 5 secondi...');
+        setTimeout(() => {
+          if (gameState.finaleMode && gameState.finaleMode.active) {
+            const realTeams = Object.values(gameState.teams).filter(t => !t.isPreview);
+            const sorted = realTeams.sort((a, b) => b.score - a.score);
+            const winner = sorted[0];
+
+            gameState.hideLeaderboard = false;
+            io.emit('leaderboard_visibility', { hidden: false });
+
+            io.emit('show_winner', {
+              winner: { id: winner.id, name: winner.name, score: winner.score },
+              rankings: sorted.map((t, i) => ({
+                position: i + 1,
+                id: t.id,
+                name: t.name,
+                score: t.score
+              }))
+            });
+
+            gameState.finaleMode = null;
+
+            console.log('\n' + '='.repeat(50));
+            console.log(`AUTO-REVEAL VINCITORE: ${winner.name} con ${winner.score} punti!`);
+            console.log('='.repeat(50) + '\n');
+          }
+        }, 5000);
+      }
+    }
   });
 
   socket.on('regia_cmd', (cmd) => {
@@ -2057,14 +2092,20 @@ io.on('connection', (socket) => {
   });
 
   socket.on('reveal_winner', () => {
+    // Evita doppio reveal se auto-reveal ha già fatto
+    if (!gameState.finaleMode || !gameState.finaleMode.active) {
+      console.log('⚠️ Vincitore già rivelato (auto-reveal)');
+      return;
+    }
+
     const realTeams = Object.values(gameState.teams).filter(t => !t.isPreview);
     const sorted = realTeams.sort((a, b) => b.score - a.score);
     const winner = sorted[0];
-    
+
     // Mostra di nuovo la classifica
     gameState.hideLeaderboard = false;
     io.emit('leaderboard_visibility', { hidden: false });
-    
+
     io.emit('show_winner', {
       winner: { id: winner.id, name: winner.name, score: winner.score },
       rankings: sorted.map((t, i) => ({
@@ -2074,12 +2115,12 @@ io.on('connection', (socket) => {
         score: t.score
       }))
     });
-    
+
     gameState.finaleMode = null;
-    
-    console.log('\n' + '🏆'.repeat(50));
-    console.log(`🏆 VINCITORE FINALE: ${winner.name} con ${winner.score} punti!`);
-    console.log('🏆'.repeat(50) + '\n');
+
+    console.log('\n' + '='.repeat(50));
+    console.log(`VINCITORE FINALE: ${winner.name} con ${winner.score} punti!`);
+    console.log('='.repeat(50) + '\n');
   });
 
   socket.on('duello_start', () => startDuello());

@@ -310,13 +310,24 @@
       try {
         wakeLock = await navigator.wakeLock.request('screen');
         wakeLock.addEventListener('release', () => { wakeLock = null; });
-      } catch (err) { /* Browser non supporta o ha rifiutato */ }
+        console.log('🔆 Wake Lock attivo - schermo resterà acceso');
+      } catch (err) {
+        console.log('🔆 Wake Lock non disponibile:', err.message);
+      }
     }
     // Riacquisisci il lock quando la tab torna in primo piano
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'visible' && !wakeLock) requestWakeLock();
     });
-    requestWakeLock();
+    // Richiedi al primo tocco (necessario su mobile) e poi subito
+    function initWakeLock() {
+      requestWakeLock();
+      document.removeEventListener('touchstart', initWakeLock);
+      document.removeEventListener('click', initWakeLock);
+    }
+    document.addEventListener('touchstart', initWakeLock, { once: true });
+    document.addEventListener('click', initWakeLock, { once: true });
+    requestWakeLock(); // Prova subito (funziona su desktop/browser recenti)
 
     // Initialize audio on first touch (mobile requires user gesture)
     document.addEventListener('touchstart', function initAudio() {

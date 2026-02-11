@@ -2112,7 +2112,11 @@ io.on('connection', (socket) => {
     io.to(gameState.duelloMode.difensore.id).emit('duello_question', questionData);
 
     io.emit('duello_question_display', {
-      question: questionData,
+      question: {
+        ...questionData,
+        risposte: data.question.risposte || [],
+        corretta: data.question.corretta
+      },
       attaccante: gameState.duelloMode.attaccante,
       difensore: gameState.duelloMode.difensore,
       scoreAttaccante: gameState.duelloMode.scoreAttaccante,

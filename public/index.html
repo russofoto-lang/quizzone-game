@@ -167,9 +167,9 @@
     </div>
 
     <div class="flex-1 flex flex-col p-4 overflow-y-auto">
-        <div id="msg-box" class="text-center w-full text-gray-400 font-bold text-lg px-4 mb-6 flex-shrink-0">In attesa...</div>
-        
-        <div class="flex-1 flex flex-col justify-center items-center min-h-0">
+        <div id="msg-box" class="text-center w-full text-gray-400 font-bold text-lg px-4 mb-4 flex-shrink-0">In attesa...</div>
+
+        <div class="flex-1 flex flex-col items-center min-h-0">
             <!-- BOTTONI ALL IN -->
             <div id="allin-buttons" class="hidden w-full max-w-md grid grid-cols-2 gap-4">
                 <button onclick="placeBet(0)" class="bg-gray-600 py-8 rounded-xl font-black text-3xl shadow-xl active:scale-95">0</button>
@@ -190,7 +190,7 @@
             <div id="opts-grid" class="hidden grid grid-cols-2 gap-4 w-full h-full max-h-96"></div>
             
             <!-- MEMORY GRID PULSANTI -->
-            <div id="memory-buttons" class="hidden w-full max-w-md">
+            <div id="memory-buttons" class="hidden w-full max-w-md flex-shrink-0">
                 <div id="memory-button-grid" class="grid gap-2">
                     <!-- Popolato dinamicamente -->
                 </div>
@@ -658,8 +658,8 @@
         resetUI();
         
         document.getElementById('msg-box').innerHTML = `
-            <div class="text-4xl font-black mb-8 animate-pulse text-yellow-400">🎰 HAI VINTO LA RUOTA! 🎰</div>
-            <div class="text-2xl font-bold mb-6 text-white">${data.message}</div>
+            <div class="text-2xl font-black mb-3 animate-pulse text-yellow-400">🎰 HAI VINTO LA RUOTA! 🎰</div>
+            <div class="text-lg font-bold mb-3 text-white">${data.message}</div>
         `;
         
         // Crea pulsanti per le opzioni
@@ -672,19 +672,19 @@
             
             if(option.id === 'safe') {
                 // Bottone 50 punti sicuri
-                btn.className = 'bg-gradient-to-r from-green-500 to-emerald-600 text-white font-black text-3xl py-12 px-8 rounded-3xl shadow-2xl active:scale-95 transition-all mb-6 hover:scale-105';
+                btn.className = 'bg-gradient-to-r from-green-500 to-emerald-600 text-white font-black text-2xl py-6 px-6 rounded-2xl shadow-2xl active:scale-95 transition-all mb-3';
                 btn.innerHTML = `
-                    <div class="text-6xl mb-4">💰</div>
-                    <div class="text-2xl mb-2">${option.label}</div>
-                    <div class="text-3xl mt-4 text-yellow-300 font-black">+${option.value} PUNTI</div>
+                    <div class="text-4xl mb-2">💰</div>
+                    <div class="text-xl mb-1">${option.label}</div>
+                    <div class="text-2xl mt-2 text-yellow-300 font-black">+${option.value} PUNTI</div>
                 `;
             } else {
                 // Bottone sfida
-                btn.className = 'bg-gradient-to-r from-red-500 to-orange-600 text-white font-black text-3xl py-12 px-8 rounded-3xl shadow-2xl active:scale-95 transition-all mb-6 hover:scale-105';
+                btn.className = 'bg-gradient-to-r from-red-500 to-orange-600 text-white font-black text-2xl py-6 px-6 rounded-2xl shadow-2xl active:scale-95 transition-all mb-3';
                 btn.innerHTML = `
-                    <div class="text-6xl mb-4">🎯</div>
-                    <div class="text-2xl mb-2">${option.label}</div>
-                    <div class="text-xl mt-4 text-yellow-300">Rischi 50 punti per vincerne 150!</div>
+                    <div class="text-4xl mb-2">🎯</div>
+                    <div class="text-xl mb-1">${option.label}</div>
+                    <div class="text-lg mt-2 text-yellow-300">Rischi 50 punti per vincerne 150!</div>
                 `;
             }
             
@@ -1257,8 +1257,8 @@
         resetUI();
         
         document.getElementById('msg-box').innerHTML = `
-            <div class="text-4xl mb-2">🧠 MEMORY</div>
-            <div class="text-2xl">Trova la coppia di ${data.image}!</div>
+            <div class="text-2xl mb-1">🧠 MEMORY</div>
+            <div class="text-lg">Trova la coppia di ${data.image}!</div>
         `;
         
         const buttonsDiv = document.getElementById('memory-buttons');
@@ -1281,12 +1281,12 @@
         
         for(let i = 0; i < totalCards; i++) {
             const btn = document.createElement('button');
-            btn.className = 'bg-gray-700 hover:bg-gray-600 text-white font-black text-2xl py-4 rounded-lg active:scale-95 transition-all';
+            btn.className = 'bg-gray-700 hover:bg-gray-600 text-white font-black text-xl py-3 rounded-lg active:scale-95 transition-all';
             btn.textContent = i + 1;
-            
+
             // Disabilita il pulsante della carta rivelata
             if(i === data.position) {
-                btn.className = 'bg-yellow-600 text-white font-black text-2xl py-4 rounded-lg opacity-50';
+                btn.className = 'bg-yellow-600 text-white font-black text-xl py-3 rounded-lg opacity-50';
                 btn.disabled = true;
             } else {
                 btn.onclick = () => sendMemoryAnswer(i);

@@ -302,32 +302,96 @@
     let currentStreak = 0;
 
     // ════════════════════════════════════════════════════════════════
-    // WAKE LOCK - Tiene lo schermo acceso durante il gioco
+    // NO SLEEP - Tiene lo schermo acceso su TUTTI i dispositivi
     // ════════════════════════════════════════════════════════════════
-    let wakeLock = null;
-    async function requestWakeLock() {
-      if (!('wakeLock' in navigator)) return;
-      try {
-        wakeLock = await navigator.wakeLock.request('screen');
-        wakeLock.addEventListener('release', () => { wakeLock = null; });
-        console.log('🔆 Wake Lock attivo - schermo resterà acceso');
-      } catch (err) {
-        console.log('🔆 Wake Lock non disponibile:', err.message);
+    // Usa 2 strategie: Wake Lock API (Android/desktop) + video
+    // invisibile in loop (iPhone/iPad/fallback). Il video inganna
+    // il browser facendogli credere che si sta guardando un contenuto
+    // multimediale, impedendo lo standby.
+
+    const noSleep = {
+      wakeLock: null,
+      video: null,
+      enabled: false,
+
+      // Piccolo video MP4 trasparente (1x1px, 0.1s) codificato in base64
+      // Necessario per iPhone: Safari non va in standby se un video è in play
+      _createVideo() {
+        const video = document.createElement('video');
+        video.setAttribute('playsinline', '');
+        video.setAttribute('webkit-playsinline', '');
+        video.setAttribute('muted', '');
+        video.setAttribute('loop', '');
+        video.setAttribute('title', 'NoSleep');
+        video.muted = true;
+        video.style.position = 'fixed';
+        video.style.top = '-1px';
+        video.style.left = '-1px';
+        video.style.width = '1px';
+        video.style.height = '1px';
+        video.style.opacity = '0.01';
+        video.style.pointerEvents = 'none';
+        video.style.zIndex = '-1';
+        // Video MP4 minimale - un frame nero 1x1px
+        video.src = 'data:video/mp4;base64,AAAAIGZ0eXBpc29tAAACAGlzb21pc28yYXZjMW1wNDEAAAAIZnJlZQAAAu1tZGF0AAACrQYF//+p3EXpvebZSLeWLNgg2SPu73gyNjQgLSBjb3JlIDE1NyByMjk4MCBhMGNkN2Q0IC0gSC4yNjQvTVBFRy00IEFWQyBjb2RlYyAtIENvcHlsZWZ0IDIwMDMtMjAxOSAtIGh0dHA6Ly93d3cudmlkZW9sYW4ub3JnL3gyNjQuaHRtbCAtIG9wdGlvbnM6IGNhYmFjPTEgcmVmPTMgZGVibG9jaz0xOjA6MCBhbmFseXNlPTB4MzoweDExMyBtZT1oZXggc3VibWU9NyBwc3k9MSBwc3lfcmQ9MS4wMDowLjAwIG1peGVkX3JlZj0xIG1lX3JhbmdlPTE2IGNocm9tYV9tZT0xIHRyZWxsaXM9MSA4eDhkY3Q9MSBjcW09MCBkZWFkem9uZT0yMSwxMSBmYXN0X3Bza2lwPTEgY2hyb21hX3FwX29mZnNldD0tMiB0aHJlYWRzPTEgbG9va2FoZWFkX3RocmVhZHM9MSBzbGljZWRfdGhyZWFkcz0wIG5yPTAgZGVjaW1hdGU9MSBpbnRlcmxhY2VkPTAgYmx1cmF5X2NvbXBhdD0wIGNvbnN0cmFpbmVkX2ludHJhPTAgYmZyYW1lcz0zIGJfcHlyYW1pZD0yIGJfYWRhcHQ9MSBiX2JpYXM9MCBkaXJlY3Q9MSB3ZWlnaHRiPTEgb3Blbl9nb3A9MCB3ZWlnaHRwPTIga2V5aW50PTI1MCBrZXlpbnRfbWluPTI1IHNjZW5lY3V0PTQwIGludHJhX3JlZnJlc2g9MCByY19sb29rYWhlYWQ9NDAgcmM9Y3JmIG1idHJlZT0xIGNyZj0yMy4wIHFjb21wPTAuNjAgcXBtaW49MCBxcG1heD02OSBxcHN0ZXA9NCBpcF9yYXRpbz0xLjQwIGFxPTE6MS4wMAAAAA9liIQAFf/+963fgU3wKAAAAwBQAAAAMGQBnwAFkAAAAwAAAwAAAwAAAwAAD7PiRwC7xYJAggQAFAAAAwAAAwAAAwAAAwAAOTZYAAAAMUGaJGxBD/6eEAABXWXYkALJMr58E8O3uSbM1VT+AwGvTILJe7MMJnSs+kN9CrGXgAAAA9BnkJ4g/8AADAFxjHQAAAADEGeYkUV/AAAAwAAAwAAAAxBnoBqQ/8AADAGfCEAAAARQZqkSahBaJlMCF///oywAAADAAAAABFBnsJFFSwj/wAAAwAAAwAAAwAAAAxBnuBqQ/8AAAMAAAMAAAMbQZrkSahBbJlMCF///oywAAADAAAAABFBnwJFFSwj/wAAAwAAAwAAAwAAAAxBnyBqQ/8AAAMAAAMAAAMa';
+        return video;
+      },
+
+      async enable() {
+        if (this.enabled) return;
+
+        // Strategia 1: Wake Lock API (Chrome Android, Edge, ecc.)
+        if ('wakeLock' in navigator) {
+          try {
+            this.wakeLock = await navigator.wakeLock.request('screen');
+            this.wakeLock.addEventListener('release', () => { this.wakeLock = null; });
+            console.log('🔆 Wake Lock API attivo');
+          } catch (e) {
+            console.log('🔆 Wake Lock API fallito, uso video fallback');
+          }
+        }
+
+        // Strategia 2: Video invisibile (SEMPRE, è il metodo più affidabile per iPhone)
+        if (!this.video) {
+          this.video = this._createVideo();
+          document.body.appendChild(this.video);
+        }
+        try {
+          await this.video.play();
+          console.log('🔆 NoSleep video attivo - schermo non andrà in standby');
+        } catch (e) {
+          console.log('🔆 NoSleep video play fallito (riproverà al tocco):', e.message);
+        }
+
+        this.enabled = true;
+      },
+
+      disable() {
+        if (this.wakeLock) {
+          this.wakeLock.release();
+          this.wakeLock = null;
+        }
+        if (this.video) {
+          this.video.pause();
+        }
+        this.enabled = false;
       }
-    }
-    // Riacquisisci il lock quando la tab torna in primo piano
+    };
+
+    // Riacquisisci quando la tab torna in primo piano
     document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible' && !wakeLock) requestWakeLock();
+      if (document.visibilityState === 'visible') noSleep.enable();
     });
-    // Richiedi al primo tocco (necessario su mobile) e poi subito
-    function initWakeLock() {
-      requestWakeLock();
-      document.removeEventListener('touchstart', initWakeLock);
-      document.removeEventListener('click', initWakeLock);
+
+    // Attiva al primo tocco dell'utente (necessario su mobile)
+    function activateNoSleep() {
+      noSleep.enable();
+      document.removeEventListener('touchstart', activateNoSleep);
+      document.removeEventListener('click', activateNoSleep);
     }
-    document.addEventListener('touchstart', initWakeLock, { once: true });
-    document.addEventListener('click', initWakeLock, { once: true });
-    requestWakeLock(); // Prova subito (funziona su desktop/browser recenti)
+    document.addEventListener('touchstart', activateNoSleep, { once: true });
+    document.addEventListener('click', activateNoSleep, { once: true });
+    noSleep.enable(); // Prova subito (funziona su desktop)
 
     // Initialize audio on first touch (mobile requires user gesture)
     document.addEventListener('touchstart', function initAudio() {

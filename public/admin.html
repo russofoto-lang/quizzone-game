@@ -94,6 +94,8 @@
                 </button>
             </div>
             
+            <button onclick="saveGame()" id="save-btn" class="px-3 py-2 bg-emerald-700 hover:bg-emerald-600 rounded-lg font-bold text-xs border border-emerald-500/30">💾 Salva</button>
+            <button onclick="restoreGame()" id="restore-btn" class="px-3 py-2 bg-blue-800 hover:bg-blue-700 rounded-lg font-bold text-xs border border-blue-500/30">🔄 Ripristina</button>
             <button onclick="togglePause()" id="pause-btn" class="px-4 py-2 bg-orange-600 hover:bg-orange-500 rounded-lg font-bold text-sm">⏸️ PAUSA</button>
             <button onclick="resetGame()" class="px-3 py-2 bg-red-900 hover:bg-red-800 rounded-lg font-bold text-xs opacity-60">Reset</button>
         </div>
@@ -1414,6 +1416,34 @@
     function regia(v) { socket.emit('regia_cmd', v); }
     function resetDisplays() { if(confirm("Reset?")) socket.emit('reset_displays'); }
     function resetGame() { if(confirm("⚠️ RESET TOTALE?")) socket.emit('reset_game'); }
+
+    // 💾 SALVATAGGIO E RIPRISTINO MANUALE
+    function saveGame() {
+        socket.emit('admin_save_game');
+        const btn = document.getElementById('save-btn');
+        btn.textContent = '💾 Salvo...';
+        btn.disabled = true;
+        setTimeout(() => { btn.textContent = '💾 Salva'; btn.disabled = false; }, 2000);
+    }
+    function restoreGame() {
+        if(confirm("🔄 Ripristinare l'ultimo salvataggio?\nI punteggi attuali verranno sostituiti con quelli salvati.")) {
+            socket.emit('admin_restore_game');
+        }
+    }
+    socket.on('admin_save_result', (data) => {
+        if (data.success) {
+            showToast(`💾 Partita salvata! ${data.teams} squadre`, 'success', 3000);
+        } else {
+            showToast('❌ Errore nel salvataggio', 'error');
+        }
+    });
+    socket.on('admin_restore_result', (data) => {
+        if (data.success) {
+            showToast(`🔄 Ripristinato! ${data.restored} squadre aggiornate, ${data.waiting} in attesa di riconnessione (backup: ${new Date(data.timestamp).toLocaleTimeString()})`, 'success', 5000);
+        } else {
+            showToast(`❌ ${data.reason}`, 'error');
+        }
+    });
     
     function mostraSoluzione() {
         if(selectedQ && selectedQ.corretta !== undefined) {

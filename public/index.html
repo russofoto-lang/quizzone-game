@@ -304,101 +304,120 @@
     // ════════════════════════════════════════════════════════════════
     // NO SLEEP - Tiene lo schermo acceso su TUTTI i dispositivi
     // ════════════════════════════════════════════════════════════════
-    // 3 strategie combinate per massima compatibilità:
-    //   1. Wake Lock API (Chrome Android, Edge, Safari 16.4+)
-    //   2. Video MP4 con audio in loop (iPhone/iPad - il metodo più
-    //      affidabile perché iOS non spegne lo schermo durante un video)
-    //   3. Web Audio API - suono silenzioso continuo (backup aggiuntivo)
-    // + Timer di controllo che riavvia tutto ogni 15 secondi
-    // + Avviso per utenti iPhone se il browser non collabora
+    // Strategia: un VERO video visibile generato da canvas, piazzato
+    // nell'angolo in basso a destra. Safari iOS non può ignorare un
+    // video visibile con audio. È piccolo e non blocca i click.
 
     const noSleep = {
       wakeLock: null,
       video: null,
-      audioCtx: null,
+      canvas: null,
+      stream: null,
       keepAliveTimer: null,
       enabled: false,
 
-      _createVideo() {
-        const v = document.createElement('video');
-        v.setAttribute('playsinline', '');
-        v.setAttribute('webkit-playsinline', '');
-        v.setAttribute('loop', '');
-        v.setAttribute('title', 'NoSleep');
-        // NON mettere muted! iOS richiede audio attivo per impedire standby
-        // Il volume è a zero nel file MP4 stesso (audio track silenziosa)
-        v.muted = false;
-        v.volume = 0.001; // Volume bassissimo ma non zero (iOS ignora zero)
-        v.style.cssText = 'position:fixed;top:-2px;left:-2px;width:1px;height:1px;opacity:0.01;pointer-events:none;z-index:-1;';
-        v.src = '/nosleep.mp4'; // File MP4 reale con video+audio track
-        return v;
-      },
+      _createVideoFromCanvas() {
+        // Crea un canvas che disegna un piccolo indicatore animato
+        const canvas = document.createElement('canvas');
+        canvas.width = 20;
+        canvas.height = 20;
+        const ctx = canvas.getContext('2d');
+        this.canvas = canvas;
 
-      _createSilentAudio() {
+        // Anima il canvas con un puntino che pulsa (tipo indicatore "LIVE")
+        let frame = 0;
+        const draw = () => {
+          frame++;
+          ctx.clearRect(0, 0, 20, 20);
+          // Sfondo scuro semi-trasparente
+          ctx.fillStyle = 'rgba(0,0,0,0.6)';
+          ctx.beginPath();
+          ctx.arc(10, 10, 10, 0, Math.PI * 2);
+          ctx.fill();
+          // Puntino verde che pulsa
+          const pulse = 0.5 + 0.5 * Math.sin(frame * 0.05);
+          const r = 3 + pulse * 2;
+          ctx.fillStyle = `rgba(52,211,153,${0.5 + pulse * 0.5})`;
+          ctx.beginPath();
+          ctx.arc(10, 10, r, 0, Math.PI * 2);
+          ctx.fill();
+          requestAnimationFrame(draw);
+        };
+        draw();
+
+        // Cattura lo stream del canvas come video
+        const stream = canvas.captureStream(10); // 10 fps
+
+        // Crea audio silenzioso e aggiungilo allo stream
         try {
-          const ctx = new (window.AudioContext || window.webkitAudioContext)();
-          // Oscillatore a frequenza impercettibile, volume quasi zero
-          const osc = ctx.createOscillator();
-          const gain = ctx.createGain();
-          osc.frequency.value = 1; // 1Hz - non udibile
-          gain.gain.value = 0.001; // Volume quasi zero
+          const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.frequency.value = 1; // Inudibile
+          gain.gain.value = 0.001; // Quasi zero
           osc.connect(gain);
-          gain.connect(ctx.destination);
+          const dest = audioCtx.createMediaStreamDestination();
+          gain.connect(dest);
+          gain.connect(audioCtx.destination);
           osc.start();
-          return ctx;
-        } catch(e) {
-          return null;
-        }
+          // Aggiungi la traccia audio allo stream video
+          dest.stream.getAudioTracks().forEach(t => stream.addTrack(t));
+        } catch(e) {}
+
+        // Crea l'elemento video
+        const video = document.createElement('video');
+        video.setAttribute('playsinline', '');
+        video.setAttribute('webkit-playsinline', '');
+        video.srcObject = stream;
+        video.muted = false;
+        video.volume = 0.001;
+        // Visibile! Piccolo cerchio nell'angolo in basso a destra
+        // pointer-events: none = non blocca i click sul gioco
+        video.style.cssText = `
+          position: fixed;
+          bottom: 6px;
+          right: 6px;
+          width: 20px;
+          height: 20px;
+          border-radius: 50%;
+          opacity: 0.4;
+          pointer-events: none;
+          z-index: 9998;
+        `;
+
+        return video;
       },
 
       async enable() {
-        // Strategia 1: Wake Lock API
+        // Strategia 1: Wake Lock API (dove supportato)
         if ('wakeLock' in navigator && !this.wakeLock) {
           try {
             this.wakeLock = await navigator.wakeLock.request('screen');
             this.wakeLock.addEventListener('release', () => { this.wakeLock = null; });
-            console.log('🔆 [1/3] Wake Lock API attivo');
           } catch(e) {}
         }
 
-        // Strategia 2: Video con audio in loop
+        // Strategia 2: Video visibile da canvas (funziona su iPhone!)
         if (!this.video) {
-          this.video = this._createVideo();
+          this.video = this._createVideoFromCanvas();
           document.body.appendChild(this.video);
         }
         try {
           if (this.video.paused) {
             const p = this.video.play();
             if (p) await p;
-            console.log('🔆 [2/3] Video NoSleep attivo');
+            console.log('🔆 NoSleep video attivo');
           }
         } catch(e) {
           console.log('🔆 Video play richiede gesto utente');
         }
 
-        // Strategia 3: Web Audio API
-        if (!this.audioCtx) {
-          this.audioCtx = this._createSilentAudio();
-          if (this.audioCtx) {
-            console.log('🔆 [3/3] Web Audio NoSleep attivo');
-          }
-        }
-        if (this.audioCtx && this.audioCtx.state === 'suspended') {
-          try { await this.audioCtx.resume(); } catch(e) {}
-        }
-
-        // Timer di controllo: ogni 15s verifica che tutto sia ancora attivo
+        // Timer: ogni 15s verifica che il video giri ancora
         if (!this.keepAliveTimer) {
           this.keepAliveTimer = setInterval(() => {
-            // Riavvia video se si è fermato
             if (this.video && this.video.paused) {
               this.video.play().catch(() => {});
             }
-            // Riavvia audio context se sospeso
-            if (this.audioCtx && this.audioCtx.state === 'suspended') {
-              this.audioCtx.resume().catch(() => {});
-            }
-            // Riacquisisci wake lock se rilasciato
             if ('wakeLock' in navigator && !this.wakeLock) {
               navigator.wakeLock.request('screen').then(wl => {
                 this.wakeLock = wl;
@@ -412,40 +431,21 @@
       }
     };
 
-    // Avviso per utenti iPhone - mostra solo se è un iPhone/iPad
-    function showNoSleepTip() {
-      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-        (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-      if (!isIOS) return;
-
-      // Mostra un piccolo avviso sotto la barra del gioco
-      const tip = document.createElement('div');
-      tip.id = 'nosleep-tip';
-      tip.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:rgba(245,158,11,0.95);color:#000;padding:10px 14px;font-size:12px;font-weight:600;z-index:9999;text-align:center;backdrop-filter:blur(8px);';
-      tip.innerHTML = '📱 <b>iPhone:</b> per evitare che lo schermo si spenga vai in <b>Impostazioni → Schermo e luminosità → Blocco automatico → Mai</b> <button onclick="this.parentElement.remove()" style="margin-left:8px;background:#000;color:#fff;border:none;padding:2px 10px;border-radius:4px;font-weight:700;">OK</button>';
-      document.body.appendChild(tip);
-      // Rimuovi dopo 20 secondi
-      setTimeout(() => { if (tip.parentElement) tip.remove(); }, 20000);
-    }
-
     // Attiva al primo tocco (NECESSARIO su mobile - iOS richiede user gesture)
     function activateNoSleep() {
       noSleep.enable();
-      // Mostra avviso iPhone al primo tocco
-      showNoSleepTip();
     }
     document.addEventListener('touchstart', activateNoSleep, { once: true });
     document.addEventListener('click', activateNoSleep, { once: true });
 
-    // Riattiva quando la tab torna visibile (es. dopo aver cambiato app)
+    // Riattiva quando la tab torna visibile
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'visible' && noSleep.enabled) {
         noSleep.enable();
       }
     });
 
-    // Prova subito (funziona su desktop)
-    noSleep.enable();
+    noSleep.enable(); // Prova subito (desktop)
 
     // Initialize audio on first touch (mobile requires user gesture)
     document.addEventListener('touchstart', function initAudio() {

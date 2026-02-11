@@ -346,9 +346,15 @@ setInterval(() => {
   }
 }, 30000);
 
-// Salva anche quando cambia il punteggio
-const originalUpdateScore = (typeof updateScore === 'function') ? updateScore : null;
-// Oppure aggiungi un hook dopo ogni cambio punteggio
+// Salvataggio rapido dopo ogni cambio punteggio (debounced 2s)
+let _saveScoreTimer = null;
+function saveAfterScoreChange() {
+  if (_saveScoreTimer) clearTimeout(_saveScoreTimer);
+  _saveScoreTimer = setTimeout(() => {
+    saveGameState();
+    _saveScoreTimer = null;
+  }, 2000); // 2 secondi di debounce - salva subito dopo i punteggi
+}
 
 // Carica all'avvio
 const savedState = loadGameState();
@@ -414,6 +420,8 @@ function broadcastTeams() {
     io.emit('update_teams', realTeams);
     _broadcastTeamsTimer = null;
   }, 50); // 50ms debounce - raggruppa emissioni ravvicinate
+  // Salva dopo ogni aggiornamento (debounced 2s)
+  saveAfterScoreChange();
 }
 
 // Broadcast immediato (per quando serve risposta istantanea)
@@ -422,6 +430,8 @@ function broadcastTeamsNow() {
   _broadcastTeamsTimer = null;
   const realTeams = Object.values(gameState.teams).filter(t => !t.isPreview);
   io.emit('update_teams', realTeams);
+  // Salva dopo ogni aggiornamento (debounced 2s)
+  saveAfterScoreChange();
 }
 
 // Rate limiter per buzzer (previene spam)
@@ -1298,6 +1308,79 @@ io.on('connection', (socket) => {
     gameState.isPaused = false;
     io.emit('game_resumed');
     console.log('? Gioco ripreso');
+  });
+
+  // ════════════════════════════════════════════════════════════════
+  // 💾 SALVATAGGIO E RIPRISTINO MANUALE
+  // ════════════════════════════════════════════════════════════════
+
+  socket.on('admin_save_game', () => {
+    saveGameState();
+    const realTeams = Object.values(gameState.teams).filter(t => !t.isPreview);
+    const totalScore = realTeams.reduce((sum, t) => sum + t.score, 0);
+    socket.emit('admin_save_result', {
+      success: true,
+      teams: realTeams.length,
+      totalScore: totalScore,
+      timestamp: new Date().toISOString()
+    });
+    console.log(`💾 SALVATAGGIO MANUALE: ${realTeams.length} squadre, punteggio totale: ${totalScore}`);
+  });
+
+  socket.on('admin_restore_game', () => {
+    const saved = loadGameState();
+    if (!saved || !saved.teams || saved.teams.length === 0) {
+      socket.emit('admin_restore_result', { success: false, reason: 'Nessun backup trovato' });
+      return;
+    }
+
+    // Ripristina i punteggi dei team già connessi (match per nome)
+    let restored = 0;
+    const savedMap = {};
+    saved.teams.forEach(t => { savedMap[t.name.toLowerCase().trim()] = t; });
+    if (saved.disconnectedTeams) {
+      saved.disconnectedTeams.forEach(t => { savedMap[t.name.toLowerCase().trim()] = t; });
+    }
+
+    // Aggiorna i team attualmente connessi
+    Object.values(gameState.teams).forEach(team => {
+      if (team.isPreview) return;
+      const key = team.name.toLowerCase().trim();
+      if (savedMap[key]) {
+        team.score = savedMap[key].score;
+        restored++;
+        console.log(`  ✅ ${team.name}: punteggio ripristinato a ${team.score}`);
+        delete savedMap[key]; // Rimuovi per non rimetterlo in disconnectedTeams
+      }
+    });
+
+    // I team nel backup che NON sono connessi ora → metti in disconnectedTeams
+    Object.values(savedMap).forEach(t => {
+      const key = t.name.toLowerCase().trim();
+      if (!disconnectedTeams.has(key)) {
+        disconnectedTeams.set(key, {
+          team: { id: null, name: t.name, score: t.score, color: t.color, isPreview: false },
+          disconnectedAt: Date.now(),
+          oldSocketId: null
+        });
+        console.log(`  ⏳ ${t.name}: in attesa di riconnessione (score: ${t.score})`);
+      }
+    });
+
+    // Ripristina contatore patto
+    if (saved.pattoUtilizzi !== undefined) {
+      gameState.pattoDestinoState.contatoreUtilizzi = saved.pattoUtilizzi;
+    }
+
+    broadcastTeamsNow();
+
+    socket.emit('admin_restore_result', {
+      success: true,
+      restored: restored,
+      waiting: Object.keys(savedMap).length,
+      timestamp: saved.timestamp
+    });
+    console.log(`🔄 RIPRISTINO MANUALE: ${restored} squadre aggiornate, ${Object.keys(savedMap).length} in attesa`);
   });
 
   socket.on('reset_displays', () => {

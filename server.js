@@ -99,6 +99,109 @@ app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'adm
 app.get('/display', (req, res) => res.sendFile(path.join(__dirname, 'public', 'display.html')));
 app.get('/preview', (req, res) => res.sendFile(path.join(__dirname, 'public', 'preview.html')));
 
+// ============================================
+// 🔄 SISTEMA DI RICONNESSIONE
+// ============================================
+// Quando un giocatore si disconnette, il suo team viene spostato qui
+// invece di essere cancellato. Ha 5 minuti per riconnettersi.
+const disconnectedTeams = new Map(); // teamName (lowercase) → { team, disconnectedAt, oldSocketId }
+const RECONNECT_GRACE_PERIOD = 5 * 60 * 1000; // 5 minuti
+
+// Pulizia periodica dei team disconnessi scaduti (ogni 60s)
+setInterval(() => {
+  const now = Date.now();
+  for (const [name, data] of disconnectedTeams.entries()) {
+    if (now - data.disconnectedAt > RECONNECT_GRACE_PERIOD) {
+      disconnectedTeams.delete(name);
+      console.log(`🗑️ Team "${data.team.name}" rimosso dopo grace period scaduto`);
+    }
+  }
+}, 60000);
+
+// Funzione per aggiornare tutti i riferimenti da un vecchio socketId a uno nuovo
+function migrateSocketId(oldId, newId) {
+  // Buzzer queue
+  gameState.buzzerQueue.forEach(b => {
+    if (b.id === oldId) b.id = newId;
+  });
+
+  // Round answers
+  gameState.roundAnswers.forEach(a => {
+    if (a.teamId === oldId) a.teamId = newId;
+  });
+
+  // Round details
+  gameState.roundDetails.forEach(d => {
+    if (d.teamId === oldId) d.teamId = newId;
+  });
+
+  // Round scores
+  if (gameState.roundScores[oldId] !== undefined) {
+    gameState.roundScores[newId] = gameState.roundScores[oldId];
+    delete gameState.roundScores[oldId];
+  }
+
+  // Duello mode
+  if (gameState.duelloMode.active) {
+    if (gameState.duelloMode.attaccante && gameState.duelloMode.attaccante.id === oldId) {
+      gameState.duelloMode.attaccante.id = newId;
+    }
+    if (gameState.duelloMode.difensore && gameState.duelloMode.difensore.id === oldId) {
+      gameState.duelloMode.difensore.id = newId;
+    }
+    if (gameState.duelloMode.currentBuzzer && gameState.duelloMode.currentBuzzer.id === oldId) {
+      gameState.duelloMode.currentBuzzer.id = newId;
+    }
+  }
+
+  // Ruota della fortuna
+  if (gameState.ruotaWinner && gameState.ruotaWinner.id === oldId) {
+    gameState.ruotaWinner.id = newId;
+  }
+  if (gameState.ruotaChallenge && gameState.ruotaChallenge.teamId === oldId) {
+    gameState.ruotaChallenge.teamId = newId;
+  }
+
+  // Current question (ruota)
+  if (gameState.currentQuestion && gameState.currentQuestion.ruotaTeamId === oldId) {
+    gameState.currentQuestion.ruotaTeamId = newId;
+  }
+
+  // Memory mode answers
+  if (gameState.memoryMode.active && gameState.memoryMode.answers[oldId]) {
+    gameState.memoryMode.answers[newId] = gameState.memoryMode.answers[oldId];
+    gameState.memoryMode.answers[newId].teamId = newId;
+    delete gameState.memoryMode.answers[oldId];
+  }
+
+  // Finale mode - allInBets
+  if (gameState.finaleMode && gameState.finaleMode.allInBets && gameState.finaleMode.allInBets[oldId]) {
+    gameState.finaleMode.allInBets[newId] = gameState.finaleMode.allInBets[oldId];
+    gameState.finaleMode.allInBets[newId].teamId = newId;
+    delete gameState.finaleMode.allInBets[oldId];
+  }
+
+  // Patto col destino
+  if (gameState.pattoDestinoState.attivo) {
+    const idx = gameState.pattoDestinoState.squadreSelezionate.indexOf(oldId);
+    if (idx !== -1) {
+      gameState.pattoDestinoState.squadreSelezionate[idx] = newId;
+    }
+    if (gameState.pattoDestinoState.scelte.has(oldId)) {
+      gameState.pattoDestinoState.scelte.set(newId, gameState.pattoDestinoState.scelte.get(oldId));
+      gameState.pattoDestinoState.scelte.delete(oldId);
+    }
+    gameState.pattoDestinoState.messaggiChat.forEach(m => {
+      if (m.teamId === oldId) m.teamId = newId;
+    });
+  }
+
+  console.log(`🔄 Migrati riferimenti: ${oldId} → ${newId}`);
+}
+// ============================================
+// FINE SISTEMA DI RICONNESSIONE
+// ============================================
+
 let gameState = {
   teams: {},
   buzzerQueue: [],
@@ -173,6 +276,19 @@ const SAVE_FILE = path.join(__dirname, 'gamestate_backup.json');
 // Funzione per salvare lo stato
 function saveGameState() {
   try {
+    // Includi anche i team disconnessi nel backup (potrebbero riconnettersi)
+    const disconnectedTeamsList = [];
+    for (const [name, data] of disconnectedTeams.entries()) {
+      if (Date.now() - data.disconnectedAt < RECONNECT_GRACE_PERIOD) {
+        disconnectedTeamsList.push({
+          name: data.team.name,
+          score: data.team.score,
+          color: data.team.color,
+          disconnectedAt: data.disconnectedAt
+        });
+      }
+    }
+
     const dataToSave = {
       timestamp: new Date().toISOString(),
       teams: Object.values(gameState.teams)
@@ -183,12 +299,13 @@ function saveGameState() {
           score: t.score,
           color: t.color
         })),
+      disconnectedTeams: disconnectedTeamsList,
       pattoUtilizzi: gameState.pattoDestinoState.contatoreUtilizzi,
       sessionStart: gameState.sessionStart || new Date().toISOString()
     };
-    
+
     fs.writeFileSync(SAVE_FILE, JSON.stringify(dataToSave, null, 2));
-    console.log('💾 Stato salvato:', dataToSave.teams.length, 'squadre');
+    console.log('💾 Stato salvato:', dataToSave.teams.length, 'squadre attive +', disconnectedTeamsList.length, 'disconnesse');
   } catch (error) {
     console.error('❌ Errore salvataggio:', error);
   }
@@ -239,11 +356,27 @@ if (savedState) {
   console.log('🔄 RIPRISTINO IN CORSO...');
   gameState.sessionStart = savedState.sessionStart;
   gameState.pattoDestinoState.contatoreUtilizzi = savedState.pattoUtilizzi || 0;
-  
-  // NON ricrea le connessioni socket, solo i punteggi
-  // Le squadre si riconnetteranno automaticamente
-  console.log('✅ Punteggi ripristinati! Le squadre devono riconnettersi.');
-  console.log('   Utilizza il comando di riconnessione manuale se necessario.');
+
+  // Ripristina TUTTI i team (attivi + disconnessi) come disconnectedTeams
+  // Così quando si riconnettono, recuperano il punteggio
+  const allTeams = [...(savedState.teams || [])];
+  if (savedState.disconnectedTeams) {
+    allTeams.push(...savedState.disconnectedTeams);
+  }
+
+  allTeams.forEach(t => {
+    const key = t.name.toLowerCase().trim();
+    if (!disconnectedTeams.has(key)) {
+      disconnectedTeams.set(key, {
+        team: { id: null, name: t.name, score: t.score, color: t.color, isPreview: false },
+        disconnectedAt: Date.now(), // Reset timer al riavvio
+        oldSocketId: t.id || null
+      });
+    }
+  });
+
+  console.log(`✅ Ripristinati ${allTeams.length} team in attesa di riconnessione.`);
+  console.log('   Le squadre si riconnetteranno automaticamente con i loro punteggi.');
 }
 
 // Salva quando il server si chiude
@@ -852,27 +985,121 @@ io.on('connection', (socket) => {
     const realTeams = Object.values(gameState.teams).filter(t => !t.isPreview);
     socket.emit('update_teams', realTeams);
     socket.emit('questions_data', questionsData);
-    console.log('??? Admin connesso');
+
+    // 🔄 Invia stato completo del gioco all'admin che si riconnette
+    const disconnectedList = [];
+    for (const [name, data] of disconnectedTeams.entries()) {
+      if (Date.now() - data.disconnectedAt < RECONNECT_GRACE_PERIOD) {
+        disconnectedList.push({ name: data.team.name, score: data.team.score, disconnectedAt: data.disconnectedAt });
+      }
+    }
+
+    socket.emit('admin_full_state', {
+      currentQuestion: gameState.currentQuestion ? {
+        domanda: gameState.currentQuestion.domanda,
+        categoria: gameState.currentQuestion.categoria,
+        modalita: gameState.currentQuestion.modalita
+      } : null,
+      isPaused: gameState.isPaused,
+      hideLeaderboard: gameState.hideLeaderboard,
+      finaleMode: gameState.finaleMode,
+      duelloMode: gameState.duelloMode.active ? {
+        active: true,
+        attaccante: gameState.duelloMode.attaccante,
+        difensore: gameState.duelloMode.difensore,
+        scoreAttaccante: gameState.duelloMode.scoreAttaccante,
+        scoreDifensore: gameState.duelloMode.scoreDifensore,
+        questionNumber: gameState.duelloMode.questionNumber
+      } : null,
+      memoryActive: gameState.memoryMode.active,
+      pattoAttivo: gameState.pattoDestinoState.attivo,
+      pattoFase: gameState.pattoDestinoState.fase,
+      pattoUtilizzi: gameState.pattoDestinoState.contatoreUtilizzi,
+      buzzerActive: gameState.buzzerActive,
+      disconnectedTeams: disconnectedList
+    });
+
+    console.log('🟢 Admin connesso (stato completo inviato, ' + disconnectedList.length + ' team disconnessi in attesa)');
+  });
+
+  // 🔄 REJOIN: Riconnessione automatica di un giocatore disconnesso
+  socket.on('rejoin', (data) => {
+    const teamName = data.name;
+    if (!teamName) {
+      socket.emit('rejoin_failed', { reason: 'Nome mancante' });
+      return;
+    }
+
+    const key = teamName.toLowerCase().trim();
+    const saved = disconnectedTeams.get(key);
+
+    if (saved && (Date.now() - saved.disconnectedAt < RECONNECT_GRACE_PERIOD)) {
+      // Trovato! Ripristina il team con il nuovo socket.id
+      const oldId = saved.oldSocketId;
+      const team = saved.team;
+      team.id = socket.id;
+
+      gameState.teams[socket.id] = team;
+      disconnectedTeams.delete(key);
+
+      // Migra tutti i riferimenti dal vecchio al nuovo socket.id
+      migrateSocketId(oldId, socket.id);
+
+      socket.emit('rejoin_success', {
+        teamId: socket.id,
+        name: team.name,
+        score: team.score
+      });
+
+      broadcastTeams();
+      io.to('admin').emit('team_rejoined', { name: team.name, score: team.score });
+      console.log(`🔄 REJOIN: ${team.name} riconnesso (score: ${team.score}, ${oldId} → ${socket.id})`);
+    } else {
+      // Non trovato o scaduto - deve fare login normale
+      socket.emit('rejoin_failed', { reason: 'Sessione non trovata o scaduta' });
+    }
   });
 
   socket.on('login', (name) => {
     const isPreview = name.includes('PREVIEW') || name.includes('?');
-    
+
+    // Controlla se c'è un team disconnesso con lo stesso nome (auto-recovery al login)
+    const key = name.toLowerCase().trim();
+    const saved = disconnectedTeams.get(key);
+
+    if (!isPreview && saved && (Date.now() - saved.disconnectedAt < RECONNECT_GRACE_PERIOD)) {
+      // Ripristina come rejoin
+      const oldId = saved.oldSocketId;
+      const team = saved.team;
+      team.id = socket.id;
+
+      gameState.teams[socket.id] = team;
+      disconnectedTeams.delete(key);
+
+      migrateSocketId(oldId, socket.id);
+
+      socket.emit('login_success', { teamId: socket.id, name: team.name, score: team.score, restored: true });
+      broadcastTeams();
+      io.to('admin').emit('team_rejoined', { name: team.name, score: team.score });
+      console.log(`🔄 LOGIN-RECOVERY: ${team.name} riconnesso con punteggio ${team.score}`);
+      return;
+    }
+
     gameState.teams[socket.id] = {
       id: socket.id,
       name: name,
       score: 0,
       isPreview: isPreview
     };
-    
-    socket.emit('login_success', { teamId: socket.id, name: name });
-    
+
+    socket.emit('login_success', { teamId: socket.id, name: name, score: 0 });
+
     broadcastTeams();
 
     // Notifica admin del nuovo team
     io.to('admin').emit('team_joined', { name: name, isPreview: isPreview });
 
-    console.log(`? Login: ${name} (${isPreview ? 'Preview' : 'Giocatore'})`);
+    console.log(`🟢 Login: ${name} (${isPreview ? 'Preview' : 'Giocatore'})`);
   });
 
   socket.on('invia_domanda', (d) => sendQuestion(d, d.modalita || 'multipla'));
@@ -2020,23 +2247,32 @@ io.on('connection', (socket) => {
     if (team) {
       const teamName = team.name;
       const wasPreview = team.isPreview;
+
+      if (!wasPreview) {
+        // 🔄 NON cancellare il team! Spostalo in disconnectedTeams per grace period
+        const teamCopy = { ...team };
+        disconnectedTeams.set(teamName.toLowerCase().trim(), {
+          team: teamCopy,
+          disconnectedAt: Date.now(),
+          oldSocketId: socket.id
+        });
+        console.log(`⏳ ${teamName} disconnesso - in attesa di riconnessione (5 min grace period, score: ${team.score})`);
+      }
+
+      // Rimuovi dal gameState attivo
       delete gameState.teams[socket.id];
 
       // Pulisci buzzerQueue da riferimenti orfani
       gameState.buzzerQueue = gameState.buzzerQueue.filter(b => b.id !== socket.id);
-
-      // Pulisci roundAnswers da riferimenti orfani
-      // (non rimuoviamo le risposte già date, solo il riferimento)
 
       // Pulisci cooldown buzzer
       buzzerCooldowns.delete(socket.id);
 
       broadcastTeams();
 
-      // Notifica admin della disconnessione
+      // Notifica admin della disconnessione (ma non come "lasciato" - è temporaneo)
       if (!wasPreview) {
-        io.to('admin').emit('team_left', { name: teamName });
-        console.log(`? Disconnesso: ${teamName}`);
+        io.to('admin').emit('team_disconnected', { name: teamName, score: team.score });
       }
     }
   });

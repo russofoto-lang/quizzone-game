@@ -1486,7 +1486,32 @@
         }
     });
     socket.on('team_left', (data) => {
-        showToast(`${data.name} disconnesso`, 'warning', 2500);
+        showToast(`${data.name} ha lasciato`, 'warning', 2500);
+    });
+    // 🔄 Disconnessione temporanea (in attesa di riconnessione)
+    socket.on('team_disconnected', (data) => {
+        showToast(`⏳ ${data.name} disconnesso (score: ${data.score}) - in attesa di riconnessione`, 'warning', 4000);
+    });
+    // 🔄 Riconnessione riuscita
+    socket.on('team_rejoined', (data) => {
+        showToast(`🔄 ${data.name} si è riconnesso! (score: ${data.score})`, 'success', 3000);
+    });
+    // 🔄 Stato completo del gioco (ricevuto dopo admin_connect)
+    socket.on('admin_full_state', (state) => {
+        console.log('📋 Stato completo ricevuto:', state);
+        if (state.disconnectedTeams && state.disconnectedTeams.length > 0) {
+            showToast(`${state.disconnectedTeams.length} team in attesa di riconnessione`, 'info', 3000);
+        }
+        if (state.isPaused) {
+            isPaused = true;
+        }
+        if (state.finaleMode && state.finaleMode.active) {
+            finaleActive = true;
+            finaleQuestionCount = state.finaleMode.questionCount || 0;
+        }
+        if (state.pattoUtilizzi) {
+            // Aggiorna contatore patto se visibile
+        }
     });
 
     // ✅ Ricevi dati delle domande all'avvio

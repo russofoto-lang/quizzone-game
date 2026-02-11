@@ -122,7 +122,7 @@
         }
     </style>
 </head>
-<body class="text-white h-screen flex flex-col">
+<body class="text-white h-[100dvh] flex flex-col">
     <div id="login-screen" class="flex-1 flex flex-col items-center justify-center p-8 text-center">
         <div class="glass-panel rounded-3xl p-8 w-full max-w-sm">
             <h1 class="font-display text-3xl font-black mb-2 text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-orange-400 to-red-500 uppercase">SIPONTO</h1>
@@ -132,7 +132,7 @@
         </div>
     </div>
 
-<div id="game-screen" class="hidden flex-col h-screen overflow-hidden">
+<div id="game-screen" class="hidden flex-col h-[100dvh] overflow-hidden">
 
     <div class="glass-panel p-4 flex justify-between items-center border-b border-white/10">
         <div class="flex items-center gap-2">
@@ -1063,16 +1063,18 @@
     });
     
     socket.on('game_resumed', () => {
-        document.getElementById('msg-box').innerHTML = 'In attesa...';
-        document.getElementById('msg-box').className = 'absolute top-4 text-center w-full text-gray-400 font-bold text-lg px-4';
-    });
+    const msg = document.getElementById('msg-box');
+    msg.innerHTML = 'In attesa...';
+    msg.className = 'text-center w-full text-gray-400 font-bold text-lg px-4 mb-6 flex-shrink-0';
+});
     
     socket.on('reset_client_ui', () => {
-        resetUI();
-        document.getElementById('msg-box').innerHTML = 'In attesa...';
-        document.getElementById('msg-box').className = 'absolute top-4 text-center w-full text-gray-400 font-bold text-lg px-4';
-        document.getElementById('finale-indicator').classList.add('hidden');
-    });
+    resetUI();
+    const msg = document.getElementById('msg-box');
+    msg.innerHTML = 'In attesa...';
+    msg.className = 'text-center w-full text-gray-400 font-bold text-lg px-4 mb-6 flex-shrink-0';
+    document.getElementById('finale-indicator').classList.add('hidden');
+});
     
     // ════════════════════════════════════════════════════════════════
     // 🔥 DUELLO RUBA-PUNTI

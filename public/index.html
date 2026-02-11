@@ -132,7 +132,8 @@
         </div>
     </div>
 
-<div id="game-screen" class="hidden flex-col h-full">
+<div id="game-screen" class="hidden flex-col h-screen overflow-hidden">
+
     <div class="glass-panel p-4 flex justify-between items-center border-b border-white/10">
         <div class="flex items-center gap-2">
             <span id="my-name" class="font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-orange-400 uppercase tracking-widest">---</span>
@@ -166,10 +167,11 @@
         </div>
     </div>
 
-    <div class="flex-1 flex flex-col p-4 overflow-y-auto">
+    <div class="flex-1 flex flex-col p-4 overflow-y-auto min-h-0">
         <div id="msg-box" class="text-center w-full text-gray-400 font-bold text-lg px-4 mb-6 flex-shrink-0">In attesa...</div>
         
-        <div class="flex-1 flex flex-col justify-center items-center min-h-0">
+        <div class="flex-1 flex flex-col items-center min-h-0 overflow-y-auto">
+
             <!-- BOTTONI ALL IN -->
             <div id="allin-buttons" class="hidden w-full max-w-md grid grid-cols-2 gap-4">
                 <button onclick="placeBet(0)" class="bg-gray-600 py-8 rounded-xl font-black text-3xl shadow-xl active:scale-95">0</button>
@@ -179,7 +181,8 @@
             </div>
             
             <!-- BOTTONI RUOTA FORTUNA -->
-            <div id="ruota-choice-buttons" class="hidden w-full max-w-md space-y-4">
+            <div id="ruota-choice-buttons" class="hidden w-full max-w-md space-y-4 overflow-y-auto pb-6">
+
                 <!-- Popolato dinamicamente -->
             </div>
             
@@ -190,7 +193,8 @@
             <div id="opts-grid" class="hidden grid grid-cols-2 gap-4 w-full h-full max-h-96"></div>
             
             <!-- MEMORY GRID PULSANTI -->
-            <div id="memory-buttons" class="hidden w-full max-w-md">
+            <div id="memory-buttons" class="hidden w-full max-w-md overflow-y-auto pb-6">
+
                 <div id="memory-button-grid" class="grid gap-2">
                     <!-- Popolato dinamicamente -->
                 </div>

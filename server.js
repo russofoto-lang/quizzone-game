@@ -480,7 +480,9 @@ function sendQuestion(questionData, modalita = 'multipla') {
     modalita: modalita,
     categoria: questionData.categoria,
     startTime: Date.now(),
-    serverTimestamp: Date.now()
+    serverTimestamp: Date.now(),
+    finaleQuestion: questionData.finaleQuestion || null,
+    totalFinaleQuestions: questionData.totalFinaleQuestions || null
   };
   
   gameState.currentQuestion.corretta = questionData.corretta;
@@ -987,6 +989,58 @@ function resetPattoDestino() {
 // FINE FUNZIONI PATTO COL DESTINO
 // ============================================
 
+// Funzione condivisa per ripristinare da dati di backup (server o client)
+function _restoreFromData(socket, saved) {
+  let restored = 0;
+  const savedMap = {};
+  saved.teams.forEach(t => { savedMap[t.name.toLowerCase().trim()] = t; });
+  if (saved.disconnectedTeams) {
+    saved.disconnectedTeams.forEach(t => { savedMap[t.name.toLowerCase().trim()] = t; });
+  }
+
+  // Aggiorna i team attualmente connessi
+  Object.values(gameState.teams).forEach(team => {
+    if (team.isPreview) return;
+    const key = team.name.toLowerCase().trim();
+    if (savedMap[key]) {
+      team.score = savedMap[key].score;
+      restored++;
+      console.log(`  ✅ ${team.name}: punteggio ripristinato a ${team.score}`);
+      delete savedMap[key];
+    }
+  });
+
+  // I team nel backup che NON sono connessi ora → metti in disconnectedTeams
+  Object.values(savedMap).forEach(t => {
+    const key = t.name.toLowerCase().trim();
+    if (!disconnectedTeams.has(key)) {
+      disconnectedTeams.set(key, {
+        team: { id: null, name: t.name, score: t.score, color: t.color, isPreview: false },
+        disconnectedAt: Date.now(),
+        oldSocketId: null
+      });
+      console.log(`  ⏳ ${t.name}: in attesa di riconnessione (score: ${t.score})`);
+    }
+  });
+
+  if (saved.pattoUtilizzi !== undefined) {
+    gameState.pattoDestinoState.contatoreUtilizzi = saved.pattoUtilizzi;
+  }
+
+  broadcastTeamsNow();
+
+  // Salva anche su disco (così il backup è aggiornato)
+  saveGameState();
+
+  socket.emit('admin_restore_result', {
+    success: true,
+    restored: restored,
+    waiting: Object.keys(savedMap).length,
+    timestamp: saved.timestamp
+  });
+  console.log(`🔄 RIPRISTINO: ${restored} squadre aggiornate, ${Object.keys(savedMap).length} in attesa`);
+}
+
 io.on('connection', (socket) => {
   console.log(`? Connessione: ${socket.id}`);
   
@@ -1254,6 +1308,39 @@ io.on('connection', (socket) => {
 
     // ✅ Aggiorna classifica in tempo reale (debounced)
     broadcastTeams();
+
+    // ✅ Auto-reveal vincitore dopo ultima domanda finale (domanda 5)
+    if (gameState.finaleMode && gameState.finaleMode.active && gameState.finaleMode.questionCount >= 5) {
+      if (gameState.roundAnswers.length >= realTeamCount) {
+        console.log('🏆 Tutte le squadre hanno risposto all\'ultima domanda finale! Auto-reveal vincitore tra 5 secondi...');
+        setTimeout(() => {
+          if (gameState.finaleMode && gameState.finaleMode.active) {
+            const realTeams = Object.values(gameState.teams).filter(t => !t.isPreview);
+            const sorted = realTeams.sort((a, b) => b.score - a.score);
+            const winner = sorted[0];
+
+            gameState.hideLeaderboard = false;
+            io.emit('leaderboard_visibility', { hidden: false });
+
+            io.emit('show_winner', {
+              winner: { id: winner.id, name: winner.name, score: winner.score },
+              rankings: sorted.map((t, i) => ({
+                position: i + 1,
+                id: t.id,
+                name: t.name,
+                score: t.score
+              }))
+            });
+
+            gameState.finaleMode = null;
+
+            console.log('\n' + '='.repeat(50));
+            console.log(`AUTO-REVEAL VINCITORE: ${winner.name} con ${winner.score} punti!`);
+            console.log('='.repeat(50) + '\n');
+          }
+        }, 5000);
+      }
+    }
   });
 
   socket.on('regia_cmd', (cmd) => {
@@ -1318,69 +1405,44 @@ io.on('connection', (socket) => {
     saveGameState();
     const realTeams = Object.values(gameState.teams).filter(t => !t.isPreview);
     const totalScore = realTeams.reduce((sum, t) => sum + t.score, 0);
+
+    // Invia i dati completi all'admin così li salva anche nel browser
+    const backupData = {
+      timestamp: new Date().toISOString(),
+      teams: realTeams.map(t => ({ name: t.name, score: t.score, color: t.color })),
+      pattoUtilizzi: gameState.pattoDestinoState.contatoreUtilizzi
+    };
+
     socket.emit('admin_save_result', {
       success: true,
       teams: realTeams.length,
       totalScore: totalScore,
-      timestamp: new Date().toISOString()
+      timestamp: backupData.timestamp,
+      backupData: backupData  // Il browser lo salva in localStorage
     });
     console.log(`💾 SALVATAGGIO MANUALE: ${realTeams.length} squadre, punteggio totale: ${totalScore}`);
+  });
+
+  // Ripristino dal browser dell'admin (quando il file su disco è perso)
+  socket.on('admin_restore_from_client', (clientData) => {
+    if (!clientData || !clientData.teams || clientData.teams.length === 0) {
+      socket.emit('admin_restore_result', { success: false, reason: 'Dati non validi' });
+      return;
+    }
+    console.log(`🔄 RIPRISTINO DA BROWSER ADMIN (${clientData.teams.length} squadre, backup: ${clientData.timestamp})`);
+    // Usa lo stesso flusso di restore ma con i dati dal client
+    _restoreFromData(socket, clientData);
   });
 
   socket.on('admin_restore_game', () => {
     const saved = loadGameState();
     if (!saved || !saved.teams || saved.teams.length === 0) {
-      socket.emit('admin_restore_result', { success: false, reason: 'Nessun backup trovato' });
+      // Il file su disco non c'è (Render l'ha cancellato al riavvio)
+      // Chiedi all'admin di inviare il backup dal browser
+      socket.emit('admin_restore_result', { success: false, reason: 'no_server_backup' });
       return;
     }
-
-    // Ripristina i punteggi dei team già connessi (match per nome)
-    let restored = 0;
-    const savedMap = {};
-    saved.teams.forEach(t => { savedMap[t.name.toLowerCase().trim()] = t; });
-    if (saved.disconnectedTeams) {
-      saved.disconnectedTeams.forEach(t => { savedMap[t.name.toLowerCase().trim()] = t; });
-    }
-
-    // Aggiorna i team attualmente connessi
-    Object.values(gameState.teams).forEach(team => {
-      if (team.isPreview) return;
-      const key = team.name.toLowerCase().trim();
-      if (savedMap[key]) {
-        team.score = savedMap[key].score;
-        restored++;
-        console.log(`  ✅ ${team.name}: punteggio ripristinato a ${team.score}`);
-        delete savedMap[key]; // Rimuovi per non rimetterlo in disconnectedTeams
-      }
-    });
-
-    // I team nel backup che NON sono connessi ora → metti in disconnectedTeams
-    Object.values(savedMap).forEach(t => {
-      const key = t.name.toLowerCase().trim();
-      if (!disconnectedTeams.has(key)) {
-        disconnectedTeams.set(key, {
-          team: { id: null, name: t.name, score: t.score, color: t.color, isPreview: false },
-          disconnectedAt: Date.now(),
-          oldSocketId: null
-        });
-        console.log(`  ⏳ ${t.name}: in attesa di riconnessione (score: ${t.score})`);
-      }
-    });
-
-    // Ripristina contatore patto
-    if (saved.pattoUtilizzi !== undefined) {
-      gameState.pattoDestinoState.contatoreUtilizzi = saved.pattoUtilizzi;
-    }
-
-    broadcastTeamsNow();
-
-    socket.emit('admin_restore_result', {
-      success: true,
-      restored: restored,
-      waiting: Object.keys(savedMap).length,
-      timestamp: saved.timestamp
-    });
-    console.log(`🔄 RIPRISTINO MANUALE: ${restored} squadre aggiornate, ${Object.keys(savedMap).length} in attesa`);
+    _restoreFromData(socket, saved);
   });
 
   socket.on('reset_displays', () => {
@@ -2030,14 +2092,20 @@ io.on('connection', (socket) => {
   });
 
   socket.on('reveal_winner', () => {
+    // Evita doppio reveal se auto-reveal ha già fatto
+    if (!gameState.finaleMode || !gameState.finaleMode.active) {
+      console.log('⚠️ Vincitore già rivelato (auto-reveal)');
+      return;
+    }
+
     const realTeams = Object.values(gameState.teams).filter(t => !t.isPreview);
     const sorted = realTeams.sort((a, b) => b.score - a.score);
     const winner = sorted[0];
-    
+
     // Mostra di nuovo la classifica
     gameState.hideLeaderboard = false;
     io.emit('leaderboard_visibility', { hidden: false });
-    
+
     io.emit('show_winner', {
       winner: { id: winner.id, name: winner.name, score: winner.score },
       rankings: sorted.map((t, i) => ({
@@ -2047,12 +2115,12 @@ io.on('connection', (socket) => {
         score: t.score
       }))
     });
-    
+
     gameState.finaleMode = null;
-    
-    console.log('\n' + '🏆'.repeat(50));
-    console.log(`🏆 VINCITORE FINALE: ${winner.name} con ${winner.score} punti!`);
-    console.log('🏆'.repeat(50) + '\n');
+
+    console.log('\n' + '='.repeat(50));
+    console.log(`VINCITORE FINALE: ${winner.name} con ${winner.score} punti!`);
+    console.log('='.repeat(50) + '\n');
   });
 
   socket.on('duello_start', () => startDuello());
@@ -2112,7 +2180,11 @@ io.on('connection', (socket) => {
     io.to(gameState.duelloMode.difensore.id).emit('duello_question', questionData);
 
     io.emit('duello_question_display', {
-      question: questionData,
+      question: {
+        ...questionData,
+        risposte: data.question.risposte || [],
+        corretta: data.question.corretta
+      },
       attaccante: gameState.duelloMode.attaccante,
       difensore: gameState.duelloMode.difensore,
       scoreAttaccante: gameState.duelloMode.scoreAttaccante,

@@ -870,9 +870,25 @@
         }, 500);
     }
 
+    // Auto-salvataggio nel browser ogni volta che i punteggi cambiano (debounced)
+    let _autoSaveTimer = null;
+    function autoSaveToLocal(teams) {
+        if (_autoSaveTimer) clearTimeout(_autoSaveTimer);
+        _autoSaveTimer = setTimeout(() => {
+            if (teams.length > 0) {
+                saveLocalBackup({
+                    timestamp: new Date().toISOString(),
+                    teams: teams.map(t => ({ name: t.name, score: t.score, color: t.color })),
+                    auto: true
+                });
+            }
+        }, 5000); // 5s debounce
+    }
+
     socket.on('update_teams', (teams) => {
         totalTeams = teams.length;
         document.getElementById('teams-count').textContent = `${teams.length} squadre`;
+        autoSaveToLocal(teams);
 
         const lb = document.getElementById('leaderboard-center');
         const sorted = [...teams].sort((a, b) => b.score - a.score);
@@ -1256,10 +1272,14 @@
             showToast('Seleziona una domanda per ALL IN!', 'error');
             return;
         }
-        
+
         // Modifica i punti della domanda per i pulsanti 100-500
         selectedQ.allInOptions = [100, 200, 300, 500];
-        
+
+        // ALL IN è la domanda 1 della finale
+        finaleQuestionCount = 1;
+        updateFinaleProgress();
+
         socket.emit('prepare_allin', selectedQ);
         activateStep(4);
         
@@ -1300,6 +1320,18 @@
             console.log('🏆 Vincitore finale rivelato');
         }
     }
+
+    // Auto-reveal: il server rivela automaticamente il vincitore dopo l'ultima domanda
+    socket.on('show_winner', (data) => {
+        if(finaleActive) {
+            finaleActive = false;
+            setGameMode('idle');
+            document.getElementById('finale-progress').classList.add('hidden');
+            activateStep(1);
+            showToast(`VINCITORE: ${data.winner.name} con ${data.winner.score} punti!`, 'success', 8000);
+            console.log('🏆 Auto-reveal vincitore:', data.winner.name);
+        }
+    });
 
     socket.on('allin_bet_placed', (data) => {
         document.getElementById('allin-counter').textContent = data.betsCount;
@@ -1418,6 +1450,9 @@
     function resetGame() { if(confirm("⚠️ RESET TOTALE?")) socket.emit('reset_game'); }
 
     // 💾 SALVATAGGIO E RIPRISTINO MANUALE
+    // Il backup viene salvato ANCHE nel browser (localStorage) dell'admin,
+    // perché Render cancella i file su disco quando il server si riavvia.
+
     function saveGame() {
         socket.emit('admin_save_game');
         const btn = document.getElementById('save-btn');
@@ -1425,21 +1460,57 @@
         btn.disabled = true;
         setTimeout(() => { btn.textContent = '💾 Salva'; btn.disabled = false; }, 2000);
     }
+
     function restoreGame() {
-        if(confirm("🔄 Ripristinare l'ultimo salvataggio?\nI punteggi attuali verranno sostituiti con quelli salvati.")) {
+        // Controlla se c'è un backup nel browser
+        const localBackup = getLocalBackup();
+        const localInfo = localBackup
+            ? `\n\nBackup nel browser: ${localBackup.teams.length} squadre, salvato alle ${new Date(localBackup.timestamp).toLocaleTimeString()}`
+            : '\n\n(Nessun backup nel browser)';
+
+        if(confirm("🔄 Ripristinare l'ultimo salvataggio?" + localInfo)) {
             socket.emit('admin_restore_game');
         }
     }
+
+    function saveLocalBackup(data) {
+        try {
+            localStorage.setItem('quizzone_backup', JSON.stringify(data));
+            console.log('💾 Backup salvato nel browser:', data.teams.length, 'squadre');
+        } catch(e) { console.error('Errore salvataggio localStorage:', e); }
+    }
+
+    function getLocalBackup() {
+        try {
+            const raw = localStorage.getItem('quizzone_backup');
+            return raw ? JSON.parse(raw) : null;
+        } catch(e) { return null; }
+    }
+
     socket.on('admin_save_result', (data) => {
         if (data.success) {
-            showToast(`💾 Partita salvata! ${data.teams} squadre`, 'success', 3000);
+            // Salva anche nel browser!
+            if (data.backupData) {
+                saveLocalBackup(data.backupData);
+            }
+            showToast(`💾 Partita salvata! ${data.teams} squadre (server + browser)`, 'success', 3000);
         } else {
             showToast('❌ Errore nel salvataggio', 'error');
         }
     });
+
     socket.on('admin_restore_result', (data) => {
         if (data.success) {
             showToast(`🔄 Ripristinato! ${data.restored} squadre aggiornate, ${data.waiting} in attesa di riconnessione (backup: ${new Date(data.timestamp).toLocaleTimeString()})`, 'success', 5000);
+        } else if (data.reason === 'no_server_backup') {
+            // Il server non ha il file (Render l'ha cancellato) - prova dal browser
+            const localBackup = getLocalBackup();
+            if (localBackup && localBackup.teams && localBackup.teams.length > 0) {
+                showToast(`📱 Server senza backup, invio dal browser (${localBackup.teams.length} squadre, ${new Date(localBackup.timestamp).toLocaleTimeString()})...`, 'info', 3000);
+                socket.emit('admin_restore_from_client', localBackup);
+            } else {
+                showToast('❌ Nessun backup trovato (né sul server né nel browser). Clicca "Salva" durante la partita!', 'error', 5000);
+            }
         } else {
             showToast(`❌ ${data.reason}`, 'error');
         }

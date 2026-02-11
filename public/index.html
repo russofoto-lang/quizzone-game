@@ -403,13 +403,100 @@
         display.textContent = timeLeft;
     }
 
-    function login() { const n = document.getElementById('team-name').value; if(n) socket.emit('login', n); }
-    
-    socket.on('login_success', (d) => { 
-        document.getElementById('login-screen').classList.add('hidden'); 
-        document.getElementById('game-screen').classList.remove('hidden'); 
+    // ════════════════════════════════════════════════════════════════
+    // 🔄 SISTEMA DI RICONNESSIONE AUTOMATICA
+    // ════════════════════════════════════════════════════════════════
+
+    // Salva/recupera sessione da localStorage
+    function saveSession(name) {
+        try { localStorage.setItem('quizzone_team_name', name); } catch(e) {}
+    }
+    function getSavedSession() {
+        try { return localStorage.getItem('quizzone_team_name'); } catch(e) { return null; }
+    }
+    function clearSession() {
+        try { localStorage.removeItem('quizzone_team_name'); } catch(e) {}
+    }
+
+    // Stato di connessione
+    let isLoggedIn = false;
+    let myTeamName = null;
+
+    // Quando ci si connette (o riconnette), tenta auto-rejoin
+    socket.on('connect', () => {
+        console.log('🔌 Connesso al server');
+        const savedName = getSavedSession();
+        if (savedName && !isLoggedIn) {
+            console.log('🔄 Tentativo di rejoin come:', savedName);
+            socket.emit('rejoin', { name: savedName });
+        }
+    });
+
+    socket.on('disconnect', () => {
+        console.log('⚠️ Disconnesso dal server - riconnessione automatica in corso...');
+    });
+
+    socket.on('reconnect_attempt', (n) => {
+        console.log('🔄 Tentativo di riconnessione #' + n);
+    });
+
+    // Rejoin riuscito
+    socket.on('rejoin_success', (d) => {
+        console.log('✅ Rejoin riuscito! Score:', d.score);
+        isLoggedIn = true;
+        myTeamName = d.name;
+        document.getElementById('login-screen').classList.add('hidden');
+        document.getElementById('game-screen').classList.remove('hidden');
         document.getElementById('game-screen').classList.add('flex');
         document.getElementById('my-name').innerText = d.name;
+        document.getElementById('msg-box').innerHTML = `
+            <div class="text-green-400 font-bold text-xl mb-2">🔄 Riconnesso!</div>
+            <div class="text-gray-300">Punteggio: <span class="text-yellow-400 font-black text-2xl">${d.score}</span></div>
+        `;
+    });
+
+    // Rejoin fallito - mostra login
+    socket.on('rejoin_failed', (d) => {
+        console.log('❌ Rejoin fallito:', d.reason);
+        // Mostra login screen
+        document.getElementById('login-screen').classList.remove('hidden');
+        document.getElementById('game-screen').classList.add('hidden');
+        // Pre-compila il nome se salvato
+        const savedName = getSavedSession();
+        if (savedName) {
+            document.getElementById('team-name').value = savedName;
+        }
+    });
+
+    function login() {
+        const n = document.getElementById('team-name').value;
+        if(n) {
+            saveSession(n);
+            socket.emit('login', n);
+        }
+    }
+
+    socket.on('login_success', (d) => {
+        isLoggedIn = true;
+        myTeamName = d.name;
+        saveSession(d.name);
+        document.getElementById('login-screen').classList.add('hidden');
+        document.getElementById('game-screen').classList.remove('hidden');
+        document.getElementById('game-screen').classList.add('flex');
+        document.getElementById('my-name').innerText = d.name;
+        // Se ripristinato con punteggio, mostra messaggio
+        if (d.restored && d.score > 0) {
+            document.getElementById('msg-box').innerHTML = `
+                <div class="text-green-400 font-bold text-xl mb-2">🔄 Bentornato!</div>
+                <div class="text-gray-300">Punteggio ripristinato: <span class="text-yellow-400 font-black text-2xl">${d.score}</span></div>
+            `;
+        }
+    });
+
+    // Reset game: pulisci anche la sessione salvata
+    socket.on('force_reload', () => {
+        clearSession();
+        location.reload();
     });
 
     // ✅ RIMOSSO: La soluzione appare solo sul display
@@ -1327,7 +1414,7 @@
     // FINE HANDLERS PATTO COL DESTINO
     // ============================================
     
-    socket.on('force_reload', () => window.location.reload());
+    // force_reload gestito sopra con clearSession()
 </script>
 </body>
 </html>

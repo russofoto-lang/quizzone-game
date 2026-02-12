@@ -513,11 +513,11 @@
                     <button onclick="processAllIn()" id="step-5" class="step-btn w-full btn-success text-white font-bold py-2 rounded text-sm">
                         5️⃣ Elabora Punteggi
                     </button>
-                    <div id="step-6" class="step-btn text-xs text-gray-400 text-center py-1">
-                        6️⃣ Lancia domande 2-5 (x2)
-                    </div>
-                    <button onclick="revealWinner()" id="step-6-btn" class="step-btn w-full btn-warning text-white font-bold py-2 rounded text-sm">
-                        7️⃣ RIVELA VINCITORE 👑
+                    <button onclick="lanciaFinaleQuestion()" id="step-6" class="step-btn w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 rounded text-sm">
+                        6️⃣ Lancia Domanda <span id="finale-q-counter">2/5</span> (x2)
+                    </button>
+                    <button onclick="revealWinner()" id="step-7" class="step-btn w-full btn-warning text-white font-bold py-2 rounded text-sm">
+                        7️⃣ RIVELA VINCITORE
                     </button>
                     <div id="finale-progress" class="hidden text-center py-1">
                         <span class="progress-dot"></span>
@@ -741,18 +741,14 @@
     function lanciaBuzzer() { if(selectedQ) lancia('buzzer'); else showToast('Seleziona una domanda prima!', 'error'); }
 
     function lancia(m) {
+        if(finaleActive) {
+            lanciaFinaleQuestion();
+            return;
+        }
         totalQuestionsAsked++;
         document.getElementById('question-counter').textContent = `Q: ${totalQuestionsAsked}`;
-        setGameMode(m === 'buzzer' ? 'buzzer' : finaleActive ? 'finale' : 'quiz');
-
-        if(finaleActive) {
-            finaleQuestionCount++;
-            updateFinaleProgress();
-            socket.emit('invia_domanda_finale', {...selectedQ, modalita: m});
-            if(finaleQuestionCount >= 5) activateStep(6);
-        } else {
-            socket.emit('invia_domanda', {...selectedQ, modalita: m});
-        }
+        setGameMode(m === 'buzzer' ? 'buzzer' : 'quiz');
+        socket.emit('invia_domanda', {...selectedQ, modalita: m});
     }
 
     socket.on('update_round_monitor', (data) => {
@@ -1307,18 +1303,45 @@
     function processAllIn() {
         socket.emit('process_allin_results');
         activateStep(6);
+        // Reset contatore button per domanda 2
+        document.getElementById('finale-q-counter').textContent = '2/5';
         console.log('💰 Punteggi ALL IN in elaborazione...');
     }
 
-    function revealWinner() {
-        if(confirm('RIVELARE IL VINCITORE FINALE?')) {
-            socket.emit('reveal_winner');
-            finaleActive = false;
-            setGameMode('idle');
-            document.getElementById('finale-progress').classList.add('hidden');
-            activateStep(1);
-            console.log('🏆 Vincitore finale rivelato');
+    function lanciaFinaleQuestion() {
+        if(!selectedQ) {
+            showToast('Seleziona prima una domanda!', 'error');
+            return;
         }
+
+        finaleQuestionCount++;
+        updateFinaleProgress();
+
+        totalQuestionsAsked++;
+        document.getElementById('question-counter').textContent = `Q: ${totalQuestionsAsked}`;
+        setGameMode('finale');
+
+        socket.emit('invia_domanda_finale', {...selectedQ, modalita: 'quiz'});
+
+        if(finaleQuestionCount >= 5) {
+            // Tutte le 4 domande inviate, abilita Rivela Vincitore
+            activateStep(7);
+            showToast('Ultima domanda inviata! Dopo le risposte, rivela il vincitore.', 'info', 5000);
+        } else {
+            // Aggiorna contatore per prossima domanda
+            document.getElementById('finale-q-counter').textContent = `${finaleQuestionCount + 1}/5`;
+        }
+
+        console.log(`Domanda Finale ${finaleQuestionCount}/5 lanciata (x2)`);
+    }
+
+    function revealWinner() {
+        socket.emit('reveal_winner');
+        finaleActive = false;
+        setGameMode('idle');
+        document.getElementById('finale-progress').classList.add('hidden');
+        activateStep(1);
+        console.log('🏆 Vincitore finale rivelato');
     }
 
     // Auto-reveal: il server rivela automaticamente il vincitore dopo l'ultima domanda
@@ -1551,15 +1574,6 @@
                 if(i === stepNum) step.className += ' active';
             }
         }
-        
-        // Gestione speciale per step 6 (div) e step-6-btn (button)
-        if(stepNum === 6) {
-            const step6Btn = document.getElementById('step-6-btn');
-            if(step6Btn) {
-                step6Btn.className = step6Btn.className.replace(' active', '');
-                step6Btn.className += ' active';
-            }
-        }
     }
 
     function refreshPreview() {
@@ -1609,6 +1623,15 @@
         if (state.finaleMode && state.finaleMode.active) {
             finaleActive = true;
             finaleQuestionCount = state.finaleMode.questionCount || 0;
+            document.getElementById('finale-progress').classList.remove('hidden');
+            updateFinaleProgress();
+            // Aggiorna contatore button
+            if(finaleQuestionCount < 5) {
+                document.getElementById('finale-q-counter').textContent = `${finaleQuestionCount + 1}/5`;
+                activateStep(6);
+            } else {
+                activateStep(7);
+            }
         }
         if (state.pattoUtilizzi) {
             // Aggiorna contatore patto se visibile

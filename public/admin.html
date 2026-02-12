@@ -139,9 +139,14 @@
             <button onclick="lanciaQuiz()" class="w-full btn-primary text-white font-bold py-3 rounded-lg mb-1 text-sm">
                 🎯 LANCIA QUIZ
             </button>
-            <button onclick="lanciaBuzzer()" class="w-full btn-danger text-white font-bold py-3 rounded-lg text-sm">
-                ⚡ LANCIA BUZZER
-            </button>
+            <div class="flex gap-1">
+                <button onclick="scenaMutaExplain()" class="flex-1 bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 rounded-lg text-xs">
+                    🎭 SCENA MUTA
+                </button>
+                <button onclick="scenaMutaCountdown()" class="flex-1 btn-danger text-white font-bold py-3 rounded-lg text-xs">
+                    2:00 VIA!
+                </button>
+            </div>
         </div>
     </div>
 
@@ -487,7 +492,7 @@
             </div>
         </div>
 
-        <!-- ✅ SFIDA FINALE - CORRETTA -->
+        <!-- ✅ FIX COMPLETO: Sfida Finale - COLLAPSIBLE -->
         <div class="bg-red-900/20 rounded-lg border border-red-700">
             <button onclick="toggleSection('finale')" class="w-full flex justify-between items-center p-2 hover:bg-red-900/30 transition rounded-lg">
                 <div class="text-sm font-bold text-red-300 uppercase">🔥 Sfida Finale</div>
@@ -513,25 +518,19 @@
                     <button onclick="processAllIn()" id="step-5" class="step-btn w-full btn-success text-white font-bold py-2 rounded text-sm">
                         5️⃣ Elabora Punteggi
                     </button>
-                    
-                    <!-- 🔥 DOMANDE FINALI 2-5 (x2 PUNTI) - PULSANTE DEDICATO -->
-                    <div class="border-t border-red-700 my-2 pt-2">
-                        <div class="text-xs text-center text-gray-400 mb-1">DOMANDE 2-5 (x2 PUNTI)</div>
-                        <button onclick="lanciaFinaleQuestion()" id="step-6-btn" class="step-btn w-full bg-orange-600 hover:bg-orange-500 text-white font-bold py-2 rounded text-sm">
-                            🎯 LANCIA DOMANDA FINALE (x2)
-                        </button>
-                        <div id="finale-progress" class="hidden text-center py-1 mt-2">
-                            <span class="progress-dot"></span>
-                            <span class="progress-dot"></span>
-                            <span class="progress-dot"></span>
-                            <span class="progress-dot"></span>
-                            <span class="progress-dot"></span>
-                        </div>
-                    </div>
-                    
-                    <button onclick="revealWinner()" id="step-7-btn" class="step-btn w-full btn-warning text-white font-bold py-2 rounded text-sm">
-                        7️⃣ RIVELA VINCITORE 👑
+                    <button onclick="lanciaFinaleQuestion()" id="step-6" class="step-btn w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 rounded text-sm">
+                        6️⃣ Lancia Domanda <span id="finale-q-counter">2/5</span> (x2)
                     </button>
+                    <button onclick="revealWinner()" id="step-7" class="step-btn w-full btn-warning text-white font-bold py-2 rounded text-sm">
+                        7️⃣ RIVELA VINCITORE
+                    </button>
+                    <div id="finale-progress" class="hidden text-center py-1">
+                        <span class="progress-dot"></span>
+                        <span class="progress-dot"></span>
+                        <span class="progress-dot"></span>
+                        <span class="progress-dot"></span>
+                        <span class="progress-dot"></span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -685,7 +684,7 @@
         if(e.target.value) socket.emit('get_questions', {type: 'categoria', category: e.target.value});
     });
 
-    socket.on('questions_list', (q) => {
+    socket.on('questions_list', (q) => {  // ✅ FIX: Era 'receive_questions'
         currentQuestions = q;
         showQuestionsList(q);
     });
@@ -696,6 +695,7 @@
         container.innerHTML = '';
         countEl.textContent = questions.length;
 
+        // Usa DocumentFragment per performance DOM
         const fragment = document.createDocumentFragment();
         questions.forEach((item, i) => {
             const div = document.createElement('div');
@@ -712,6 +712,8 @@
             fragment.appendChild(div);
         });
         container.appendChild(fragment);
+
+        // Reset search
         document.getElementById('question-search').value = '';
     }
 
@@ -741,38 +743,26 @@
     }
 
     function lanciaQuiz() { if(selectedQ) lancia('quiz'); else showToast('Seleziona una domanda!', 'error'); }
-    function lanciaBuzzer() { if(selectedQ) lancia('buzzer'); else showToast('Seleziona una domanda prima!', 'error'); }
+
+    function scenaMutaExplain() {
+        socket.emit('scenamuta_explain');
+        showToast('Spiegazione Scena Muta sul display', 'info', 3000);
+    }
+
+    function scenaMutaCountdown() {
+        socket.emit('scenamuta_countdown');
+        showToast('Countdown 2 minuti partito!', 'success', 3000);
+    }
 
     function lancia(m) {
+        if(finaleActive) {
+            lanciaFinaleQuestion();
+            return;
+        }
         totalQuestionsAsked++;
         document.getElementById('question-counter').textContent = `Q: ${totalQuestionsAsked}`;
-        setGameMode(m === 'buzzer' ? 'buzzer' : finaleActive ? 'finale' : 'quiz');
-
-        if(finaleActive) {
-            finaleQuestionCount++;
-            updateFinaleProgress();
-            
-            if (finaleQuestionCount > 5) {
-                finaleQuestionCount = 5;
-                showToast('⚠️ Hai già lanciato 5 domande! Usa "RIVELA VINCITORE"', 'warning');
-                return;
-            }
-            
-            socket.emit('invia_domanda_finale', {
-                ...selectedQ, 
-                modalita: m, 
-                finaleQuestion: finaleQuestionCount,
-                totalFinaleQuestions: 5,
-                isFinaleQuestion: true
-            });
-            
-            if(finaleQuestionCount >= 5) {
-                document.getElementById('step-7-btn').classList.add('active');
-                showToast('🏁 Ultima domanda!', 'success', 3000);
-            }
-        } else {
-            socket.emit('invia_domanda', {...selectedQ, modalita: m});
-        }
+        setGameMode(m === 'buzzer' ? 'buzzer' : 'quiz');
+        socket.emit('invia_domanda', {...selectedQ, modalita: m});
     }
 
     socket.on('update_round_monitor', (data) => {
@@ -880,14 +870,17 @@
     }
 
     function assignPoints(teamId, points) {
+        // ✅ FIX: Usa 'assign_points' invece di 'admin_punti_manuali'
         socket.emit('assign_points', { teamId: teamId, points: points });
         console.log(`✅ Assegnati ${points} punti a ${teamId}`);
         
+        // Reset buzzer dopo assegnazione (per gioco musicale)
         setTimeout(() => {
             socket.emit('reset_buzzer');
         }, 500);
     }
 
+    // Auto-salvataggio nel browser ogni volta che i punteggi cambiano (debounced)
     let _autoSaveTimer = null;
     function autoSaveToLocal(teams) {
         if (_autoSaveTimer) clearTimeout(_autoSaveTimer);
@@ -899,7 +892,7 @@
                     auto: true
                 });
             }
-        }, 5000);
+        }, 5000); // 5s debounce
     }
 
     socket.on('update_teams', (teams) => {
@@ -910,11 +903,13 @@
         const lb = document.getElementById('leaderboard-center');
         const sorted = [...teams].sort((a, b) => b.score - a.score);
 
+        // Usa DocumentFragment per ridurre reflow DOM
         const fragment = document.createDocumentFragment();
         sorted.forEach((t, i) => {
             const medals = ['🥇', '🥈', '🥉'];
             const medal = i < 3 ? medals[i] : `${i + 1}°`;
 
+            // Rileva cambio punteggio per animazione
             const prevScore = previousScores[t.id];
             let scoreClass = 'text-yellow-400 font-black text-sm';
             if (prevScore !== undefined && prevScore !== t.score) {
@@ -941,6 +936,7 @@
         lb.appendChild(fragment);
     });
 
+    // ✅ Funzione per aggiungere/togliere punti
     function adjustPoints(teamId, points) {
         socket.emit('assign_points', { teamId: teamId, points: points });
         console.log(`💰 ${points > 0 ? '+' : ''}${points} punti a ${teamId}`);
@@ -981,8 +977,10 @@
         const data = { effect: effect };
         if (duration) data.duration = duration;
         
+        // Invia al server per broadcast a tutti i display
         socket.emit('play_sfx', data);
         
+        // Riproduci anche localmente nell'admin
         if (audioEnabled && typeof SipontoAudio !== 'undefined') {
             const fn = SipontoAudio[effect];
             if (typeof fn === 'function') {
@@ -996,8 +994,10 @@
     function toggleAudioEnabled() {
         audioEnabled = !audioEnabled;
         
+        // Invia comando ai display
         socket.emit('audio_set_enabled', { enabled: audioEnabled });
         
+        // Imposta anche localmente nell'admin
         if (typeof SipontoAudio !== 'undefined') {
             SipontoAudio.setEnabled(audioEnabled);
         }
@@ -1016,8 +1016,10 @@
     function setAudioVolume(val) {
         const volume = parseInt(val) / 100;
         
+        // Invia comando ai display
         socket.emit('audio_set_volume', { volume: volume });
         
+        // Imposta anche localmente nell'admin
         if (typeof SipontoAudio !== 'undefined') {
             SipontoAudio.setVolume(volume);
         }
@@ -1032,15 +1034,18 @@
     function ruotaStep(step) {
         switch(step) {
             case 1:
+                // Spiega regole
                 socket.emit('ruota_step', { step: 'explain' });
                 setGameMode('ruota');
                 console.log('🎰 Spiegazione Ruota');
                 break;
             case 2:
+                // Gira ruota e estrae squadra
                 socket.emit('ruota_step', { step: 'spin' });
                 console.log('🎰 Ruota gira...');
                 break;
             case 3:
+                // Mostra scelta al telefono
                 if(!ruotaWinner) {
                     showToast('Prima gira la ruota!', 'warning');
                     return;
@@ -1049,6 +1054,8 @@
                 console.log('🎰 Mostra scelta a:', ruotaWinner.name);
                 break;
             case 4:
+                // Lancia domanda sfida
+                // ✅ FIX: Controllo migliorato - verifica sia squadra che domanda
                 if(!ruotaWinner) {
                     showToast('Prima gira la ruota e aspetta l\'estrazione!', 'warning');
                     return;
@@ -1064,11 +1071,12 @@
         }
     }
 
+    // Riceve squadra estratta dalla ruota
     socket.on('ruota_winner', (data) => {
-        ruotaWinner = data.winner;
+        ruotaWinner = data.winner; // ✅ FIX: Accede a data.winner invece di data
         document.getElementById('ruota-winner-display').classList.remove('hidden');
         document.getElementById('ruota-winner-name').textContent = data.winner.name;
-        console.log('🎰 ESTRATTO:', data.winner.name);
+        console.log('🎰 ESTRATTO:', data.winner.name); // ✅ FIX: Console log più evidente
     });
 
     // ════════════════════════════════════════════════════════════════
@@ -1082,11 +1090,13 @@
     function duelloStep(step) {
         switch(step) {
             case 1:
+                // Avvia duello - estrae attaccante
                 socket.emit('duello_start');
                 setGameMode('duello');
                 console.log('🔥 Duello avviato');
                 break;
             case 2:
+                // Mostra scelta avversario
                 if(!duelloAttaccante) {
                     showToast('Prima avvia il duello!', 'warning');
                     return;
@@ -1095,6 +1105,7 @@
                 console.log('🔥 Mostra scelta avversario');
                 break;
             case 3:
+                // Mostra scelta categoria
                 if(!duelloDifensore) {
                     showToast('Prima scegli l\'avversario!', 'warning');
                     return;
@@ -1103,6 +1114,7 @@
                 console.log('🔥 Mostra scelta categoria');
                 break;
             case 4:
+                // Lancia domanda duello
                 if(!duelloCategoria) {
                     showToast('Prima scegli la categoria!', 'warning');
                     return;
@@ -1122,42 +1134,57 @@
         console.log('🔥 Risposta:', correct ? 'CORRETTA' : 'SBAGLIATA');
     }
 
+    // Riceve attaccante estratto
     socket.on('duello_attaccante', (data) => {
         duelloAttaccante = data.attaccante;
         document.getElementById('duello-attaccante-display').classList.remove('hidden');
         document.getElementById('duello-attaccante-name').textContent = data.attaccante.name;
+        
+        // Abilita step 2
         document.getElementById('duello-step-2').classList.remove('opacity-40', 'pointer-events-none');
+        
         console.log('🔥 Attaccante:', data.attaccante.name);
     });
 
+    // Riceve difensore scelto
     socket.on('duello_difensore_scelto', (data) => {
         duelloDifensore = data.difensore;
         document.getElementById('duello-difensore-display').classList.remove('hidden');
         document.getElementById('duello-difensore-name').textContent = data.difensore.name;
+        
+        // Abilita step 3
         document.getElementById('duello-step-3').classList.remove('opacity-40', 'pointer-events-none');
+        
         console.log('🔥 Difensore:', data.difensore.name);
     });
 
+    // Riceve categoria scelta
     socket.on('duello_categoria_scelta', (data) => {
         duelloCategoria = data.category;
         document.getElementById('duello-categoria-display').classList.remove('hidden');
         document.getElementById('duello-categoria-name').textContent = data.category.toUpperCase();
+        
+        // Abilita step 4 e mostra scoreboard
         document.getElementById('duello-step-4').classList.remove('opacity-40', 'pointer-events-none');
         document.getElementById('duello-scoreboard').classList.remove('hidden');
+        
         console.log('🔥 Categoria:', data.category);
     });
 
+    // In attesa risposta (chi ha premuto buzzer)
     socket.on('duello_waiting_answer', (data) => {
         document.getElementById('duello-answer-buttons').classList.remove('hidden');
         document.getElementById('duello-current-answerer').textContent = data.teamName;
         console.log('🔥 Risponde:', data.teamName, '| Risposta corretta:', data.correctAnswer);
     });
 
+    // L'altro può rispondere (dopo sbagliata)
     socket.on('duello_other_can_answer', (data) => {
         document.getElementById('duello-current-answerer').textContent = data.teamName;
         console.log('🔥 Ora risponde:', data.teamName, '| Risposta corretta:', data.correctAnswer);
     });
 
+    // Punto segnato
     socket.on('duello_point_scored', (data) => {
         document.getElementById('duello-score-att').textContent = data.scoreAttaccante;
         document.getElementById('duello-score-dif').textContent = data.scoreDifensore;
@@ -1165,15 +1192,18 @@
         console.log('🔥 Score:', data.scoreAttaccante, '-', data.scoreDifensore);
     });
 
+    // Prossima domanda
     socket.on('duello_next_question', () => {
         showToast('Punto segnato! Lancia la prossima domanda', 'success');
         console.log('🔥 Pronto per prossima domanda');
     });
 
+    // Fine duello
     socket.on('duello_end', (data) => {
         showToast(`${data.winner.name} VINCE IL DUELLO!`, 'success', 5000);
         setGameMode('idle');
 
+        // Reset UI duello
         duelloAttaccante = null;
         duelloDifensore = null;
         duelloCategoria = null;
@@ -1226,7 +1256,7 @@
     });
 
     // ════════════════════════════════════════════════════════════════
-    // ✅ SFIDA FINALE - FUNZIONI CORRETTE
+    // ✅ FIX COMPLETO: SFIDA FINALE - FUNZIONI
     // ════════════════════════════════════════════════════════════════
 
     function showFinaleExplanation() {
@@ -1253,14 +1283,17 @@
             return;
         }
 
+        // Modifica i punti della domanda per i pulsanti 100-500
         selectedQ.allInOptions = [100, 200, 300, 500];
 
+        // ALL IN è la domanda 1 della finale
         finaleQuestionCount = 1;
         updateFinaleProgress();
 
         socket.emit('prepare_allin', selectedQ);
         activateStep(4);
         
+        // Mostra contatore scommesse
         document.getElementById('allin-bets-status').classList.remove('hidden');
         document.getElementById('allin-counter').textContent = '0';
         
@@ -1274,6 +1307,7 @@
         socket.emit('admin_force_show_allin');
         console.log('📊 Risultati ALL IN mostrati sul display');
         
+        // Dopo 10 secondi, abilita elaborazione
         setTimeout(() => {
             activateStep(5);
             showToast('Risultati mostrati! Clicca "Elabora Punteggi"', 'info', 4000);
@@ -1283,57 +1317,36 @@
     function processAllIn() {
         socket.emit('process_allin_results');
         activateStep(6);
+        // Reset contatore button per domanda 2
+        document.getElementById('finale-q-counter').textContent = '2/5';
         console.log('💰 Punteggi ALL IN in elaborazione...');
     }
 
-    // ============================================
-    // 🔥 SFIDA FINALE - DOMANDE 2-5 (x2 PUNTI)
-    // ============================================
-    
     function lanciaFinaleQuestion() {
-        if (!finaleActive) {
-            showToast('⚠️ Prima attiva la SFIDA FINALE!', 'warning');
+        if(!selectedQ) {
+            showToast('Seleziona prima una domanda!', 'error');
             return;
         }
-        
-        if (!selectedQ) {
-            showToast('⚠️ Seleziona una domanda dalla lista!', 'warning');
-            return;
-        }
-        
+
         finaleQuestionCount++;
-        
-        if (finaleQuestionCount < 2) {
-            finaleQuestionCount = 2;
-        }
-        
-        if (finaleQuestionCount > 5) {
-            showToast('🏆 Hai completato le 5 domande! Rivela il vincitore!', 'success', 4000);
-            return;
-        }
-        
-        showToast(`🔥 DOMANDA ${finaleQuestionCount}/5 - PUNTI x2!`, 'info', 2000);
-        
-        const questionWithMultiplier = {
-            ...selectedQ,
-            punti: (selectedQ.punti || 100) * 2,
-            finaleQuestion: finaleQuestionCount,
-            totalFinaleQuestions: 5,
-            isFinaleQuestion: true
-        };
-        
-        socket.emit('invia_domanda_finale', questionWithMultiplier);
-        
-        document.getElementById('question-counter').textContent = `Q: ${++totalQuestionsAsked}`;
-        setGameMode('finale');
         updateFinaleProgress();
-        
-        if (finaleQuestionCount >= 5) {
-            document.getElementById('step-7-btn').classList.add('active');
-            showToast('🏁 Ultima domanda! Dopo le risposte rivela il vincitore!', 'success', 4000);
+
+        totalQuestionsAsked++;
+        document.getElementById('question-counter').textContent = `Q: ${totalQuestionsAsked}`;
+        setGameMode('finale');
+
+        socket.emit('invia_domanda_finale', {...selectedQ, modalita: 'quiz'});
+
+        if(finaleQuestionCount >= 5) {
+            // Tutte le 4 domande inviate, abilita Rivela Vincitore
+            activateStep(7);
+            showToast('Ultima domanda inviata! Dopo le risposte, rivela il vincitore.', 'info', 5000);
+        } else {
+            // Aggiorna contatore per prossima domanda
+            document.getElementById('finale-q-counter').textContent = `${finaleQuestionCount + 1}/5`;
         }
-        
-        console.log(`🔥 Lanciata domanda finale ${finaleQuestionCount}/5 con punti x2:`, selectedQ.domanda);
+
+        console.log(`Domanda Finale ${finaleQuestionCount}/5 lanciata (x2)`);
     }
 
     function revealWinner() {
@@ -1342,10 +1355,10 @@
         setGameMode('idle');
         document.getElementById('finale-progress').classList.add('hidden');
         activateStep(1);
-        showToast('🏆 Rivelazione vincitore in corso!', 'success', 3000);
-        console.log('🏆 Rivelazione vincitore finale');
+        console.log('🏆 Vincitore finale rivelato');
     }
 
+    // Auto-reveal: il server rivela automaticamente il vincitore dopo l'ultima domanda
     socket.on('show_winner', (data) => {
         if(finaleActive) {
             finaleActive = false;
@@ -1360,6 +1373,7 @@
     socket.on('allin_bet_placed', (data) => {
         document.getElementById('allin-counter').textContent = data.betsCount;
         
+        // Se tutte le squadre hanno scommesso
         if(data.betsCount >= data.totalTeams) {
             document.getElementById('allin-bets-status').innerHTML = `
                 <div class="bg-green-600 text-white p-1 rounded text-xs font-bold animate-pulse">
@@ -1377,19 +1391,23 @@
     });
 
     // ════════════════════════════════════════════════════════════════
-    // CORREZIONI ADMIN.HTML - LISTENER
+    // CORREZIONI ADMIN.HTML - Aggiungere questi listener
     // ════════════════════════════════════════════════════════════════
 
+    // ✅ FIX 1: LISTENER PER RISPOSTE (mostra chi ha risposto)
     socket.on('update_answers', (data) => {
+        // ✅ FIX: Usa 'answers-list' invece di 'round-answers'
         const answersDiv = document.getElementById('answers-list');
         if (!answersDiv) {
             console.error('❌ Elemento answers-list non trovato');
             return;
         }
         
+        // Nascondi buzzer-monitor e mostra answers-list
         document.getElementById('buzzer-monitor').classList.add('hidden');
         answersDiv.classList.remove('hidden');
         
+        // Aggiorna contatore
         document.getElementById('answers-count').textContent = `${data.answers ? data.answers.length : 0}/${data.totalTeams}`;
         
         answersDiv.innerHTML = '';
@@ -1415,6 +1433,7 @@
                 answersDiv.appendChild(div);
             });
             
+            // Mostra risposta corretta nel preview
             if (data.correctAnswer) {
                 const correctDiv = document.getElementById('correct-answer-preview');
                 const correctText = document.getElementById('correct-answer-text');
@@ -1426,13 +1445,16 @@
         }
     });
 
+    // Funzione per assegnare punti da buzzer
     function assignBuzzerPoints(teamId, points) {
         socket.emit('assign_points', { teamId: teamId, points: points });
+        // Reset buzzer dopo assegnazione
         setTimeout(() => {
             socket.emit('reset_buzzer');
         }, 500);
     }
 
+    // ✅ FIX 3: MOSTRA RISPOSTA CORRETTA PER DUELLO
     socket.on('duello_correct_answer', (data) => {
         const duelloInfo = document.getElementById('duello-info');
         if (!duelloInfo) return;
@@ -1446,6 +1468,7 @@
         `;
     });
 
+    // Accordion/Collapse Toggle
     function toggleSection(section) {
         const content = document.getElementById(`content-${section}`);
         const icon = document.getElementById(`icon-${section}`);
@@ -1464,6 +1487,9 @@
     function resetGame() { if(confirm("⚠️ RESET TOTALE?")) socket.emit('reset_game'); }
 
     // 💾 SALVATAGGIO E RIPRISTINO MANUALE
+    // Il backup viene salvato ANCHE nel browser (localStorage) dell'admin,
+    // perché Render cancella i file su disco quando il server si riavvia.
+
     function saveGame() {
         socket.emit('admin_save_game');
         const btn = document.getElementById('save-btn');
@@ -1473,6 +1499,7 @@
     }
 
     function restoreGame() {
+        // Controlla se c'è un backup nel browser
         const localBackup = getLocalBackup();
         const localInfo = localBackup
             ? `\n\nBackup nel browser: ${localBackup.teams.length} squadre, salvato alle ${new Date(localBackup.timestamp).toLocaleTimeString()}`
@@ -1499,6 +1526,7 @@
 
     socket.on('admin_save_result', (data) => {
         if (data.success) {
+            // Salva anche nel browser!
             if (data.backupData) {
                 saveLocalBackup(data.backupData);
             }
@@ -1512,6 +1540,7 @@
         if (data.success) {
             showToast(`🔄 Ripristinato! ${data.restored} squadre aggiornate, ${data.waiting} in attesa di riconnessione (backup: ${new Date(data.timestamp).toLocaleTimeString()})`, 'success', 5000);
         } else if (data.reason === 'no_server_backup') {
+            // Il server non ha il file (Render l'ha cancellato) - prova dal browser
             const localBackup = getLocalBackup();
             if (localBackup && localBackup.teams && localBackup.teams.length > 0) {
                 showToast(`📱 Server senza backup, invio dal browser (${localBackup.teams.length} squadre, ${new Date(localBackup.timestamp).toLocaleTimeString()})...`, 'info', 3000);
@@ -1526,6 +1555,7 @@
     
     function mostraSoluzione() {
         if(selectedQ && selectedQ.corretta !== undefined) {
+            // Invia la risposta corretta al server
             socket.emit('mostra_soluzione', { 
                 soluzione: selectedQ.corretta 
             });
@@ -1558,24 +1588,13 @@
                 if(i === stepNum) step.className += ' active';
             }
         }
-        
-        const step6Btn = document.getElementById('step-6-btn');
-        if(step6Btn) {
-            step6Btn.className = step6Btn.className.replace(' active', '');
-            if(stepNum === 6) step6Btn.className += ' active';
-        }
-        
-        const step7Btn = document.getElementById('step-7-btn');
-        if(step7Btn) {
-            step7Btn.className = step7Btn.className.replace(' active', '');
-            if(stepNum === 7) step7Btn.className += ' active';
-        }
     }
 
     function refreshPreview() {
         document.getElementById('mobile-preview').src = window.location.origin + '/preview';
     }
 
+    // ✅ Ricevi e mostra la risposta corretta in anticipo
     socket.on('show_correct_answer_preview', (data) => {
         const preview = document.getElementById('correct-answer-preview');
         const text = document.getElementById('correct-answer-text');
@@ -1584,10 +1603,12 @@
         console.log('✅ Risposta corretta:', data.corretta);
     });
 
+    // Nascondi quando cambia domanda
     socket.on('nuova_domanda', () => {
         document.getElementById('correct-answer-preview').classList.add('hidden');
     });
 
+    // Team connect/disconnect notifications
     socket.on('team_joined', (data) => {
         if (!data.isPreview) {
             showToast(`${data.name} si è unito!`, 'success', 2500);
@@ -1596,12 +1617,15 @@
     socket.on('team_left', (data) => {
         showToast(`${data.name} ha lasciato`, 'warning', 2500);
     });
+    // 🔄 Disconnessione temporanea (in attesa di riconnessione)
     socket.on('team_disconnected', (data) => {
         showToast(`⏳ ${data.name} disconnesso (score: ${data.score}) - in attesa di riconnessione`, 'warning', 4000);
     });
+    // 🔄 Riconnessione riuscita
     socket.on('team_rejoined', (data) => {
         showToast(`🔄 ${data.name} si è riconnesso! (score: ${data.score})`, 'success', 3000);
     });
+    // 🔄 Stato completo del gioco (ricevuto dopo admin_connect)
     socket.on('admin_full_state', (state) => {
         console.log('📋 Stato completo ricevuto:', state);
         if (state.disconnectedTeams && state.disconnectedTeams.length > 0) {
@@ -1613,9 +1637,22 @@
         if (state.finaleMode && state.finaleMode.active) {
             finaleActive = true;
             finaleQuestionCount = state.finaleMode.questionCount || 0;
+            document.getElementById('finale-progress').classList.remove('hidden');
+            updateFinaleProgress();
+            // Aggiorna contatore button
+            if(finaleQuestionCount < 5) {
+                document.getElementById('finale-q-counter').textContent = `${finaleQuestionCount + 1}/5`;
+                activateStep(6);
+            } else {
+                activateStep(7);
+            }
+        }
+        if (state.pattoUtilizzi) {
+            // Aggiorna contatore patto se visibile
         }
     });
 
+    // ✅ Ricevi dati delle domande all'avvio
     socket.on('questions_data', (data) => {
         dbStructure.categories = data.categories;
         dbStructure.questions = data.questions;
@@ -1626,7 +1663,9 @@
     window.addEventListener('DOMContentLoaded', () => {
         document.getElementById('mobile-preview').src = window.location.origin + '/preview';
         
+        // Inizializza audio engine per l'admin
         if (typeof SipontoAudio !== 'undefined') {
+            // Attiva al primo click sulla pagina
             document.addEventListener('click', function initAdminAudio() {
                 SipontoAudio.init();
                 console.log('✅ Audio admin attivato');
@@ -1637,36 +1676,41 @@
     document.addEventListener('keydown', (e) => {
         if(e.target.tagName === 'SELECT' || e.target.tagName === 'INPUT') return;
         if(e.code === 'Space') { e.preventDefault(); lanciaQuiz(); }
-        if(e.code === 'KeyB') { e.preventDefault(); lanciaBuzzer(); }
+        if(e.code === 'KeyB') { e.preventDefault(); scenaMutaCountdown(); }
         if(e.code === 'KeyP') { e.preventDefault(); togglePause(); }
     });
 
+    // Layout Presets System
     function setLayout(type) {
         const left = document.getElementById('column-left');
         const center = document.getElementById('column-center');
         const right = document.getElementById('column-right');
         
         const layouts = {
-            compact: ['15%', '35%', '50%'],
-            balanced: ['20%', '40%', '40%'],
-            preview: ['15%', '50%', '35%']
+            compact: ['15%', '35%', '50%'],   // Focus controlli
+            balanced: ['20%', '40%', '40%'],  // Default
+            preview: ['15%', '50%', '35%']    // Focus preview/risposte
         };
         
         const [l, c, r] = layouts[type];
         
+        // Applica dimensioni con smooth transition
         left.style.width = l;
         center.style.width = c;
         right.style.width = r;
         
+        // Aggiorna bottoni attivi
         document.querySelectorAll('[onclick^="setLayout"]').forEach(btn => {
             btn.className = 'px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded text-xs font-bold transition';
         });
         event.target.className = 'px-3 py-1 bg-blue-600 hover:bg-blue-500 rounded text-xs font-bold transition';
         
+        // Salva preferenza
         localStorage.setItem('preferredLayout', type);
         console.log(`📐 Layout: ${type.toUpperCase()} (${l} / ${c} / ${r})`);
     }
     
+    // Carica layout salvato all'avvio
     window.addEventListener('DOMContentLoaded', () => {
         const saved = localStorage.getItem('preferredLayout') || 'balanced';
         setTimeout(() => {
@@ -1699,9 +1743,11 @@
         socket.emit('admin_reset_patto');
     }
     
+    // Aggiorna contatore utilizzi
     socket.on('patto_update_utilizzi', (data) => {
         document.getElementById('patto-usi').textContent = data.utilizzi;
         
+        // Disabilita il pulsante se raggiunti i max utilizzi
         if (data.utilizzi >= data.max) {
             const btn = document.getElementById('patto-avvia-btn');
             btn.disabled = true;
@@ -1710,6 +1756,7 @@
         }
     });
     
+    // Notifica quando viene ricevuta una scelta
     socket.on('patto_scelta_ricevuta', (data) => {
         const status = document.getElementById('patto-status');
         status.classList.remove('hidden');
@@ -1721,6 +1768,7 @@
         }, 2000);
     });
     
+    // Mostra errori
     socket.on('patto_max_utilizzi_raggiunto', () => {
         showToast('Max utilizzi Patto col Destino raggiunto!', 'warning');
     });

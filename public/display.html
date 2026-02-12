@@ -963,6 +963,62 @@
     <!-- FINE VISTE PATTO COL DESTINO -->
     <!-- ====================================== -->
 
+    <!-- ====================================== -->
+    <!-- SCENA MUTA - EXPLANATION -->
+    <!-- ====================================== -->
+    <div id="view-scenamuta-explain" class="view-section hidden absolute inset-0 bg-gradient-to-br from-purple-900 via-fuchsia-900 to-pink-900 z-50 flex flex-col items-center justify-center overflow-y-auto">
+        <div class="relative z-10 max-w-5xl text-center animate__animated animate__zoomIn px-4 py-4">
+            <div class="text-8xl mb-4">🎭</div>
+
+            <h1 class="text-7xl font-black text-white mb-3 uppercase tracking-tight animate__animated animate__fadeInDown">
+                SCENA MUTA
+            </h1>
+            <p class="text-3xl font-bold text-fuchsia-300 mb-6 animate__animated animate__fadeInUp" style="animation-delay: 0.2s;">
+                Mimo o Taboo? A te la scelta!
+            </p>
+
+            <div class="bg-black/40 rounded-2xl p-6 mb-4 text-left space-y-4">
+                <div class="border-b border-fuchsia-500/30 pb-4 animate__animated animate__fadeInLeft" style="animation-delay: 0.4s;">
+                    <h2 class="text-3xl font-black text-yellow-300 mb-2">1. SCEGLI IL CAMPIONE</h2>
+                    <p class="text-xl text-white">Ogni squadra sceglie un giocatore che dovra far indovinare le parole</p>
+                </div>
+
+                <div class="border-b border-fuchsia-500/30 pb-4 animate__animated animate__fadeInLeft" style="animation-delay: 0.6s;">
+                    <h2 class="text-3xl font-black text-green-300 mb-2">2. MIMO o TABOO</h2>
+                    <p class="text-xl text-white">Il campione puo mimare le parole oppure descriverle SENZA dire la parola</p>
+                </div>
+
+                <div class="animate__animated animate__fadeInLeft" style="animation-delay: 0.8s;">
+                    <h2 class="text-3xl font-black text-red-300 mb-2">3. 2 MINUTI DI TEMPO</h2>
+                    <p class="text-xl text-white">Fai indovinare piu parole possibili alla tua squadra!</p>
+                </div>
+            </div>
+
+            <p class="text-3xl text-yellow-300 font-bold animate__animated animate__pulse animate__infinite" style="animation-delay: 1s;">
+                PREPARATEVI!
+            </p>
+        </div>
+    </div>
+
+    <!-- SCENA MUTA - COUNTDOWN -->
+    <div id="view-scenamuta-countdown" class="view-section hidden absolute inset-0 bg-gradient-to-br from-purple-900 via-fuchsia-900 to-pink-900 z-50 flex flex-col items-center justify-center">
+        <div class="text-center">
+            <div class="text-6xl mb-4">🎭 SCENA MUTA</div>
+            <div id="scenamuta-timer" class="text-[12rem] font-black text-white leading-none mb-4" style="text-shadow: 0 0 40px rgba(255,255,255,0.5);">
+                2:00
+            </div>
+            <div class="w-96 mx-auto">
+                <div class="w-full bg-gray-700 rounded-full h-6 overflow-hidden">
+                    <div id="scenamuta-timer-bar" class="h-6 bg-gradient-to-r from-green-400 to-green-600 rounded-full transition-all duration-1000" style="width: 100%;"></div>
+                </div>
+            </div>
+            <p id="scenamuta-status" class="text-3xl text-fuchsia-300 font-bold mt-6">VIA!</p>
+        </div>
+    </div>
+    <!-- ====================================== -->
+    <!-- FINE VISTE SCENA MUTA -->
+    <!-- ====================================== -->
+
 </div>
 
 <script>
@@ -2317,6 +2373,66 @@
     // ============================================
     // FINE SOCKET HANDLERS PATTO COL DESTINO
     // ============================================
+
+    // ============================================
+    // SCENA MUTA - COUNTDOWN
+    // ============================================
+    let scenamutaInterval = null;
+
+    socket.on('scenamuta_start_countdown', () => {
+        showView('scenamuta-countdown');
+        SipontoAudio.fanfare();
+
+        let totalSeconds = 120; // 2 minuti
+        const timerEl = document.getElementById('scenamuta-timer');
+        const barEl = document.getElementById('scenamuta-timer-bar');
+        const statusEl = document.getElementById('scenamuta-status');
+
+        statusEl.textContent = 'VIA!';
+        timerEl.style.color = 'white';
+        barEl.style.background = 'linear-gradient(to right, #4ade80, #16a34a)';
+
+        if(scenamutaInterval) clearInterval(scenamutaInterval);
+
+        scenamutaInterval = setInterval(() => {
+            totalSeconds--;
+            if(totalSeconds < 0) totalSeconds = 0;
+
+            const mins = Math.floor(totalSeconds / 60);
+            const secs = totalSeconds % 60;
+            timerEl.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+
+            const pct = (totalSeconds / 120) * 100;
+            barEl.style.width = pct + '%';
+
+            // Cambia colore in base al tempo rimasto
+            if(totalSeconds <= 10) {
+                timerEl.style.color = '#ef4444';
+                barEl.style.background = '#ef4444';
+                timerEl.classList.add('animate-pulse');
+                if(totalSeconds === 10) SipontoAudio.buzzer && SipontoAudio.buzzer();
+            } else if(totalSeconds <= 30) {
+                timerEl.style.color = '#f59e0b';
+                barEl.style.background = 'linear-gradient(to right, #f59e0b, #d97706)';
+            }
+
+            if(totalSeconds === 0) {
+                clearInterval(scenamutaInterval);
+                scenamutaInterval = null;
+                timerEl.textContent = 'TEMPO!';
+                timerEl.style.fontSize = '8rem';
+                statusEl.textContent = 'FINE!';
+                SipontoAudio.wrong && SipontoAudio.wrong();
+            }
+        }, 1000);
+    });
+
+    socket.on('scenamuta_stop_countdown', () => {
+        if(scenamutaInterval) {
+            clearInterval(scenamutaInterval);
+            scenamutaInterval = null;
+        }
+    });
 
     socket.on('force_reload', () => window.location.reload());
 </script>

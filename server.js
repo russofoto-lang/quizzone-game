@@ -1933,6 +1933,20 @@ io.on('connection', (socket) => {
     io.emit('cambia_vista', { view: 'logo' });
   });
 
+  // ============================================
+  // SCENA MUTA (Mimo / Taboo)
+  // ============================================
+  socket.on('scenamuta_explain', () => {
+    io.emit('cambia_vista', { view: 'scenamuta-explain' });
+    console.log('SCENA MUTA: spiegazione mostrata sul display');
+  });
+
+  socket.on('scenamuta_countdown', () => {
+    io.emit('cambia_vista', { view: 'scenamuta-countdown' });
+    io.emit('scenamuta_start_countdown');
+    console.log('SCENA MUTA: countdown 2 minuti partito!');
+  });
+
   // ✅ FIX COMPLETO: SFIDA FINALE
   socket.on('show_finale_explanation', () => {
     io.emit('cambia_vista', { view: 'finale_explanation' });

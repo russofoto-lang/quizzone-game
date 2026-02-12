@@ -139,9 +139,14 @@
             <button onclick="lanciaQuiz()" class="w-full btn-primary text-white font-bold py-3 rounded-lg mb-1 text-sm">
                 🎯 LANCIA QUIZ
             </button>
-            <button onclick="lanciaBuzzer()" class="w-full btn-danger text-white font-bold py-3 rounded-lg text-sm">
-                ⚡ LANCIA BUZZER
-            </button>
+            <div class="flex gap-1">
+                <button onclick="scenaMutaExplain()" class="flex-1 bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 rounded-lg text-xs">
+                    🎭 SCENA MUTA
+                </button>
+                <button onclick="scenaMutaCountdown()" class="flex-1 btn-danger text-white font-bold py-3 rounded-lg text-xs">
+                    2:00 VIA!
+                </button>
+            </div>
         </div>
     </div>
 
@@ -738,7 +743,16 @@
     }
 
     function lanciaQuiz() { if(selectedQ) lancia('quiz'); else showToast('Seleziona una domanda!', 'error'); }
-    function lanciaBuzzer() { if(selectedQ) lancia('buzzer'); else showToast('Seleziona una domanda prima!', 'error'); }
+
+    function scenaMutaExplain() {
+        socket.emit('scenamuta_explain');
+        showToast('Spiegazione Scena Muta sul display', 'info', 3000);
+    }
+
+    function scenaMutaCountdown() {
+        socket.emit('scenamuta_countdown');
+        showToast('Countdown 2 minuti partito!', 'success', 3000);
+    }
 
     function lancia(m) {
         if(finaleActive) {
@@ -1662,7 +1676,7 @@
     document.addEventListener('keydown', (e) => {
         if(e.target.tagName === 'SELECT' || e.target.tagName === 'INPUT') return;
         if(e.code === 'Space') { e.preventDefault(); lanciaQuiz(); }
-        if(e.code === 'KeyB') { e.preventDefault(); lanciaBuzzer(); }
+        if(e.code === 'KeyB') { e.preventDefault(); scenaMutaCountdown(); }
         if(e.code === 'KeyP') { e.preventDefault(); togglePause(); }
     });
 

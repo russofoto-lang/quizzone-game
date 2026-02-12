@@ -87,9 +87,9 @@ try {
     questions: allQuestions
   };
   
-  console.log(`📚 Caricate ${allQuestions.length} domande`);
+  console.log(`? Caricate ${allQuestions.length} domande`);
 } catch (error) {
-  console.error('❌ Errore caricamento domande:', error.message);
+  console.error('? Errore caricamento domande:', error.message);
 }
 
 app.use(express.static(path.join(__dirname, 'public')));
@@ -211,12 +211,12 @@ let gameState = {
   currentQuestion: null,
   roundAnswers: [],
   isPaused: false,
-  roundScores: {}, // Traccia i punteggi del round
-  roundDetails: [], // Dettagli completi delle risposte del round (squadra, risposta, tempo, punti)
-  hideLeaderboard: false, // Per nascondere classifica durante finale
-  ruotaWinner: null, // Per ruota della fortuna
-  ruotaChoice: null, // Per ruota della fortuna
-  ruotaChallenge: null, // Per ruota della fortuna
+  roundScores: {}, // ? FIX: Aggiunto per tracciare i punteggi del round
+  roundDetails: [], // 🆕 Dettagli completi delle risposte del round (squadra, risposta, tempo, punti)
+  hideLeaderboard: false, // ✅ FIX 5: Per nascondere classifica durante finale
+  ruotaWinner: null, // ✅ Per ruota della fortuna
+  ruotaChoice: null, // ✅ Per ruota della fortuna
+  ruotaChallenge: null, // ✅ Per ruota della fortuna
   
   duelloMode: {
     active: false,
@@ -246,10 +246,10 @@ let gameState = {
     currentRound: 0
   },
   
-  // SFIDA FINALE
+  // ✅ FIX COMPLETO: SFIDA FINALE
   finaleMode: null,
   
-  // IL PATTO COL DESTINO
+  // 💀 IL PATTO COL DESTINO
   pattoDestinoState: {
     attivo: false,
     fase: null, // 'regole' | 'chat' | 'scelta' | 'reveal' | null
@@ -268,6 +268,7 @@ let gameState = {
 // ============================================
 // 💾 SISTEMA DI AUTO-SAVE
 // ============================================
+// Aggiungi questo codice in server.js, subito dopo la definizione di gameState
 
 // File dove salvare lo stato
 const SAVE_FILE = path.join(__dirname, 'gamestate_backup.json');
@@ -458,16 +459,8 @@ function getQuestionsByCategory(category) {
 function sendQuestion(questionData, modalita = 'multipla') {
   if (!questionData) return;
   
-  // Applica moltiplicatore se è domanda finale e non è ALL IN (domande 2-5 = x2)
-  let puntiEffettivi = questionData.punti || 100;
-  if (questionData.isFinaleQuestion && questionData.finaleQuestion >= 2) {
-    puntiEffettivi = (questionData.punti || 100) * 2;
-    console.log(`🔥 DOMANDA FINALE ${questionData.finaleQuestion}/5 - PUNTI x2 = ${puntiEffettivi}`);
-  }
-  
   gameState.currentQuestion = {
     ...questionData,
-    punti: puntiEffettivi,  // Salva i punti effettivi con moltiplicatore
     startTime: Date.now(),
     modalita: modalita
   };
@@ -489,9 +482,7 @@ function sendQuestion(questionData, modalita = 'multipla') {
     startTime: Date.now(),
     serverTimestamp: Date.now(),
     finaleQuestion: questionData.finaleQuestion || null,
-    totalFinaleQuestions: questionData.totalFinaleQuestions || null,
-    isFinaleQuestion: questionData.isFinaleQuestion || null,
-    punti: puntiEffettivi
+    totalFinaleQuestions: questionData.totalFinaleQuestions || null
   };
   
   gameState.currentQuestion.corretta = questionData.corretta;
@@ -502,14 +493,14 @@ function sendQuestion(questionData, modalita = 'multipla') {
     attiva: (modalita === 'buzzer')
   });
   
-  // Invia la risposta corretta all'admin in anticipo
+  // ? FIX 5: Invia la risposta corretta all'admin in anticipo
   io.to('admin').emit('show_correct_answer_preview', {
     corretta: questionData.corretta,
     domanda: questionData.domanda,
     categoria: questionData.categoria
   });
   
-  // LOG EVIDENZIATO DELLA RISPOSTA CORRETTA
+  // ✅ LOG EVIDENZIATO DELLA RISPOSTA CORRETTA
   console.log('\n' + '='.repeat(80));
   console.log('🎯 NUOVA DOMANDA');
   console.log('='.repeat(80));
@@ -517,9 +508,6 @@ function sendQuestion(questionData, modalita = 'multipla') {
   console.log(`🎮 Modalità: ${modalita}`);
   console.log(`❓ Domanda: "${questionData.domanda}"`);
   console.log(`✅ RISPOSTA CORRETTA: ${questionData.corretta}`);
-  if (questionData.isFinaleQuestion) {
-    console.log(`🔥 FINALE ${questionData.finaleQuestion}/5 - PUNTI: ${puntiEffettivi} (x2)`);
-  }
   console.log('='.repeat(80) + '\n');
 }
 
@@ -653,7 +641,7 @@ function processMemoryAnswers() {
         const points = 100;
         team.score += points;
         
-        // Traccia punteggi round
+        // ✅ FIX: Traccia punteggi round
         if (!gameState.roundScores[answer.teamId]) {
           gameState.roundScores[answer.teamId] = 0;
         }
@@ -718,12 +706,12 @@ function startDuello() {
   gameState.duelloMode.waitingForAnswer = false;
   gameState.duelloMode.currentBuzzer = null;
   
-  // Invia l'attaccante all'admin
+  // ✅ FIX: Invia l'attaccante all'admin
   io.to('admin').emit('duello_attaccante', {
     attaccante: { id: lastPlace.id, name: lastPlace.name }
   });
   
-  // Animazione estrazione sul display
+  // ✅ FIX: Animazione estrazione sul display
   io.emit('duello_extraction_animation', {
     teams: realTeams.map(t => t.name),
     winner: { id: lastPlace.id, name: lastPlace.name }
@@ -742,7 +730,7 @@ function finalizeDuello() {
   
   const attaccanteWins = gameState.duelloMode.scoreAttaccante >= 2; // Vince chi arriva a 2 (su 3)
   
-  // Assegnazione AUTOMATICA punti
+  // ✅ FIX: Assegnazione AUTOMATICA punti
   if(attaccanteWins) {
     attaccante.score += 250;
     difensore.score = Math.max(0, difensore.score - 250);
@@ -779,7 +767,7 @@ function finalizeDuello() {
   gameState.duelloMode.active = false;
 }
 
-// Mostra risposta corretta per duello
+// ✅ NUOVA FUNZIONE: Mostra risposta corretta per duello
 function showDuelloCorrectAnswer(teamId, teamName, answer, isCorrect) {
   if (!gameState.currentQuestion) return;
   
@@ -802,7 +790,39 @@ function showDuelloCorrectAnswer(teamId, teamName, answer, isCorrect) {
   console.log(`🔥 DUELLO: ${teamName} risponde "${answer}" - ${isCorrect ? 'CORRETTO' : 'SBAGLIATO'} (Corretta: ${gameState.currentQuestion.corretta})`);
 }
 
-// ✅ FUNZIONI PER SFIDA FINALE
+// ✅ NUOVE FUNZIONI PER SFIDA FINALE
+
+function revealFinaleWinner() {
+  const realTeams = Object.values(gameState.teams).filter(t => !t.isPreview);
+  const sorted = realTeams.sort((a, b) => b.score - a.score);
+  const winner = sorted[0];
+
+  // Mostra di nuovo la classifica
+  gameState.hideLeaderboard = false;
+  io.emit('leaderboard_visibility', { hidden: false });
+
+  const winnerData = {
+    winner: { id: winner.id, name: winner.name, score: winner.score },
+    podium: sorted.slice(0, 3),
+    rankings: sorted.map((t, i) => ({
+      position: i + 1,
+      id: t.id,
+      name: t.name,
+      score: t.score
+    }))
+  };
+
+  // Invia al display (show_winner_screen) e all'admin (show_winner)
+  io.emit('show_winner_screen', winnerData);
+  io.emit('show_winner', winnerData);
+
+  gameState.finaleMode = null;
+
+  console.log('\n' + '='.repeat(50));
+  console.log(`VINCITORE FINALE: ${winner.name} con ${winner.score} punti!`);
+  console.log('='.repeat(50) + '\n');
+}
+
 function processAllInResults() {
   if(!gameState.finaleMode || !gameState.finaleMode.allInQuestion) {
     console.log('❌ Nessuna domanda ALL IN da processare');
@@ -882,44 +902,6 @@ function processAllInResults() {
   return results;
 }
 
-// ✅ FUNZIONE CONDIVISA PER RIVELARE IL VINCITORE FINALE
-function revealFinaleWinner() {
-  if (!gameState.finaleMode || !gameState.finaleMode.active) {
-    console.log('⚠️ Vincitore già rivelato o finale non attiva');
-    return;
-  }
-
-  const realTeams = Object.values(gameState.teams).filter(t => !t.isPreview);
-  const sorted = realTeams.sort((a, b) => b.score - a.score);
-  const winner = sorted[0];
-
-  // Mostra di nuovo la classifica
-  gameState.hideLeaderboard = false;
-  io.emit('leaderboard_visibility', { hidden: false });
-
-  // Invia AL DISPLAY (show_winner_screen)
-  io.emit('show_winner_screen', {
-    winner: { id: winner.id, name: winner.name, score: winner.score },
-    podium: sorted.slice(0, 3)
-  });
-  
-  // Invia ALL'ADMIN (show_winner)
-  io.emit('show_winner', {
-    winner: { id: winner.id, name: winner.name, score: winner.score },
-    rankings: sorted.map((t, i) => ({
-      position: i + 1,
-      id: t.id,
-      name: t.name,
-      score: t.score
-    }))
-  });
-
-  gameState.finaleMode = null;
-
-  console.log('\n' + '='.repeat(50));
-  console.log(`🏆 VINCITORE FINALE: ${winner.name} con ${winner.score} punti!`);
-  console.log('='.repeat(50) + '\n');
-}
 
 // ============================================
 // 💀 IL PATTO COL DESTINO - FUNZIONI HELPER
@@ -1092,7 +1074,7 @@ function _restoreFromData(socket, saved) {
 }
 
 io.on('connection', (socket) => {
-  console.log(`🔌 Connessione: ${socket.id}`);
+  console.log(`? Connessione: ${socket.id}`);
   
   socket.on('admin_connect', () => {
     socket.join('admin');
@@ -1100,7 +1082,7 @@ io.on('connection', (socket) => {
     socket.emit('update_teams', realTeams);
     socket.emit('questions_data', questionsData);
 
-    // Invia stato completo del gioco all'admin che si riconnette
+    // 🔄 Invia stato completo del gioco all'admin che si riconnette
     const disconnectedList = [];
     for (const [name, data] of disconnectedTeams.entries()) {
       if (Date.now() - data.disconnectedAt < RECONNECT_GRACE_PERIOD) {
@@ -1203,7 +1185,7 @@ io.on('connection', (socket) => {
   });
 
   socket.on('login', (name) => {
-    const isPreview = name.includes('PREVIEW') || name.includes('📱');
+    const isPreview = name.includes('PREVIEW') || name.includes('?');
     const key = name.toLowerCase().trim();
 
     if (!isPreview) {
@@ -1270,7 +1252,7 @@ io.on('connection', (socket) => {
 
   socket.on('invia_domanda', (d) => sendQuestion(d, d.modalita || 'multipla'));
 
-  // Listener per ottenere domande filtrate
+  // ✅ FIX: Listener per ottenere domande filtrate
   socket.on('get_questions', (filter) => {
     let filtered = [];
     
@@ -1299,7 +1281,7 @@ io.on('connection', (socket) => {
     const time = ((Date.now() - gameState.currentQuestion.startTime) / 1000).toFixed(2);
     const isCorrect = (data.risposta === gameState.currentQuestion.corretta);
     
-    // Assegna punti AUTOMATICAMENTE se risposta corretta
+    // ✅ FIX: Assegna punti AUTOMATICAMENTE se risposta corretta
     let pointsEarned = 0;
     if (isCorrect) {
       const questionPoints = gameState.currentQuestion.punti || 100;
@@ -1310,7 +1292,7 @@ io.on('connection', (socket) => {
       
       team.score += pointsEarned;
       
-      // Traccia punteggi round
+      // ✅ FIX: Traccia punteggi round
       if (!gameState.roundScores[socket.id]) {
         gameState.roundScores[socket.id] = 0;
       }
@@ -1330,7 +1312,7 @@ io.on('connection', (socket) => {
       points: pointsEarned
     });
     
-    // Salva i dettagli completi per il podio
+    // 🆕 Salva i dettagli completi per il podio
     gameState.roundDetails.push({
       teamId: socket.id,
       teamName: team.name,
@@ -1349,29 +1331,31 @@ io.on('connection', (socket) => {
     
     const realTeamCount = Object.values(gameState.teams).filter(t => !t.isPreview).length;
 
-    // Invia risposte aggiornate all'admin
+    // ✅ Invia risposte aggiornate all'admin
     io.to('admin').emit('update_answers', {
       answers: gameState.roundAnswers,
       totalTeams: realTeamCount,
       correctAnswer: gameState.currentQuestion.corretta
     });
 
-    // Aggiorna classifica in tempo reale (debounced)
+    // ✅ Aggiorna classifica in tempo reale (debounced)
     broadcastTeams();
 
-    // Auto-reveal vincitore dopo ultima domanda finale (domanda 5)
+    // ✅ Auto-reveal vincitore dopo ultima domanda finale (domanda 5)
     if (gameState.finaleMode && gameState.finaleMode.active && gameState.finaleMode.questionCount >= 5) {
       if (gameState.roundAnswers.length >= realTeamCount) {
-        console.log('🏆 Tutte le squadre hanno risposto all\'ultima domanda finale! Auto-reveal vincitore tra 5 secondi...');
+        console.log('Tutte le squadre hanno risposto all\'ultima domanda finale! Auto-reveal tra 5 secondi...');
         setTimeout(() => {
-          revealFinaleWinner();
+          if (gameState.finaleMode && gameState.finaleMode.active) {
+            revealFinaleWinner();
+          }
         }, 5000);
       }
     }
   });
 
   socket.on('regia_cmd', (cmd) => {
-    // Reset round scores (per iniziare un nuovo round/prova)
+    // ✅ FIX: Reset round scores (per iniziare un nuovo round/prova)
     if (cmd === 'reset_round') {
       gameState.roundScores = {};
       gameState.roundDetails = [];
@@ -1379,7 +1363,7 @@ io.on('connection', (socket) => {
       return;
     }
     
-    // Gestisci il comando "podio" per mostrare classifica round
+    // ✅ FIX 4: Gestisci il comando "podio" per mostrare classifica round
     if (cmd === 'classifica_round' || cmd === 'podio') {
       // Se abbiamo dettagli completi (con risposte), usiamo quelli
       if (gameState.roundDetails && gameState.roundDetails.length > 0) {
@@ -1409,7 +1393,7 @@ io.on('connection', (socket) => {
   socket.on('pause_game', () => {
     gameState.isPaused = true;
     
-    // Invia classifica al display durante la pausa
+    // ✅ FIX: Invia classifica al display durante la pausa
     const realTeams = Object.values(gameState.teams)
       .filter(t => !t.isPreview)
       .sort((a, b) => b.score - a.score);
@@ -1421,10 +1405,13 @@ io.on('connection', (socket) => {
   socket.on('resume_game', () => {
     gameState.isPaused = false;
     io.emit('game_resumed');
-    console.log('▶️ Gioco ripreso');
+    console.log('? Gioco ripreso');
   });
 
+  // ════════════════════════════════════════════════════════════════
   // 💾 SALVATAGGIO E RIPRISTINO MANUALE
+  // ════════════════════════════════════════════════════════════════
+
   socket.on('admin_save_game', () => {
     saveGameState();
     const realTeams = Object.values(gameState.teams).filter(t => !t.isPreview);
@@ -1486,10 +1473,10 @@ io.on('connection', (socket) => {
     gameState.ruotaChallenge = null;
     gameState.finaleMode = null;
     io.emit('force_reload');
-    console.log('🔄 Reset totale');
+    console.log('? Reset totale');
   });
 
-  // mostra_soluzione invia al display (broadcast a tutti i client tranne admin)
+  // ✅ FIX: mostra_soluzione invia al display (broadcast a tutti i client tranne admin)
   socket.on('mostra_soluzione', (data) => {
     // Invia a tutti i client (display e cellulari vedranno la soluzione)
     // Ma sui cellulari abbiamo già rimosso la visualizzazione
@@ -1509,7 +1496,7 @@ io.on('connection', (socket) => {
     }
   });
 
-  // Correggi assign_points per aggiungere/togliere punti manualmente
+  // ✅ FIX 2: Correggi assign_points per aggiungere/togliere punti manualmente
   socket.on('assign_points', (data) => {
     const team = gameState.teams[data.teamId];
     if (team) {
@@ -1521,7 +1508,7 @@ io.on('connection', (socket) => {
       }
       gameState.roundScores[data.teamId] += data.points;
       
-      // Aggiungi ai dettagli del round (se non è già presente una risposta per questa squadra)
+      // 🆕 Aggiungi ai dettagli del round (se non è già presente una risposta per questa squadra)
       const alreadyAnswered = gameState.roundDetails.some(d => d.teamId === data.teamId);
       if (!alreadyAnswered) {
         gameState.roundDetails.push({
@@ -1537,20 +1524,22 @@ io.on('connection', (socket) => {
       
       broadcastTeamsNow(); // Immediato per feedback manuale
 
-      console.log(`💰 ${team.name}: ${data.points > 0 ? '+' : ''}${data.points} punti (totale: ${team.score})`);
+      console.log(`? ${team.name}: ${data.points > 0 ? '+' : ''}${data.points} punti (totale: ${team.score})`);
     }
   });
 
   socket.on('play_youtube_karaoke', (data) => {
     io.emit('play_youtube_karaoke', { videoId: data.videoId });
-    console.log('🎤 Karaoke:', data.videoId);
+    console.log('? Karaoke:', data.videoId);
   });
 
   socket.on('stop_karaoke', () => {
     io.emit('stop_karaoke');
   });
 
+  // ════════════════════════════════════════════════════════════════
   // 🔊 AUDIO EFFECTS - Relay comandi audio dall'admin al display
+  // ════════════════════════════════════════════════════════════════
   socket.on('play_sfx', (data) => {
     io.emit('play_sfx', data);
     console.log('🔊 SFX:', data.effect);
@@ -1572,21 +1561,21 @@ io.on('connection', (socket) => {
     console.log(`📊 Classifica ${gameState.hideLeaderboard ? 'nascosta' : 'visibile'}`);
   });
 
-  // GIOCO MUSICALE - Buzzer Standalone
+  // ? FIX: GIOCO MUSICALE - Buzzer Standalone
   socket.on('start_buzzer', (data) => {
     gameState.buzzerActive = true;
     gameState.buzzerLocked = false;
     gameState.buzzerStandalone = true;
     gameState.buzzerQueue = [];
     gameState.currentQuestion = {
-      domanda: data.domanda || '🎵 Premi quando sai la risposta!',
+      domanda: data.domanda || '? Premi quando sai la risposta!',
       corretta: data.corretta || '',
       startTime: Date.now(),
       modalita: 'buzzer_standalone'
     };
     
     io.emit('nuova_domanda', {
-      domanda: data.domanda || '🎵 Premi quando sai la risposta!',
+      domanda: data.domanda || '? Premi quando sai la risposta!',
       risposte: [],
       modalita: 'buzzer',
       startTime: Date.now(),
@@ -1595,9 +1584,9 @@ io.on('connection', (socket) => {
     
     io.emit('stato_buzzer', { locked: false, attiva: true });
     
-    console.log('\n' + '🎵'.repeat(80));
-    console.log('🎵 GIOCO MUSICALE ATTIVATO');
-    console.log('🎵'.repeat(80) + '\n');
+    console.log('\n' + '?'.repeat(80));
+    console.log('? GIOCO MUSICALE ATTIVATO');
+    console.log('?'.repeat(80) + '\n');
   });
 
   socket.on('buzzer_reset', () => {
@@ -1608,7 +1597,7 @@ io.on('connection', (socket) => {
     io.to('admin').emit('buzzer_queue_full', { queue: [], correctAnswer: "--" });
   });
 
-  // Aggiungo alias reset_buzzer per compatibilità con admin
+  // ✅ FIX: Aggiungo alias reset_buzzer per compatibilità con admin
   socket.on('reset_buzzer', () => {
     gameState.buzzerQueue = [];
     gameState.buzzerLocked = false;
@@ -1624,7 +1613,7 @@ io.on('connection', (socket) => {
     io.emit('stato_buzzer', { locked: true, attiva: false });
   });
 
-  // Migliorato buzzer per gioco musicale e assegnazione punti
+  // ? FIX 3: Migliorato buzzer per gioco musicale e assegnazione punti
   socket.on('prenoto', () => {
     if (gameState.buzzerLocked || !gameState.currentQuestion) return;
 
@@ -1653,10 +1642,13 @@ io.on('connection', (socket) => {
       correctAnswer: gameState.currentQuestion.corretta || "--"
     });
     
-    console.log(`⚡ ${team.name}: ${time}s (pos ${gameState.buzzerQueue.length})`);
+    console.log(`? ${team.name}: ${time}s (pos ${gameState.buzzerQueue.length})`);
   });
 
+  // ════════════════════════════════════════════════════════════════
   // 🎰 RUOTA DELLA FORTUNA - LISTENER COMPLETI E CORRETTI
+  // ════════════════════════════════════════════════════════════════
+
   socket.on('ruota_step', (data) => {
     console.log('🎰 Ruota step:', data.step);
     
@@ -1684,7 +1676,7 @@ io.on('connection', (socket) => {
         
         // Invia dati spinning con timer
         io.emit('ruota_spin', {
-          teams: realTeams.map(t => ({ id: t.id, name: t.name })),
+          teams: realTeams.map(t => ({ id: t.id, name: t.name })), // ✅ FIX: array di oggetti
           winner: { id: winner.id, name: winner.name }
         });
         
@@ -1695,7 +1687,7 @@ io.on('connection', (socket) => {
             winner: { id: winner.id, name: winner.name } 
           });
           
-          // Invia anche alla console admin
+          // ✅ FIX: Invia anche alla console admin
           io.to('admin').emit('ruota_winner', { 
             winner: { id: winner.id, name: winner.name } 
           });
@@ -1791,7 +1783,7 @@ io.on('connection', (socket) => {
     }
   });
 
-  // NUOVO: Listener per errore ruota
+  // ✅ NUOVO: Listener per errore ruota
   socket.on('ruota_error', (data) => {
     console.log('❌ Errore ruota:', data.message);
   });
@@ -1841,7 +1833,7 @@ io.on('connection', (socket) => {
         message: '🎯 Hai scelto la sfida! Attendi la domanda...'
       });
       
-      // Notifica admin che deve inviare una domanda
+      // ✅ FIX MIGLIORATO: Notifica admin che deve inviare una domanda
       io.to('admin').emit('ruota_needs_question', {
         teamId: socket.id,
         teamName: team.name,
@@ -1850,12 +1842,12 @@ io.on('connection', (socket) => {
       
       console.log(`🎰 ${team.name} ha scelto la sfida!`);
       
-      // NON resettare ruotaWinner se ha scelto challenge!
+      // ✅ FIX CRITICO: NON resettare ruotaWinner se ha scelto challenge!
       // Serve per lanciare la domanda dopo. Verrà resettato dopo la risposta.
       return;
     }
     
-    // Reset ruotaWinner SOLO se ha scelto safe (punti sicuri)
+    // ✅ Reset ruotaWinner SOLO se ha scelto safe (punti sicuri)
     gameState.ruotaWinner = null;
   });
 
@@ -1905,7 +1897,7 @@ io.on('connection', (socket) => {
     
     gameState.currentQuestion = null;
     gameState.ruotaChallenge = null;
-    gameState.ruotaWinner = null; // Reset ruotaWinner dopo la risposta
+    gameState.ruotaWinner = null; // ✅ FIX: Reset ruotaWinner dopo la risposta
   });
 
   socket.on('memory_start', () => {
@@ -1941,12 +1933,26 @@ io.on('connection', (socket) => {
     io.emit('cambia_vista', { view: 'logo' });
   });
 
-  // ✅ SFIDA FINALE
+  // ============================================
+  // SCENA MUTA (Mimo / Taboo)
+  // ============================================
+  socket.on('scenamuta_explain', () => {
+    io.emit('cambia_vista', { view: 'scenamuta-explain' });
+    console.log('SCENA MUTA: spiegazione mostrata sul display');
+  });
+
+  socket.on('scenamuta_countdown', () => {
+    io.emit('cambia_vista', { view: 'scenamuta-countdown' });
+    io.emit('scenamuta_start_countdown');
+    console.log('SCENA MUTA: countdown 2 minuti partito!');
+  });
+
+  // ✅ FIX COMPLETO: SFIDA FINALE
   socket.on('show_finale_explanation', () => {
     io.emit('cambia_vista', { view: 'finale_explanation' });
-    console.log('\n' + '🔥'.repeat(50));
-    console.log('🔥 SPIEGAZIONE SFIDA FINALE');
-    console.log('🔥'.repeat(50) + '\n');
+    console.log('\n' + '?'.repeat(50));
+    console.log('? SPIEGAZIONE SFIDA FINALE');
+    console.log('?'.repeat(50) + '\n');
   });
 
   socket.on('start_finale', () => {
@@ -1972,7 +1978,7 @@ io.on('connection', (socket) => {
     console.log('🔥'.repeat(50) + '\n');
   });
 
-  // Preparazione ALL IN (Step 3)
+  // ✅ NUOVO: Preparazione ALL IN (Step 3)
   socket.on('prepare_allin', (questionData) => {
     if(!gameState.finaleMode || !gameState.finaleMode.active) {
       console.log('❌ Finale non attivo');
@@ -2041,7 +2047,7 @@ io.on('connection', (socket) => {
     console.log(`🔥 Domanda Finale ${gameState.finaleMode.questionCount} (x${gameState.finaleMode.multiplier})`);
   });
 
-  // Scommessa ALL IN completa (bet + risposta)
+  // ✅ MODIFICATO: Scommessa ALL IN completa (bet + risposta)
   socket.on('finale_allin_bet', (data) => {
     const team = gameState.teams[socket.id];
     if(!team || team.isPreview) return;
@@ -2076,7 +2082,7 @@ io.on('connection', (socket) => {
     console.log(`💰 ${team.name}: scommesso ${data.bet} punti su "${data.answer}"`);
   });
 
-  // Elabora risultati ALL IN (Step 4)
+  // ✅ NUOVO: Elabora risultati ALL IN (Step 4)
   socket.on('process_allin_results', () => {
     if(!gameState.finaleMode || !gameState.finaleMode.allInQuestion) {
       console.log('❌ Nessuna domanda ALL IN da elaborare');
@@ -2111,6 +2117,12 @@ io.on('connection', (socket) => {
   });
 
   socket.on('reveal_winner', () => {
+    // Evita doppio reveal se auto-reveal ha già fatto
+    if (!gameState.finaleMode || !gameState.finaleMode.active) {
+      console.log('⚠️ Vincitore già rivelato (auto-reveal)');
+      return;
+    }
+
     revealFinaleWinner();
   });
 
@@ -2211,7 +2223,7 @@ io.on('connection', (socket) => {
     const answeredBy = gameState.duelloMode.currentBuzzer;
     if(!answeredBy) return;
 
-    // MOSTRA RISPOSTA CORRETTA
+    // ✅ FIX 4: MOSTRA RISPOSTA CORRETTA
     showDuelloCorrectAnswer(answeredBy.id, answeredBy.name, data.answer, data.correct);
 
     if(data.correct) {
@@ -2447,7 +2459,7 @@ io.on('connection', (socket) => {
       const wasPreview = team.isPreview;
 
       if (!wasPreview) {
-        // NON cancellare il team! Spostalo in disconnectedTeams per grace period
+        // 🔄 NON cancellare il team! Spostalo in disconnectedTeams per grace period
         const teamCopy = { ...team };
         disconnectedTeams.set(teamName.toLowerCase().trim(), {
           team: teamCopy,
@@ -2478,32 +2490,28 @@ io.on('connection', (socket) => {
 
 const PORT = process.env.PORT || 3000;
 http.listen(PORT, () => console.log(`
-🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯
-🎮      SIPONTO FOREVER YOUNG - SERVER COMPLETO        🎮
-🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯🎯
+????????????????????????????????????????????????????????????
+?      ?  SIPONTO FOREVER YOUNG - SERVER FIXED  ?        ?
+????????????????????????????????????????????????????????????
 
-✅ SERVER AVVIATO SULLA PORTA: ${PORT}
+Server porta: ${PORT}
 
-🔥 SFIDA FINALE COMPLETAMENTE FUNZIONANTE:
-   1️⃣ Spiega Regole ✓
-   2️⃣ Attiva Finale ✓
-   3️⃣ Prepara ALL IN (100-500) ✓
-   4️⃣ Mostra Risultati ✓
-   5️⃣ Elabora Punteggi ✓
-   6️⃣ DOMANDE 2-5 (x2 PUNTI) ✓
-   7️⃣ RIVELA VINCITORE ✓
+? SOLUZIONI IMPLEMENTATE:
+? 1. Soluzione SOLO su display (non sui cellulari)
+? 2. Pulsanti +/- punti classifica funzionanti
+? 3. Buzzer e gioco musicale con assegnazione punti
+? 4. Podio round funzionante
+? 5. Risposta corretta visibile in anticipo all'admin
+? 6. ✅ Ruota della Fortuna FIXED (spiegazioni + animazione + estrazione + domanda sfida)
+? 7. Duello mostra risposta corretta
+? 8. ✅ SFIDA FINALE COMPLETA FUNZIONANTE:
+?    1️⃣ Spiega Regole ✓
+?    2️⃣ Attiva Finale ✓
+?    3️⃣ Prepara ALL IN (100/200/300/500) ✓
+?    4️⃣ Mostra Domanda & Risultati ✓
+?    5️⃣ Domande 2-5 (x2 punti) ✓
+?    6️⃣ Rivela Vincitore ✓
+? 9. Tasto winner funzionante
 
-🎮 TUTTE LE MODALITÀ DI GIOCO:
-   • Quiz ABCD con bonus velocità
-   • Buzzer / Gioco Musicale
-   • Ruota della Fortuna
-   • Duello Ruba-Punti
-   • Memory Game
-   • Patto col Destino
-
-💾 SISTEMA AUTO-SAVE ATTIVO
-🔄 RICONNESSIONE AUTOMATICA (5 min grace period)
-
-📚 Domande caricate: ${questionsData.questions.length}
-
+Pronto!
 `));

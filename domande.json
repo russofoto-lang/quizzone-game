@@ -3,981 +3,839 @@
     "1": {
       "nome": "Pacchetto Principale",
       "categorie": {
+
         "Storia": [
           {
-            "id": 1,
-            "domanda": "In quale anno è caduto l'Impero Romano d'Occidente?",
-            "risposte": [
-              "476 d.C.",
-              "410 d.C.",
-              "1453 d.C.",
-              "800 d.C."
-            ],
+            "id": 101,
+            "domanda": "In quale anno cadde il Muro di Berlino?",
+            "risposte": ["1989", "1991", "1985", "1987"],
             "corretta": 0,
             "punti": 100,
             "difficolta": "facile"
           },
           {
-            "id": 2,
-            "domanda": "Chi fu il primo presidente degli Stati Uniti?",
-            "risposte": [
-              "George Washington",
-              "Thomas Jefferson",
-              "Abraham Lincoln",
-              "John Adams"
-            ],
+            "id": 102,
+            "domanda": "Chi fu il primo uomo a camminare sulla Luna?",
+            "risposte": ["Neil Armstrong", "Buzz Aldrin", "Yuri Gagarin", "John Glenn"],
             "corretta": 0,
             "punti": 100,
             "difficolta": "facile"
           },
           {
-            "id": 3,
-            "domanda": "In quale secolo visse Leonardo da Vinci?",
-            "risposte": [
-              "XV-XVI secolo",
-              "XIII secolo",
-              "XVII secolo",
-              "XIX secolo"
-            ],
+            "id": 103,
+            "domanda": "Quale civiltà costruì il Colosseo?",
+            "risposte": ["Romana", "Greca", "Etrusca", "Cartaginese"],
             "corretta": 0,
-            "punti": 100,
-            "difficolta": "medio"
-          },
-          {
-            "id": 4,
-            "domanda": "Quale imperatore romano costruì il Vallo di Adriano?",
-            "risposte": [
-              "Adriano",
-              "Augusto",
-              "Traiano",
-              "Costantino"
-            ],
-            "corretta": 0,
-            "punti": 100,
-            "difficolta": "medio"
-          },
-          {
-            "id": 5,
-            "domanda": "Quale famosa battaglia segnò la fine delle guerre napoleoniche?",
-            "risposte": [
-              "Waterloo",
-              "Austerlitz",
-              "Borodino",
-              "Trafalgar"
-            ],
-            "corretta": 0,
-            "punti": 100,
-            "difficolta": "difficile"
-          },
-          {
-            "id": 6,
-            "domanda": "Quale trattato pose fine alla Prima guerra mondiale?",
-            "risposte": [
-              "Trattato di Versailles",
-              "Trattato di Utrecht",
-              "Trattato di Vienna",
-              "Trattato di Parigi"
-            ],
-            "corretta": 0,
-            "punti": 160,
-            "difficolta": "difficile"
-          },
-          {
-            "id": 7,
-            "domanda": "In che anno iniziò la Rivoluzione russa di febbraio?",
-            "risposte": [
-              "1905",
-              "1914",
-              "1917",
-              "1921"
-            ],
-            "corretta": 2,
-            "punti": 200,
-            "difficolta": "molto difficile"
-          }
-        ],
-        "Geografia": [
-          {
-            "id": 6,
-            "domanda": "Qual è la capitale dell'Australia?",
-            "risposte": [
-              "Canberra",
-              "Sydney",
-              "Melbourne",
-              "Perth"
-            ],
-            "corretta": 0,
-            "punti": 100,
-            "difficolta": "facile"
-          },
-          {
-            "id": 7,
-            "domanda": "Qual è il fiume più lungo d'Italia?",
-            "risposte": [
-              "Po",
-              "Tevere",
-              "Adige",
-              "Arno"
-            ],
-            "corretta": 0,
-            "punti": 100,
-            "difficolta": "facile"
-          },
-          {
-            "id": 8,
-            "domanda": "In quale continente si trova il deserto del Kalahari?",
-            "risposte": [
-              "Africa",
-              "Asia",
-              "America",
-              "Australia"
-            ],
-            "corretta": 0,
-            "punti": 100,
-            "difficolta": "medio"
-          },
-          {
-            "id": 9,
-            "domanda": "Quale paese ha come capitale Brasilia?",
-            "risposte": [
-              "Brasile",
-              "Argentina",
-              "Cile",
-              "Perù"
-            ],
-            "corretta": 0,
-            "punti": 100,
-            "difficolta": "medio"
-          },
-          {
-            "id": 10,
-            "domanda": "Quale catena montuosa separa l'Europa dall'Asia?",
-            "risposte": [
-              "Monti Urali",
-              "Alpi",
-              "Himalaya",
-              "Ande"
-            ],
-            "corretta": 0,
-            "punti": 100,
-            "difficolta": "difficile"
-          },
-          {
-            "id": 11,
-            "domanda": "Quale stato africano non ha sbocchi sul mare?",
-            "risposte": [
-              "Etiopia",
-              "Nigeria",
-              "Somalia",
-              "Kenya"
-            ],
-            "corretta": 0,
-            "punti": 160,
-            "difficolta": "difficile"
-          },
-          {
-            "id": 12,
-            "domanda": "Qual è il punto più profondo degli oceani terrestri?",
-            "risposte": [
-              "Fossa delle Marianne",
-              "Fossa di Tonga",
-              "Fossa di Porto Rico",
-              "Fossa di Java"
-            ],
-            "corretta": 0,
-            "punti": 200,
-            "difficolta": "molto difficile"
-          }
-        ],
-        "Scienze": [
-          {
-            "id": 11,
-            "domanda": "Quale pianeta è noto come il Pianeta Rosso?",
-            "risposte": [
-              "Marte",
-              "Venere",
-              "Giove",
-              "Saturno"
-            ],
-            "corretta": 0,
-            "punti": 100,
-            "difficolta": "facile"
-          },
-          {
-            "id": 12,
-            "domanda": "Quale gas è essenziale per la respirazione?",
-            "risposte": [
-              "Ossigeno",
-              "Azoto",
-              "Anidride carbonica",
-              "Idrogeno"
-            ],
-            "corretta": 0,
-            "punti": 100,
-            "difficolta": "facile"
-          },
-          {
-            "id": 13,
-            "domanda": "Quale elemento chimico ha simbolo 'Au'?",
-            "risposte": [
-              "Oro",
-              "Argento",
-              "Alluminio",
-              "Arsenico"
-            ],
-            "corretta": 0,
-            "punti": 100,
-            "difficolta": "medio"
-          },
-          {
-            "id": 14,
-            "domanda": "Quale parte della cellula contiene il DNA?",
-            "risposte": [
-              "Nucleo",
-              "Mitocondrio",
-              "Ribosoma",
-              "Cloroplasto"
-            ],
-            "corretta": 0,
-            "punti": 100,
-            "difficolta": "medio"
-          },
-          {
-            "id": 15,
-            "domanda": "Quale scienziato formulò la teoria della relatività?",
-            "risposte": [
-              "Albert Einstein",
-              "Isaac Newton",
-              "Galileo Galilei",
-              "Stephen Hawking"
-            ],
-            "corretta": 0,
-            "punti": 100,
-            "difficolta": "difficile"
-          },
-          {
-            "id": 16,
-            "domanda": "Quale molecola è responsabile del trasporto dell’ossigeno nel sangue?",
-            "risposte": [
-              "Emoglobina",
-              "Insulina",
-              "Emocianina",
-              "Mioglobina"
-            ],
-            "corretta": 0,
-            "punti": 160,
-            "difficolta": "difficile"
-          },
-          {
-            "id": 17,
-            "domanda": "Quale forza fondamentale governa i decadimenti radioattivi beta?",
-            "risposte": [
-              "Gravitazionale",
-              "Elettromagnetica",
-              "Forte",
-              "Debole"
-            ],
-            "corretta": 3,
-            "punti": 200,
-            "difficolta": "molto difficile"
-          }
-        ],
-        "Cinema": [
-          {
-            "id": 16,
-            "domanda": "Chi ha diretto 'Il Padrino'?",
-            "risposte": [
-              "Francis Ford Coppola",
-              "Martin Scorsese",
-              "Steven Spielberg",
-              "Quentin Tarantino"
-            ],
-            "corretta": 0,
-            "punti": 100,
-            "difficolta": "facile"
-          },
-          {
-            "id": 17,
-            "domanda": "In quale film compare il personaggio di Forrest Gump?",
-            "risposte": [
-              "Forrest Gump",
-              "Rain Man",
-              "Il curioso caso di Benjamin Button",
-              "Shawshank Redemption"
-            ],
-            "corretta": 0,
-            "punti": 100,
-            "difficolta": "facile"
-          },
-          {
-            "id": 18,
-            "domanda": "Quale attrice ha interpretato il ruolo di Hermione in Harry Potter?",
-            "risposte": [
-              "Emma Watson",
-              "Emma Stone",
-              "Jennifer Lawrence",
-              "Natalie Portman"
-            ],
-            "corretta": 0,
-            "punti": 100,
-            "difficolta": "medio"
-          },
-          {
-            "id": 19,
-            "domanda": "Chi ha vinto l'Oscar come miglior attore per 'Il gladiatore'?",
-            "risposte": [
-              "Russell Crowe",
-              "Joaquin Phoenix",
-              "Richard Harris",
-              "Oliver Reed"
-            ],
-            "corretta": 0,
-            "punti": 100,
-            "difficolta": "medio"
-          },
-          {
-            "id": 20,
-            "domanda": "Quale film di Stanley Kubrick è basato su un romanzo di Stephen King?",
-            "risposte": [
-              "Shining",
-              "2001: Odissea nello spazio",
-              "Arancia meccanica",
-              "Eyes Wide Shut"
-            ],
-            "corretta": 0,
-            "punti": 100,
-            "difficolta": "difficile"
-          },
-          {
-            "id": 21,
-            "domanda": "Quale film vinse la Palma d’Oro a Cannes nel 1994?",
-            "risposte": [
-              "Pulp Fiction",
-              "Forrest Gump",
-              "Il postino",
-              "Quattro matrimoni e un funerale"
-            ],
-            "corretta": 0,
-            "punti": 160,
-            "difficolta": "difficile"
-          },
-          {
-            "id": 22,
-            "domanda": "Chi ha diretto il film 'Stalker'?",
-            "risposte": [
-              "Tarkovskij",
-              "Bergman",
-              "Kubrick",
-              "Kieslowski"
-            ],
-            "corretta": 0,
-            "punti": 200,
-            "difficolta": "molto difficile"
-          }
-        ],
-        "Musica": [
-          {
-            "id": 21,
-            "domanda": "Quale famosa band britannica ha pubblicato 'Bohemian Rhapsody'?",
-            "risposte": [
-              "Queen",
-              "The Beatles",
-              "The Rolling Stones",
-              "Led Zeppelin"
-            ],
-            "corretta": 0,
-            "punti": 100,
-            "difficolta": "facile"
-          },
-          {
-            "id": 22,
-            "domanda": "Chi è conosciuto come il 'Re del Pop'?",
-            "risposte": [
-              "Michael Jackson",
-              "Elvis Presley",
-              "Prince",
-              "Madonna"
-            ],
-            "corretta": 0,
-            "punti": 100,
-            "difficolta": "facile"
-          },
-          {
-            "id": 23,
-            "domanda": "Quale compositore classico è sordo per gran parte della sua vita?",
-            "risposte": [
-              "Ludwig van Beethoven",
-              "Wolfgang Amadeus Mozart",
-              "Johann Sebastian Bach",
-              "Frédéric Chopin"
-            ],
-            "corretta": 0,
-            "punti": 100,
-            "difficolta": "medio"
-          },
-          {
-            "id": 24,
-            "domanda": "Quale cantante italiana ha vinto il Festival di Sanremo 2022?",
-            "risposte": [
-              "Mahmood e Blanco",
-              "Elisa",
-              "Marco Mengoni",
-              "Annalisa"
-            ],
-            "corretta": 0,
-            "punti": 100,
-            "difficolta": "medio"
-          },
-          {
-            "id": 25,
-            "domanda": "In quale anno i Beatles si sono sciolti ufficialmente?",
-            "risposte": [
-              "1970",
-              "1969",
-              "1971",
-              "1972"
-            ],
-            "corretta": 0,
-            "punti": 100,
-            "difficolta": "difficile"
-          },
-          {
-            "id": 26,
-            "domanda": "Quale compositore ha introdotto l’uso sistematico del leitmotiv nell’opera?",
-            "risposte": [
-              "Verdi",
-              "Wagner",
-              "Puccini",
-              "Strauss"
-            ],
-            "corretta": 1,
-            "punti": 160,
-            "difficolta": "difficile"
-          },
-          {
-            "id": 27,
-            "domanda": "In quale tonalità è scritta la Sinfonia n.5 di Beethoven?",
-            "risposte": [
-              "Do maggiore",
-              "Re minore",
-              "Do minore",
-              "Mi♭ maggiore"
-            ],
-            "corretta": 2,
-            "punti": 200,
-            "difficolta": "molto difficile"
-          }
-        ],
-        "Arte": [
-          {
-            "id": 26,
-            "domanda": "Chi dipinse la Cappella Sistina?",
-            "risposte": [
-              "Michelangelo",
-              "Leonardo da Vinci",
-              "Raffaello",
-              "Donatello"
-            ],
-            "corretta": 0,
-            "punti": 100,
-            "difficolta": "facile"
-          },
-          {
-            "id": 27,
-            "domanda": "In quale città si trova il Museo del Louvre?",
-            "risposte": [
-              "Parigi",
-              "Londra",
-              "Roma",
-              "New York"
-            ],
-            "corretta": 0,
-            "punti": 100,
-            "difficolta": "facile"
-          },
-          {
-            "id": 28,
-            "domanda": "Quale movimento artistico è associato a Salvador Dalì?",
-            "risposte": [
-              "Surrealismo",
-              "Impressionismo",
-              "Cubismo",
-              "Espressionismo"
-            ],
-            "corretta": 0,
-            "punti": 100,
-            "difficolta": "medio"
-          },
-          {
-            "id": 29,
-            "domanda": "Chi è l'autore della scultura 'David'?",
-            "risposte": [
-              "Michelangelo",
-              "Donatello",
-              "Bernini",
-              "Cellini"
-            ],
-            "corretta": 0,
-            "punti": 100,
-            "difficolta": "medio"
-          },
-          {
-            "id": 30,
-            "domanda": "Quale famoso quadro rappresenta una notte stellata?",
-            "risposte": [
-              "Notte stellata di Van Gogh",
-              "Urlo di Munch",
-              "Nascita di Venere",
-              "Guernica"
-            ],
-            "corretta": 0,
-            "punti": 100,
-            "difficolta": "difficile"
-          },
-          {
-            "id": 31,
-            "domanda": "A quale corrente artistica appartiene 'Guernica' di Picasso?",
-            "risposte": [
-              "Cubismo",
-              "Surrealismo",
-              "Futurismo",
-              "Espressionismo"
-            ],
-            "corretta": 0,
-            "punti": 160,
-            "difficolta": "difficile"
-          },
-          {
-            "id": 32,
-            "domanda": "Chi affrescò la Scuola di Atene?",
-            "risposte": [
-              "Michelangelo",
-              "Raffaello",
-              "Perugino",
-              "Bramante"
-            ],
-            "corretta": 1,
-            "punti": 200,
-            "difficolta": "molto difficile"
-          }
-        ],
-        "Sport": [
-          {
-            "id": 31,
-            "domanda": "In quale sport si usa la mazza da hockey?",
-            "risposte": [
-              "Hockey su ghiaccio",
-              "Golf",
-              "Tennis",
-              "Baseball"
-            ],
-            "corretta": 0,
-            "punti": 100,
-            "difficolta": "facile"
-          },
-          {
-            "id": 32,
-            "domanda": "Quanti giocatori ci sono in una squadra di calcio?",
-            "risposte": [
-              "11",
-              "10",
-              "9",
-              "12"
-            ],
-            "corretta": 0,
-            "punti": 100,
-            "difficolta": "facile"
-          },
-          {
-            "id": 33,
-            "domanda": "Quale paese ha vinto il Mondiale di calcio 2018?",
-            "risposte": [
-              "Francia",
-              "Croazia",
-              "Brasile",
-              "Germania"
-            ],
-            "corretta": 0,
-            "punti": 100,
-            "difficolta": "medio"
-          },
-          {
-            "id": 34,
-            "domanda": "In quale sport si compete per il Trofeo della Coppa Davis?",
-            "risposte": [
-              "Tennis",
-              "Calcio",
-              "Rugby",
-              "Golf"
-            ],
-            "corretta": 0,
-            "punti": 100,
-            "difficolta": "medio"
-          },
-          {
-            "id": 35,
-            "domanda": "Chi detiene il record mondiale dei 100 metri piani maschili?",
-            "risposte": [
-              "Usain Bolt",
-              "Carl Lewis",
-              "Justin Gatlin",
-              "Asafa Powell"
-            ],
-            "corretta": 0,
-            "punti": 100,
-            "difficolta": "difficile"
-          },
-          {
-            "id": 36,
-            "domanda": "In quale anno si disputarono le prime Olimpiadi moderne?",
-            "risposte": [
-              "1886",
-              "1896",
-              "1900",
-              "1912"
-            ],
-            "corretta": 1,
-            "punti": 160,
-            "difficolta": "difficile"
-          },
-          {
-            "id": 37,
-            "domanda": "Quale nazione ha vinto più Coppe del Mondo di calcio?",
-            "risposte": [
-              "Germania",
-              "Italia",
-              "Argentina",
-              "Brasile"
-            ],
-            "corretta": 3,
-            "punti": 200,
-            "difficolta": "molto difficile"
-          }
-        ],
-        "Giochi di logica": [
-          {
-            "id": 1001,
-            "domanda": "Completa la sequenza: 2, 4, 6, 8, ?",
-            "risposte": [
-              "9",
-              "10",
-              "12",
-              "14"
-            ],
-            "corretta": 1,
-            "punti": 50,
-            "difficolta": "facile"
-          },
-          {
-            "id": 1002,
-            "domanda": "Completa la sequenza: 3, 6, 12, 24, ?",
-            "risposte": [
-              "36",
-              "40",
-              "48",
-              "60"
-            ],
-            "corretta": 2,
-            "punti": 80,
-            "difficolta": "medio"
-          },
-          {
-            "id": 1003,
-            "domanda": "Completa la sequenza: 1, 1, 2, 3, 5, ?",
-            "risposte": [
-              "6",
-              "7",
-              "8",
-              "5"
-            ],
-            "corretta": 2,
             "punti": 120,
             "difficolta": "medio"
           },
           {
-            "id": 1004,
-            "domanda": "Completa la sequenza: 2, 5, 10, 17, ?",
-            "risposte": [
-              "24",
-              "26",
-              "28",
-              "30"
-            ],
-            "corretta": 1,
+            "id": 104,
+            "domanda": "In quale anno l'Italia è diventata una Repubblica?",
+            "risposte": ["1946", "1948", "1944", "1950"],
+            "corretta": 0,
+            "punti": 120,
+            "difficolta": "medio"
+          },
+          {
+            "id": 105,
+            "domanda": "Chi guidò la spedizione dei Mille nel 1860?",
+            "risposte": ["Giuseppe Garibaldi", "Camillo Cavour", "Vittorio Emanuele II", "Giuseppe Mazzini"],
+            "corretta": 0,
+            "punti": 120,
+            "difficolta": "medio"
+          },
+          {
+            "id": 106,
+            "domanda": "Quale trattato sancì la fine della Seconda Guerra Mondiale in Europa?",
+            "risposte": ["Trattato di Parigi (1947)", "Trattato di Versailles", "Accordi di Yalta", "Trattato di Potsdam"],
+            "corretta": 0,
             "punti": 160,
             "difficolta": "difficile"
           },
           {
-            "id": 1005,
-            "domanda": "Completa la sequenza: 1, 4, 9, 16, ?",
-            "risposte": [
-              "20",
-              "24",
-              "25",
-              "36"
-            ],
-            "corretta": 2,
+            "id": 107,
+            "domanda": "In quale anno Napoleone Bonaparte fu esiliato definitivamente a Sant'Elena?",
+            "risposte": ["1815", "1813", "1814", "1821"],
+            "corretta": 0,
+            "punti": 160,
+            "difficolta": "difficile"
+          },
+          {
+            "id": 108,
+            "domanda": "Come si chiamava il piano tedesco di invasione del Belgio e della Francia nel 1914?",
+            "risposte": ["Piano Schlieffen", "Piano Barbarossa", "Piano Bleu", "Piano Westwall"],
+            "corretta": 0,
             "punti": 200,
             "difficolta": "molto difficile"
           }
         ],
+
+        "Geografia": [
+          {
+            "id": 201,
+            "domanda": "Qual è la capitale del Canada?",
+            "risposte": ["Ottawa", "Toronto", "Montreal", "Vancouver"],
+            "corretta": 0,
+            "punti": 100,
+            "difficolta": "facile"
+          },
+          {
+            "id": 202,
+            "domanda": "Quale è il paese più grande del mondo per superficie?",
+            "risposte": ["Russia", "Canada", "Cina", "USA"],
+            "corretta": 0,
+            "punti": 100,
+            "difficolta": "facile"
+          },
+          {
+            "id": 203,
+            "domanda": "In quale mare sfocia il fiume Po?",
+            "risposte": ["Mar Adriatico", "Mar Tirreno", "Mar Ligure", "Mar Ionio"],
+            "corretta": 0,
+            "punti": 120,
+            "difficolta": "medio"
+          },
+          {
+            "id": 204,
+            "domanda": "Quale dei seguenti paesi non fa parte della penisola iberica?",
+            "risposte": ["Francia", "Spagna", "Portogallo", "Andorra"],
+            "corretta": 0,
+            "punti": 120,
+            "difficolta": "medio"
+          },
+          {
+            "id": 205,
+            "domanda": "Qual è il lago più profondo del mondo?",
+            "risposte": ["Lago Bajkal", "Lago Tanganyika", "Lago Superiore", "Lago Titicaca"],
+            "corretta": 0,
+            "punti": 160,
+            "difficolta": "difficile"
+          },
+          {
+            "id": 206,
+            "domanda": "Quale stretto separa l'Europa dall'Africa?",
+            "risposte": ["Stretto di Gibilterra", "Stretto di Messina", "Stretto di Hormuz", "Stretto di Dover"],
+            "corretta": 0,
+            "punti": 160,
+            "difficolta": "difficile"
+          },
+          {
+            "id": 207,
+            "domanda": "Quale paese ha la maggiore densità di popolazione al mondo?",
+            "risposte": ["Monaco", "Singapore", "Bangladesh", "Maldive"],
+            "corretta": 0,
+            "punti": 200,
+            "difficolta": "molto difficile"
+          }
+        ],
+
+        "Scienze": [
+          {
+            "id": 301,
+            "domanda": "Quante ossa ha il corpo umano adulto?",
+            "risposte": ["206", "186", "230", "212"],
+            "corretta": 0,
+            "punti": 100,
+            "difficolta": "facile"
+          },
+          {
+            "id": 302,
+            "domanda": "Quale pianeta è il più vicino al Sole?",
+            "risposte": ["Mercurio", "Venere", "Marte", "Terra"],
+            "corretta": 0,
+            "punti": 100,
+            "difficolta": "facile"
+          },
+          {
+            "id": 303,
+            "domanda": "Qual è la formula chimica dell'acqua?",
+            "risposte": ["H₂O", "H₂O₂", "HO", "H₃O"],
+            "corretta": 0,
+            "punti": 100,
+            "difficolta": "facile"
+          },
+          {
+            "id": 304,
+            "domanda": "Quale organo produce l'insulina?",
+            "risposte": ["Pancreas", "Fegato", "Rene", "Milza"],
+            "corretta": 0,
+            "punti": 120,
+            "difficolta": "medio"
+          },
+          {
+            "id": 305,
+            "domanda": "Quanti cromosomi ha una cellula umana sana?",
+            "risposte": ["46", "23", "48", "44"],
+            "corretta": 0,
+            "punti": 120,
+            "difficolta": "medio"
+          },
+          {
+            "id": 306,
+            "domanda": "Quale legge fisica afferma che per ogni azione esiste una reazione uguale e contraria?",
+            "risposte": ["Terza legge di Newton", "Prima legge di Newton", "Legge di Gravitazione", "Principio di Archimede"],
+            "corretta": 0,
+            "punti": 160,
+            "difficolta": "difficile"
+          },
+          {
+            "id": 307,
+            "domanda": "Quale parte del cervello regola l'equilibrio e la coordinazione motoria?",
+            "risposte": ["Cervelletto", "Corteccia cerebrale", "Talamo", "Ipotalamo"],
+            "corretta": 0,
+            "punti": 160,
+            "difficolta": "difficile"
+          },
+          {
+            "id": 308,
+            "domanda": "Qual è il numero atomico dell'oro?",
+            "risposte": ["79", "47", "29", "82"],
+            "corretta": 0,
+            "punti": 200,
+            "difficolta": "molto difficile"
+          }
+        ],
+
+        "Cinema": [
+          {
+            "id": 401,
+            "domanda": "Chi ha diretto 'La vita è bella' del 1997?",
+            "risposte": ["Roberto Benigni", "Nanni Moretti", "Giuseppe Tornatore", "Gabriele Muccino"],
+            "corretta": 0,
+            "punti": 100,
+            "difficolta": "facile"
+          },
+          {
+            "id": 402,
+            "domanda": "Quale film ha vinto l'Oscar come miglior film nel 2020?",
+            "risposte": ["Parasite", "1917", "Joker", "C'era una volta a Hollywood"],
+            "corretta": 0,
+            "punti": 100,
+            "difficolta": "facile"
+          },
+          {
+            "id": 403,
+            "domanda": "In quale anno è uscito il primo film della saga di Star Wars?",
+            "risposte": ["1977", "1975", "1980", "1983"],
+            "corretta": 0,
+            "punti": 120,
+            "difficolta": "medio"
+          },
+          {
+            "id": 404,
+            "domanda": "Chi ha interpretato James Bond nel film 'Casino Royale' del 2006?",
+            "risposte": ["Daniel Craig", "Pierce Brosnan", "Sean Connery", "Roger Moore"],
+            "corretta": 0,
+            "punti": 120,
+            "difficolta": "medio"
+          },
+          {
+            "id": 405,
+            "domanda": "Di quale regista italiano è il film 'Nuovo Cinema Paradiso'?",
+            "risposte": ["Giuseppe Tornatore", "Federico Fellini", "Bernardo Bertolucci", "Luchino Visconti"],
+            "corretta": 0,
+            "punti": 160,
+            "difficolta": "difficile"
+          },
+          {
+            "id": 406,
+            "domanda": "Quale attore ha vinto più Oscar nella storia della cerimonia?",
+            "risposte": ["Katharine Hepburn", "Meryl Streep", "Jack Nicholson", "Daniel Day-Lewis"],
+            "corretta": 0,
+            "punti": 160,
+            "difficolta": "difficile"
+          },
+          {
+            "id": 407,
+            "domanda": "In quale film Marcello Mastroianni dice 'La dolce vita'?",
+            "risposte": ["La dolce vita di Fellini (1960)", "8½", "Divorzio all'italiana", "Ieri, oggi, domani"],
+            "corretta": 0,
+            "punti": 200,
+            "difficolta": "molto difficile"
+          }
+        ],
+
+        "Musica": [
+          {
+            "id": 501,
+            "domanda": "Chi ha scritto la canzone 'Volare'?",
+            "risposte": ["Domenico Modugno", "Lucio Battisti", "Mina", "Adriano Celentano"],
+            "corretta": 0,
+            "punti": 100,
+            "difficolta": "facile"
+          },
+          {
+            "id": 502,
+            "domanda": "Quante corde ha una chitarra classica?",
+            "risposte": ["6", "4", "8", "12"],
+            "corretta": 0,
+            "punti": 100,
+            "difficolta": "facile"
+          },
+          {
+            "id": 503,
+            "domanda": "In quale città nacque Wolfgang Amadeus Mozart?",
+            "risposte": ["Salisburgo", "Vienna", "Berlino", "Monaco"],
+            "corretta": 0,
+            "punti": 120,
+            "difficolta": "medio"
+          },
+          {
+            "id": 504,
+            "domanda": "Quale cantante italiana è soprannominata 'la tigre di Cremona'?",
+            "risposte": ["Mina", "Ornella Vanoni", "Patty Pravo", "Milva"],
+            "corretta": 0,
+            "punti": 120,
+            "difficolta": "medio"
+          },
+          {
+            "id": 505,
+            "domanda": "Come si chiama la tecnica chitarristica inventata da Jimi Hendrix di suonare con i denti?",
+            "risposte": ["Non ha un nome ufficiale, ma è associata al suo show", "Hammer-on", "Slide", "Fingerpicking"],
+            "corretta": 0,
+            "punti": 160,
+            "difficolta": "difficile"
+          },
+          {
+            "id": 506,
+            "domanda": "Quale strumento suonava Miles Davis?",
+            "risposte": ["Tromba", "Sassofono", "Clarinetto", "Pianoforte"],
+            "corretta": 0,
+            "punti": 160,
+            "difficolta": "difficile"
+          },
+          {
+            "id": 507,
+            "domanda": "In quale anno si tenne il celebre concerto di Woodstock?",
+            "risposte": ["1969", "1967", "1971", "1973"],
+            "corretta": 0,
+            "punti": 200,
+            "difficolta": "molto difficile"
+          }
+        ],
+
+        "Arte e Letteratura": [
+          {
+            "id": 601,
+            "domanda": "Chi ha scritto 'I Promessi Sposi'?",
+            "risposte": ["Alessandro Manzoni", "Italo Svevo", "Ugo Foscolo", "Giacomo Leopardi"],
+            "corretta": 0,
+            "punti": 100,
+            "difficolta": "facile"
+          },
+          {
+            "id": 602,
+            "domanda": "Quale scrittore ha creato il personaggio di Sherlock Holmes?",
+            "risposte": ["Arthur Conan Doyle", "Agatha Christie", "Edgar Allan Poe", "Raymond Chandler"],
+            "corretta": 0,
+            "punti": 100,
+            "difficolta": "facile"
+          },
+          {
+            "id": 603,
+            "domanda": "In quale città si svolge il romanzo 'Il nome della rosa' di Umberto Eco?",
+            "risposte": ["In un abbazia medievale (Appennino ligure-piemontese)", "Roma", "Firenze", "Venezia"],
+            "corretta": 0,
+            "punti": 120,
+            "difficolta": "medio"
+          },
+          {
+            "id": 604,
+            "domanda": "Quale pittore impressionista è famoso per le sue serie di ninfee?",
+            "risposte": ["Claude Monet", "Pierre-Auguste Renoir", "Edgar Degas", "Camille Pissarro"],
+            "corretta": 0,
+            "punti": 120,
+            "difficolta": "medio"
+          },
+          {
+            "id": 605,
+            "domanda": "Chi scrisse 'Cento anni di solitudine'?",
+            "risposte": ["Gabriel García Márquez", "Mario Vargas Llosa", "Jorge Luis Borges", "Pablo Neruda"],
+            "corretta": 0,
+            "punti": 160,
+            "difficolta": "difficile"
+          },
+          {
+            "id": 606,
+            "domanda": "In quale secolo fu scritta la Divina Commedia?",
+            "risposte": ["XIV secolo (1300-1321)", "XIII secolo", "XV secolo", "XII secolo"],
+            "corretta": 0,
+            "punti": 160,
+            "difficolta": "difficile"
+          },
+          {
+            "id": 607,
+            "domanda": "Come si chiama la tecnica pittorica che consiste nell'applicare colore su intonaco fresco?",
+            "risposte": ["Affresco", "Tempera", "Encausto", "Gouache"],
+            "corretta": 0,
+            "punti": 200,
+            "difficolta": "molto difficile"
+          }
+        ],
+
+        "Sport": [
+          {
+            "id": 701,
+            "domanda": "Quante squadre partecipano alla Serie A italiana?",
+            "risposte": ["20", "18", "22", "16"],
+            "corretta": 0,
+            "punti": 100,
+            "difficolta": "facile"
+          },
+          {
+            "id": 702,
+            "domanda": "Quale paese ha ospitato le Olimpiadi del 2016?",
+            "risposte": ["Brasile", "Argentina", "Cina", "Russia"],
+            "corretta": 0,
+            "punti": 100,
+            "difficolta": "facile"
+          },
+          {
+            "id": 703,
+            "domanda": "In quanti set si disputa una partita di tennis del Grande Slam maschile?",
+            "risposte": ["Al meglio dei 5 set", "Al meglio dei 3 set", "Al meglio dei 7 set", "4 set fissi"],
+            "corretta": 0,
+            "punti": 120,
+            "difficolta": "medio"
+          },
+          {
+            "id": 704,
+            "domanda": "Quale club ha vinto più Champions League nella storia?",
+            "risposte": ["Real Madrid", "AC Milan", "Bayern Monaco", "Barcellona"],
+            "corretta": 0,
+            "punti": 120,
+            "difficolta": "medio"
+          },
+          {
+            "id": 705,
+            "domanda": "Quante medaglie d'oro ha vinto Michael Phelps in carriera alle Olimpiadi?",
+            "risposte": ["23", "18", "28", "15"],
+            "corretta": 0,
+            "punti": 160,
+            "difficolta": "difficile"
+          },
+          {
+            "id": 706,
+            "domanda": "In quale sport si usa il termine 'birdie'?",
+            "risposte": ["Golf", "Badminton", "Bowling", "Cricket"],
+            "corretta": 0,
+            "punti": 160,
+            "difficolta": "difficile"
+          },
+          {
+            "id": 707,
+            "domanda": "Quale italiano ha vinto il Tour de France?",
+            "risposte": ["Marco Pantani (1998)", "Fausto Coppi", "Gino Bartali", "Felice Gimondi"],
+            "corretta": 0,
+            "punti": 200,
+            "difficolta": "molto difficile"
+          }
+        ],
+
+        "Giochi di logica": [
+          {
+            "id": 1001,
+            "domanda": "Se oggi è mercoledì, che giorno sarà tra 100 giorni?",
+            "risposte": ["Venerdì", "Giovedì", "Sabato", "Martedì"],
+            "corretta": 0,
+            "punti": 120,
+            "difficolta": "medio"
+          },
+          {
+            "id": 1002,
+            "domanda": "Un treno parte alle 7:45 e arriva alle 13:20. Quanto dura il viaggio?",
+            "risposte": ["5 ore e 35 minuti", "5 ore e 45 minuti", "6 ore e 25 minuti", "5 ore e 25 minuti"],
+            "corretta": 0,
+            "punti": 100,
+            "difficolta": "facile"
+          },
+          {
+            "id": 1003,
+            "domanda": "Completa la serie: 2, 6, 12, 20, 30, ?",
+            "risposte": ["42", "40", "36", "44"],
+            "corretta": 0,
+            "punti": 140,
+            "difficolta": "medio"
+          },
+          {
+            "id": 1004,
+            "domanda": "Ho una candela che dura 2 ore. Ne accendo metà. Quanto durerà?",
+            "risposte": ["2 ore", "1 ora", "4 ore", "30 minuti"],
+            "corretta": 0,
+            "punti": 120,
+            "difficolta": "medio"
+          },
+          {
+            "id": 1005,
+            "domanda": "In un gruppo di 30 persone, la metà sono adulti e un terzo degli adulti sono donne. Quante donne adulte ci sono?",
+            "risposte": ["5", "10", "6", "15"],
+            "corretta": 0,
+            "punti": 160,
+            "difficolta": "difficile"
+          },
+          {
+            "id": 1006,
+            "domanda": "Se un gatto corre a 4 metri al secondo e un topo a 2 metri al secondo, con 20 metri di vantaggio, dopo quanti secondi il gatto raggiunge il topo?",
+            "risposte": ["10 secondi", "5 secondi", "20 secondi", "8 secondi"],
+            "corretta": 0,
+            "punti": 160,
+            "difficolta": "difficile"
+          },
+          {
+            "id": 1007,
+            "domanda": "Mario ha 3 figli. Il prodotto delle loro età è 36. La somma delle loro età è uguale al numero di finestre di casa sua. Non riesce a capire quanti anni hanno. Qual è la somma delle loro età?",
+            "risposte": ["13", "12", "10", "14"],
+            "corretta": 0,
+            "punti": 200,
+            "difficolta": "molto difficile"
+          },
+          {
+            "id": 1008,
+            "domanda": "Quale numero viene dopo nella serie: 1, 4, 9, 16, 25, ?",
+            "risposte": ["36", "30", "32", "40"],
+            "corretta": 0,
+            "punti": 100,
+            "difficolta": "facile"
+          }
+        ],
+
+        "Logica verbale": [
+          {
+            "id": 3101,
+            "domanda": "Quale parola NON appartiene al gruppo: Rosa, Tulipano, Orchidea, Quercia?",
+            "risposte": ["Quercia", "Rosa", "Tulipano", "Orchidea"],
+            "corretta": 0,
+            "punti": 100,
+            "difficolta": "facile"
+          },
+          {
+            "id": 3102,
+            "domanda": "Se SOLE sta a GIORNO, allora LUNA sta a…?",
+            "risposte": ["Notte", "Cielo", "Stelle", "Buio"],
+            "corretta": 0,
+            "punti": 100,
+            "difficolta": "facile"
+          },
+          {
+            "id": 3103,
+            "domanda": "Quale parola NON appartiene al gruppo: Violino, Chitarra, Flauto, Pianoforte?",
+            "risposte": ["Flauto", "Violino", "Chitarra", "Pianoforte"],
+            "corretta": 0,
+            "punti": 120,
+            "difficolta": "medio"
+          },
+          {
+            "id": 3104,
+            "domanda": "Tutti i gatti sono animali. Alcuni animali sono domestici. È certamente vero che…?",
+            "risposte": ["Alcuni gatti potrebbero essere domestici", "Tutti i gatti sono domestici", "Nessun gatto è domestico", "Tutti gli animali sono gatti"],
+            "corretta": 0,
+            "punti": 140,
+            "difficolta": "medio"
+          },
+          {
+            "id": 3105,
+            "domanda": "Se 'medico' sta a 'ospedale' come 'insegnante' sta a…?",
+            "risposte": ["Scuola", "Libro", "Aula", "Università"],
+            "corretta": 0,
+            "punti": 100,
+            "difficolta": "facile"
+          },
+          {
+            "id": 3106,
+            "domanda": "Nessun politico è onesto. Marco è onesto. Cosa si può dedurre?",
+            "risposte": ["Marco non è un politico", "Marco potrebbe essere un politico", "Marco è onesto ma politico", "Non si può dedurre niente"],
+            "corretta": 0,
+            "punti": 160,
+            "difficolta": "difficile"
+          },
+          {
+            "id": 3107,
+            "domanda": "Quale parola completa l'analogia: Pittore : Pennello = Fotografo : ?",
+            "risposte": ["Macchina fotografica", "Obiettivo", "Pellicola", "Luce"],
+            "corretta": 0,
+            "punti": 120,
+            "difficolta": "medio"
+          }
+        ],
+
         "Raddoppi": [
           {
             "id": 2101,
-            "domanda": "RADDOPPIO: In quale anno è entrata in vigore la Costituzione Italiana?",
-            "risposte": [
-              "1946",
-              "1947",
-              "1948",
-              "1950"
-            ],
-            "corretta": 2,
+            "domanda": "RADDOPPIO: In quale anno fu firmata la Costituzione Italiana, entrata in vigore il 1° gennaio 1948?",
+            "risposte": ["1947", "1946", "1948", "1949"],
+            "corretta": 0,
             "punti": 400,
             "difficolta": "molto difficile"
           },
           {
             "id": 2102,
-            "domanda": "RADDOPPIO: Quale legge fisica è espressa dalla formula F = q·v×B?",
-            "risposte": [
-              "Legge di Coulomb",
-              "Forza di Lorentz",
-              "Legge di Ohm",
-              "Principio di Archimede"
-            ],
-            "corretta": 1,
+            "domanda": "RADDOPPIO: Quale scrittore italiano vinse il Premio Nobel per la letteratura nel 1997?",
+            "risposte": ["Dario Fo", "Eugenio Montale", "Grazia Deledda", "Alberto Moravia"],
+            "corretta": 0,
+            "punti": 400,
+            "difficolta": "molto difficile"
+          },
+          {
+            "id": 2103,
+            "domanda": "RADDOPPIO: Quanti sono i libri della Commedia di Dante?",
+            "risposte": ["3 (Inferno, Purgatorio, Paradiso)", "2", "4", "1"],
+            "corretta": 0,
             "punti": 400,
             "difficolta": "molto difficile"
           }
         ],
-        "Logica verbale": [
-          {
-            "id": 3101,
-            "domanda": "LOGICA VERBALE: Individua la parola che NON appartiene al gruppo.",
-            "risposte": [
-              "Assioma",
-              "Teorema",
-              "Postulato",
-              "Ipotesi"
-            ],
-            "corretta": 3,
-            "punti": 80,
-            "difficolta": "medio"
-          },
-          {
-            "id": 3102,
-            "domanda": "LOGICA VERBALE: Quale relazione lega 'metallo' a 'conducibilità' come 'legno' a…",
-            "risposte": [
-              "Resistenza",
-              "Isolamento",
-              "Elasticità",
-              "Fragilità"
-            ],
-            "corretta": 1,
-            "punti": 120,
-            "difficolta": "medio"
-          },
-          {
-            "id": 3103,
-            "domanda": "LOGICA VERBALE: Tutti i filosofi sono pensatori. Alcuni pensatori sono scrittori. Quale affermazione è certamente vera?",
-            "risposte": [
-              "Tutti i filosofi sono scrittori",
-              "Alcuni filosofi potrebbero essere scrittori",
-              "Nessun filosofo è scrittore",
-              "Tutti gli scrittori sono filosofi"
-            ],
-            "corretta": 1,
-            "punti": 160,
-            "difficolta": "difficile"
-          },
-          {
-            "id": 3104,
-            "domanda": "LOGICA VERBALE: Se A implica B e B implica C, quale affermazione è corretta?",
-            "risposte": [
-              "A implica C",
-              "C implica A",
-              "A e C sono indipendenti",
-              "B non implica C"
-            ],
-            "corretta": 0,
-            "punti": 200,
-            "difficolta": "molto difficile"
-          }
-        ],
+
         "ALL IN": [
           {
             "id": 9001,
-            "domanda": "ALL IN (FACOLTATIVO) — REGOLA: la squadra può scegliere se giocare. Se risponde GIUSTO raddoppia il punteggio totale; se sbaglia azzera il punteggio totale. (I punti di questa domanda nel file sono 0 perché la gestione è esterna).",
-            "risposte": [
-              "Ricevuto"
-            ],
+            "domanda": "ALL IN (FACOLTATIVO) — REGOLA: la squadra può scegliere se giocare. Se risponde GIUSTO raddoppia il punteggio totale; se sbaglia azzera il punteggio totale.",
+            "risposte": ["Ricevuto"],
             "corretta": 0,
             "punti": 0,
             "difficolta": "all in"
           },
           {
             "id": 9002,
-            "domanda": "ALL IN: Quale affermazione è corretta riguardo al numero e (≈2,71828…)?",
-            "risposte": [
-              "È una radice di un polinomio a coefficienti interi",
-              "È un numero trascendente",
-              "È un numero razionale",
-              "È un numero primo"
-            ],
-            "corretta": 1,
+            "domanda": "ALL IN: Chi ha dipinto 'Le Meninas'?",
+            "risposte": ["Diego Velázquez", "Francisco Goya", "El Greco", "Bartolomé Murillo"],
+            "corretta": 0,
             "punti": 0,
             "difficolta": "all in"
           },
           {
             "id": 9003,
-            "domanda": "ALL IN: In chimica, quale affermazione descrive correttamente un catalizzatore?",
-            "risposte": [
-              "Aumenta la resa teorica della reazione",
-              "Aumenta l’energia di attivazione",
-              "Aumenta la velocità di reazione abbassando l’energia di attivazione senza consumarsi",
-              "Si trasforma irreversibilmente nei prodotti"
-            ],
-            "corretta": 2,
+            "domanda": "ALL IN: Quante sonate per pianoforte scrisse Ludwig van Beethoven?",
+            "risposte": ["32", "24", "48", "16"],
+            "corretta": 0,
             "punti": 0,
             "difficolta": "all in"
           },
           {
             "id": 9004,
-            "domanda": "ALL IN: Quale evento è avvenuto per primo?",
-            "risposte": [
-              "Rivoluzione francese (1789)",
-              "Riforma protestante (1517)",
-              "Caduta di Costantinopoli (1453)",
-              "Scoperta dell’America (1492)"
-            ],
-            "corretta": 2,
+            "domanda": "ALL IN: In quale regione italiana si trova la Valle dei Templi?",
+            "risposte": ["Sicilia", "Calabria", "Sardegna", "Campania"],
+            "corretta": 0,
             "punti": 0,
             "difficolta": "all in"
           },
           {
             "id": 9005,
-            "domanda": "ALL IN: In logica, quale delle seguenti forme è una tautologia?",
-            "risposte": [
-              "p ∧ ¬p",
-              "p → q",
-              "p ∨ ¬p",
-              "p ∧ q"
-            ],
-            "corretta": 2,
-            "punti": 0,
-            "difficolta": "all in"
-          },
-          {
-            "id": 9006,
-            "domanda": "ALL IN: Se una funzione è continua in [a,b] e derivabile in (a,b), quale teorema garantisce l’esistenza di c in (a,b) tale che f'(c) = (f(b)−f(a))/(b−a)?",
-            "risposte": [
-              "Teorema di Rolle",
-              "Teorema di Lagrange (del valor medio)",
-              "Teorema di Pitagora",
-              "Teorema di Gauss"
-            ],
-            "corretta": 1,
+            "domanda": "ALL IN: Come si chiama il teorema che afferma che in ogni sistema formale abbastanza potente esistono affermazioni vere ma non dimostrabili?",
+            "risposte": ["Teorema di incompletezza di Gödel", "Teorema di Fermat", "Teorema di Pitagora", "Paradosso di Russell"],
+            "corretta": 0,
             "punti": 0,
             "difficolta": "all in"
           }
         ]
       },
+
+      "sfida_finale": [
+        {
+          "id": 8001,
+          "domanda": "SFIDA FINALE: Chi ha scritto 'Il Principe'?",
+          "risposte": ["Niccolò Machiavelli", "Dante Alighieri", "Tommaso Moro", "Francesco Guicciardini"],
+          "corretta": 0,
+          "punti": 300,
+          "difficolta": "sfida"
+        },
+        {
+          "id": 8002,
+          "domanda": "SFIDA FINALE: Qual è il paese con più siti UNESCO al mondo?",
+          "risposte": ["Italia", "Cina", "Spagna", "Francia"],
+          "corretta": 0,
+          "punti": 300,
+          "difficolta": "sfida"
+        },
+        {
+          "id": 8003,
+          "domanda": "SFIDA FINALE: Quale scienziato formulò la legge di gravitazione universale?",
+          "risposte": ["Isaac Newton", "Galileo Galilei", "Albert Einstein", "Johannes Kepler"],
+          "corretta": 0,
+          "punti": 300,
+          "difficolta": "sfida"
+        },
+        {
+          "id": 8004,
+          "domanda": "SFIDA FINALE: In quale anno fu lanciato il primo satellite artificiale, lo Sputnik?",
+          "risposte": ["1957", "1955", "1961", "1959"],
+          "corretta": 0,
+          "punti": 300,
+          "difficolta": "sfida"
+        },
+        {
+          "id": 8005,
+          "domanda": "SFIDA FINALE: Quale opera lirica di Verdi si svolge in Egitto?",
+          "risposte": ["Aida", "Nabucco", "Otello", "Trovatore"],
+          "corretta": 0,
+          "punti": 300,
+          "difficolta": "sfida"
+        },
+        {
+          "id": 8006,
+          "domanda": "SFIDA FINALE: Logica — Se tutti i B sono A, e nessun C è A, allora…",
+          "risposte": ["Nessun C è B", "Tutti i C sono B", "Alcuni C sono B", "Non si può concludere niente"],
+          "corretta": 0,
+          "punti": 300,
+          "difficolta": "sfida"
+        },
+        {
+          "id": 8007,
+          "domanda": "SFIDA FINALE: Qual è la radice quadrata di 1.764?",
+          "risposte": ["42", "44", "40", "38"],
+          "corretta": 0,
+          "punti": 300,
+          "difficolta": "sfida"
+        },
+        {
+          "id": 8008,
+          "domanda": "SFIDA FINALE: Chi guidò la rivoluzione cubana nel 1959?",
+          "risposte": ["Fidel Castro", "Ernesto Che Guevara", "Raúl Castro", "Camilo Cienfuegos"],
+          "corretta": 0,
+          "punti": 300,
+          "difficolta": "sfida"
+        },
+        {
+          "id": 8009,
+          "domanda": "SFIDA FINALE: Quale regione italiana ha il maggior numero di comuni?",
+          "risposte": ["Lombardia", "Piemonte", "Campania", "Sicilia"],
+          "corretta": 0,
+          "punti": 300,
+          "difficolta": "sfida"
+        },
+        {
+          "id": 8010,
+          "domanda": "SFIDA FINALE: In quale romanzo compare il personaggio di Don Abbondio?",
+          "risposte": ["I Promessi Sposi", "Il fu Mattia Pascal", "I Malavoglia", "Le confessioni di un italiano"],
+          "corretta": 0,
+          "punti": 300,
+          "difficolta": "sfida"
+        },
+        {
+          "id": 8011,
+          "domanda": "SFIDA FINALE: Quanti lati ha un dodecagono?",
+          "risposte": ["12", "10", "14", "8"],
+          "corretta": 0,
+          "punti": 300,
+          "difficolta": "sfida"
+        },
+        {
+          "id": 8012,
+          "domanda": "SFIDA FINALE: Qual è la moneta ufficiale del Giappone?",
+          "risposte": ["Yen", "Won", "Yuan", "Baht"],
+          "corretta": 0,
+          "punti": 300,
+          "difficolta": "sfida"
+        }
+      ],
+
       "bonus": [
         {
-          "id": 36,
-          "domanda": "BONUS: Qual è l'animale più veloce sulla terra?",
-          "risposte": [
-            "Ghepardo",
-            "Leone",
-            "Antilope",
-            "Leopardo"
-          ],
+          "id": 5001,
+          "domanda": "BONUS: Qual è l'animale terrestre più veloce?",
+          "risposte": ["Ghepardo", "Leopardo", "Antilope", "Puma"],
           "corretta": 0,
           "punti": 200,
           "difficolta": "facile"
         },
         {
-          "id": 37,
-          "domanda": "BONUS: Quale pianeta ha il giorno più lungo?",
-          "risposte": [
-            "Venere",
-            "Marte",
-            "Giove",
-            "Saturno"
-          ],
+          "id": 5002,
+          "domanda": "BONUS: Quanti colori ha l'arcobaleno?",
+          "risposte": ["7", "6", "8", "5"],
           "corretta": 0,
           "punti": 200,
           "difficolta": "facile"
         },
         {
-          "id": 38,
-          "domanda": "BONUS: Chi ha scritto 'Il vecchio e il mare'?",
-          "risposte": [
-            "Ernest Hemingway",
-            "Mark Twain",
-            "John Steinbeck",
-            "F. Scott Fitzgerald"
-          ],
+          "id": 5003,
+          "domanda": "BONUS: In quale città italiana si trova il Duomo più grande del mondo?",
+          "risposte": ["Milano", "Roma", "Firenze", "Napoli"],
+          "corretta": 0,
+          "punti": 200,
+          "difficolta": "medio"
+        },
+        {
+          "id": 5004,
+          "domanda": "BONUS: Quanti secondi ci sono in un'ora?",
+          "risposte": ["3600", "360", "6000", "3000"],
+          "corretta": 0,
+          "punti": 200,
+          "difficolta": "facile"
+        },
+        {
+          "id": 5005,
+          "domanda": "BONUS: Quale elemento chimico è il più abbondante nell'universo?",
+          "risposte": ["Idrogeno", "Elio", "Ossigeno", "Carbonio"],
           "corretta": 0,
           "punti": 200,
           "difficolta": "medio"
         }
       ],
+
       "stima": [
         {
-          "id": 39,
-          "domanda": "STIMA: Quanto è alta la Torre di Pisa in metri? (approssimativamente)",
-          "corretta": "57",
-          "punti": 150,
-          "difficolta": "facile"
-        },
-        {
-          "id": 40,
-          "domanda": "STIMA: Quanti abitanti ha la città di Milano? (approssimativamente in milioni)",
-          "corretta": "1.4",
-          "punti": 150,
-          "difficolta": "facile"
-        },
-        {
-          "id": 41,
-          "domanda": "STIMA: Quanti anni aveva Leonardo da Vinci quando è morto?",
-          "corretta": "67",
+          "id": 6001,
+          "domanda": "STIMA: Quanti chilometri misura la Grande Muraglia Cinese (approssimativamente)?",
+          "corretta": "21000",
           "punti": 150,
           "difficolta": "medio"
+        },
+        {
+          "id": 6002,
+          "domanda": "STIMA: A quanti gradi bolle l'acqua sul Monte Everest (approssimativamente)?",
+          "corretta": "70",
+          "punti": 150,
+          "difficolta": "difficile"
+        },
+        {
+          "id": 6003,
+          "domanda": "STIMA: Quanti abitanti ha la Puglia (approssimativamente in milioni)?",
+          "corretta": "3.9",
+          "punti": 150,
+          "difficolta": "medio"
+        },
+        {
+          "id": 6004,
+          "domanda": "STIMA: In che anno fu costruito il Colosseo (approssimativamente)?",
+          "corretta": "80",
+          "punti": 150,
+          "difficolta": "difficile"
         }
       ],
+
       "anagramma": [
         {
           "id": 4001,
-          "domanda": "ANAGRAMMA: R O M A",
-          "corretta": "AMOR",
-          "punti": 50,
+          "domanda": "ANAGRAMMA: A M O R E",
+          "corretta": "ROMEA / REAMO / varianti accettate",
+          "punti": 80,
           "difficolta": "facile"
         },
         {
           "id": 4002,
-          "domanda": "ANAGRAMMA: C A S A",
-          "corretta": "SACA",
-          "punti": 80,
+          "domanda": "ANAGRAMMA: P A R C O",
+          "corretta": "CORPO",
+          "punti": 100,
           "difficolta": "medio"
         },
         {
           "id": 4003,
-          "domanda": "ANAGRAMMA: P A R O L A",
-          "corretta": "LAPARO",
+          "domanda": "ANAGRAMMA: S T E L L A",
+          "corretta": "ALLEST / TALLAS (varianti: STELLE-A)",
           "punti": 120,
           "difficolta": "medio"
         },
         {
           "id": 4004,
-          "domanda": "ANAGRAMMA: S P E T T A C O L O",
-          "corretta": "POTESCOLTA",
-          "punti": 160,
+          "domanda": "ANAGRAMMA: M U S I C A",
+          "corretta": "CAMUSI / MISUCA — o MACIUS (varianti accettate)",
+          "punti": 140,
           "difficolta": "difficile"
         },
         {
           "id": 4005,
-          "domanda": "ANAGRAMMA: I N T R A T T E N I M E N T O",
-          "corretta": "INTRATTENIMENTO",
+          "domanda": "ANAGRAMMA: C A L C I A T O R E",
+          "corretta": "CATALRICOE / RACICOLTAE (varianti accettate)",
           "punti": 200,
           "difficolta": "molto difficile"
         }

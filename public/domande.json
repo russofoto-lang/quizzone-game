@@ -6,12 +6,12 @@
         "Storia": [
           {
             "id": 1,
-            "domanda": "In quale anno è caduto l'Impero Romano d'Occidente?",
+            "domanda": "Quale evento storico è noto come 'la notte dei cristalli' (Kristallnacht)?",
             "risposte": [
-              "476 d.C.",
-              "410 d.C.",
-              "1453 d.C.",
-              "800 d.C."
+              "Il pogrom nazista del 9 novembre 1938",
+              "La caduta del Muro di Berlino",
+              "L'incendio del Reichstag",
+              "La resa della Germania nel 1945"
             ],
             "corretta": 0,
             "punti": 100,
@@ -19,12 +19,12 @@
           },
           {
             "id": 2,
-            "domanda": "Chi fu il primo presidente degli Stati Uniti?",
+            "domanda": "Quale imperatore romano promulgò l'Editto di Milano nel 313 d.C.?",
             "risposte": [
-              "George Washington",
-              "Thomas Jefferson",
-              "Abraham Lincoln",
-              "John Adams"
+              "Costantino",
+              "Teodosio",
+              "Diocleziano",
+              "Adriano"
             ],
             "corretta": 0,
             "punti": 100,
@@ -32,51 +32,51 @@
           },
           {
             "id": 3,
-            "domanda": "In quale secolo visse Leonardo da Vinci?",
+            "domanda": "Quale congresso ridisegnò la mappa d'Europa dopo la sconfitta di Napoleone?",
             "risposte": [
-              "XV-XVI secolo",
-              "XIII secolo",
-              "XVII secolo",
-              "XIX secolo"
+              "Il Congresso di Vienna (1814-1815)",
+              "Il Congresso di Berlino (1878)",
+              "Il Congresso di Parigi (1856)",
+              "Il Congresso di Aquisgrana (1818)"
             ],
             "corretta": 0,
-            "punti": 100,
+            "punti": 120,
             "difficolta": "medio"
           },
           {
             "id": 4,
-            "domanda": "Quale imperatore romano costruì il Vallo di Adriano?",
+            "domanda": "Quale sovrano francese fu soprannominato 'il Re Sole'?",
             "risposte": [
-              "Adriano",
-              "Augusto",
-              "Traiano",
-              "Costantino"
+              "Luigi XIV",
+              "Luigi XVI",
+              "Luigi XV",
+              "Francesco I"
             ],
             "corretta": 0,
-            "punti": 100,
+            "punti": 120,
             "difficolta": "medio"
           },
           {
             "id": 5,
-            "domanda": "Quale famosa battaglia segnò la fine delle guerre napoleoniche?",
+            "domanda": "In quale anno fu firmato il Trattato di Westfalia che pose fine alla Guerra dei Trent'Anni?",
             "risposte": [
-              "Waterloo",
-              "Austerlitz",
-              "Borodino",
-              "Trafalgar"
+              "1648",
+              "1618",
+              "1659",
+              "1635"
             ],
             "corretta": 0,
-            "punti": 100,
+            "punti": 160,
             "difficolta": "difficile"
           },
           {
             "id": 6,
-            "domanda": "Quale trattato pose fine alla Prima guerra mondiale?",
+            "domanda": "Quale generale cartaginese attraversò le Alpi con gli elefanti per attaccare Roma?",
             "risposte": [
-              "Trattato di Versailles",
-              "Trattato di Utrecht",
-              "Trattato di Vienna",
-              "Trattato di Parigi"
+              "Annibale Barca",
+              "Asdrubale",
+              "Amilcare Barca",
+              "Magone"
             ],
             "corretta": 0,
             "punti": 160,
@@ -84,105 +84,105 @@
           },
           {
             "id": 7,
-            "domanda": "In che anno iniziò la Rivoluzione russa di febbraio?",
+            "domanda": "Quale imperatore bizantino riconquistò gran parte dell'antico territorio romano nel VI secolo con le campagne di Belisario?",
             "risposte": [
-              "1905",
-              "1914",
-              "1917",
-              "1921"
+              "Giustiniano I",
+              "Costantino XI",
+              "Eraclio",
+              "Basilio II"
             ],
-            "corretta": 2,
+            "corretta": 0,
             "punti": 200,
             "difficolta": "molto difficile"
           }
         ],
         "Geografia": [
           {
-            "id": 6,
-            "domanda": "Qual è la capitale dell'Australia?",
-            "risposte": [
-              "Canberra",
-              "Sydney",
-              "Melbourne",
-              "Perth"
-            ],
-            "corretta": 0,
-            "punti": 100,
-            "difficolta": "facile"
-          },
-          {
-            "id": 7,
-            "domanda": "Qual è il fiume più lungo d'Italia?",
-            "risposte": [
-              "Po",
-              "Tevere",
-              "Adige",
-              "Arno"
-            ],
-            "corretta": 0,
-            "punti": 100,
-            "difficolta": "facile"
-          },
-          {
             "id": 8,
-            "domanda": "In quale continente si trova il deserto del Kalahari?",
+            "domanda": "Quale nazione è l'unica al mondo ad attraversare sia l'equatore che il tropico del Capricorno?",
             "risposte": [
-              "Africa",
-              "Asia",
-              "America",
-              "Australia"
+              "Brasile",
+              "Indonesia",
+              "Congo",
+              "Colombia"
             ],
             "corretta": 0,
             "punti": 100,
-            "difficolta": "medio"
+            "difficolta": "facile"
           },
           {
             "id": 9,
-            "domanda": "Quale paese ha come capitale Brasilia?",
+            "domanda": "In quale paese si trova il deserto di Atacama, considerato il più arido del mondo?",
             "risposte": [
-              "Brasile",
-              "Argentina",
               "Cile",
-              "Perù"
+              "Perù",
+              "Bolivia",
+              "Argentina"
             ],
             "corretta": 0,
             "punti": 100,
-            "difficolta": "medio"
+            "difficolta": "facile"
           },
           {
             "id": 10,
-            "domanda": "Quale catena montuosa separa l'Europa dall'Asia?",
+            "domanda": "Quale stretto collega il Mar Nero al Mar di Marmara?",
             "risposte": [
-              "Monti Urali",
-              "Alpi",
-              "Himalaya",
-              "Ande"
+              "Stretto del Bosforo",
+              "Stretto dei Dardanelli",
+              "Stretto di Gibilterra",
+              "Stretto di Messina"
             ],
             "corretta": 0,
-            "punti": 100,
-            "difficolta": "difficile"
+            "punti": 120,
+            "difficolta": "medio"
           },
           {
             "id": 11,
-            "domanda": "Quale stato africano non ha sbocchi sul mare?",
+            "domanda": "Quale paese africano ha come capitale Addis Abeba?",
             "risposte": [
               "Etiopia",
-              "Nigeria",
-              "Somalia",
-              "Kenya"
+              "Kenya",
+              "Eritrea",
+              "Sudan"
+            ],
+            "corretta": 0,
+            "punti": 120,
+            "difficolta": "medio"
+          },
+          {
+            "id": 12,
+            "domanda": "Quale fiume attraversa più nazioni al mondo (10 paesi)?",
+            "risposte": [
+              "Danubio",
+              "Nilo",
+              "Reno",
+              "Mekong"
             ],
             "corretta": 0,
             "punti": 160,
             "difficolta": "difficile"
           },
           {
-            "id": 12,
-            "domanda": "Qual è il punto più profondo degli oceani terrestri?",
+            "id": 13,
+            "domanda": "Quale arcipelago comprende le isole di Flores, Timor e Sumba?",
             "risposte": [
-              "Fossa delle Marianne",
-              "Fossa di Tonga",
-              "Fossa di Porto Rico",
-              "Fossa di Java"
+              "Piccole Isole della Sonda (Indonesia)",
+              "Filippine",
+              "Isole Salomone",
+              "Maldive"
+            ],
+            "corretta": 0,
+            "punti": 160,
+            "difficolta": "difficile"
+          },
+          {
+            "id": 14,
+            "domanda": "Quale catena montuosa si estende dal Marocco alla Tunisia attraverso Algeria?",
+            "risposte": [
+              "Monti dell'Atlante",
+              "Monti Drakensberg",
+              "Monti del Ruwenzori",
+              "Monti Ahaggar"
             ],
             "corretta": 0,
             "punti": 200,
@@ -191,184 +191,184 @@
         ],
         "Scienze": [
           {
-            "id": 11,
-            "domanda": "Quale pianeta è noto come il Pianeta Rosso?",
-            "risposte": [
-              "Marte",
-              "Venere",
-              "Giove",
-              "Saturno"
-            ],
-            "corretta": 0,
-            "punti": 100,
-            "difficolta": "facile"
-          },
-          {
-            "id": 12,
-            "domanda": "Quale gas è essenziale per la respirazione?",
-            "risposte": [
-              "Ossigeno",
-              "Azoto",
-              "Anidride carbonica",
-              "Idrogeno"
-            ],
-            "corretta": 0,
-            "punti": 100,
-            "difficolta": "facile"
-          },
-          {
-            "id": 13,
-            "domanda": "Quale elemento chimico ha simbolo 'Au'?",
-            "risposte": [
-              "Oro",
-              "Argento",
-              "Alluminio",
-              "Arsenico"
-            ],
-            "corretta": 0,
-            "punti": 100,
-            "difficolta": "medio"
-          },
-          {
-            "id": 14,
-            "domanda": "Quale parte della cellula contiene il DNA?",
-            "risposte": [
-              "Nucleo",
-              "Mitocondrio",
-              "Ribosoma",
-              "Cloroplasto"
-            ],
-            "corretta": 0,
-            "punti": 100,
-            "difficolta": "medio"
-          },
-          {
             "id": 15,
-            "domanda": "Quale scienziato formulò la teoria della relatività?",
+            "domanda": "Quale organo del corpo umano produce la bile?",
             "risposte": [
-              "Albert Einstein",
-              "Isaac Newton",
-              "Galileo Galilei",
-              "Stephen Hawking"
+              "Fegato",
+              "Pancreas",
+              "Cistifellea",
+              "Stomaco"
             ],
             "corretta": 0,
             "punti": 100,
-            "difficolta": "difficile"
+            "difficolta": "facile"
           },
           {
             "id": 16,
-            "domanda": "Quale molecola è responsabile del trasporto dell’ossigeno nel sangue?",
+            "domanda": "Quale particella subatomica ha carica elettrica negativa?",
             "risposte": [
-              "Emoglobina",
-              "Insulina",
-              "Emocianina",
-              "Mioglobina"
+              "Elettrone",
+              "Protone",
+              "Neutrone",
+              "Positrone"
+            ],
+            "corretta": 0,
+            "punti": 100,
+            "difficolta": "facile"
+          },
+          {
+            "id": 17,
+            "domanda": "Quale processo biologico converte il glucosio in energia nelle cellule?",
+            "risposte": [
+              "Respirazione cellulare",
+              "Fotosintesi",
+              "Fermentazione",
+              "Osmosi"
+            ],
+            "corretta": 0,
+            "punti": 120,
+            "difficolta": "medio"
+          },
+          {
+            "id": 18,
+            "domanda": "Come si chiama il fenomeno per cui la luce si separa nei colori dell'arcobaleno attraversando un prisma?",
+            "risposte": [
+              "Dispersione",
+              "Rifrazione",
+              "Diffrazione",
+              "Riflessione"
+            ],
+            "corretta": 0,
+            "punti": 120,
+            "difficolta": "medio"
+          },
+          {
+            "id": 19,
+            "domanda": "Quale elemento chimico è l'unico metallo liquido a temperatura ambiente?",
+            "risposte": [
+              "Mercurio",
+              "Gallio",
+              "Cesio",
+              "Bromo"
             ],
             "corretta": 0,
             "punti": 160,
             "difficolta": "difficile"
           },
           {
-            "id": 17,
-            "domanda": "Quale forza fondamentale governa i decadimenti radioattivi beta?",
+            "id": 20,
+            "domanda": "In genetica, come si chiama il fenomeno per cui un singolo gene influenza più caratteri fenotipici?",
             "risposte": [
-              "Gravitazionale",
-              "Elettromagnetica",
-              "Forte",
-              "Debole"
+              "Pleiotropia",
+              "Epistasi",
+              "Codominanza",
+              "Polimeria"
             ],
-            "corretta": 3,
+            "corretta": 0,
+            "punti": 160,
+            "difficolta": "difficile"
+          },
+          {
+            "id": 21,
+            "domanda": "Quale principio della meccanica quantistica afferma che non è possibile conoscere contemporaneamente posizione e quantità di moto di una particella con precisione arbitraria?",
+            "risposte": [
+              "Principio di indeterminazione di Heisenberg",
+              "Principio di esclusione di Pauli",
+              "Principio di complementarità di Bohr",
+              "Principio di sovrapposizione"
+            ],
+            "corretta": 0,
             "punti": 200,
             "difficolta": "molto difficile"
           }
         ],
         "Cinema": [
           {
-            "id": 16,
-            "domanda": "Chi ha diretto 'Il Padrino'?",
+            "id": 22,
+            "domanda": "Quale regista ha diretto 'Schindler's List' e 'Salvate il soldato Ryan'?",
             "risposte": [
-              "Francis Ford Coppola",
-              "Martin Scorsese",
               "Steven Spielberg",
-              "Quentin Tarantino"
+              "Martin Scorsese",
+              "Ridley Scott",
+              "Oliver Stone"
             ],
             "corretta": 0,
             "punti": 100,
             "difficolta": "facile"
           },
           {
-            "id": 17,
-            "domanda": "In quale film compare il personaggio di Forrest Gump?",
+            "id": 23,
+            "domanda": "In quale film di Kubrick un computer di nome HAL 9000 diventa antagonista?",
             "risposte": [
-              "Forrest Gump",
-              "Rain Man",
-              "Il curioso caso di Benjamin Button",
-              "Shawshank Redemption"
-            ],
-            "corretta": 0,
-            "punti": 100,
-            "difficolta": "facile"
-          },
-          {
-            "id": 18,
-            "domanda": "Quale attrice ha interpretato il ruolo di Hermione in Harry Potter?",
-            "risposte": [
-              "Emma Watson",
-              "Emma Stone",
-              "Jennifer Lawrence",
-              "Natalie Portman"
-            ],
-            "corretta": 0,
-            "punti": 100,
-            "difficolta": "medio"
-          },
-          {
-            "id": 19,
-            "domanda": "Chi ha vinto l'Oscar come miglior attore per 'Il gladiatore'?",
-            "risposte": [
-              "Russell Crowe",
-              "Joaquin Phoenix",
-              "Richard Harris",
-              "Oliver Reed"
-            ],
-            "corretta": 0,
-            "punti": 100,
-            "difficolta": "medio"
-          },
-          {
-            "id": 20,
-            "domanda": "Quale film di Stanley Kubrick è basato su un romanzo di Stephen King?",
-            "risposte": [
-              "Shining",
               "2001: Odissea nello spazio",
+              "Shining",
               "Arancia meccanica",
-              "Eyes Wide Shut"
+              "Barry Lyndon"
             ],
             "corretta": 0,
             "punti": 100,
-            "difficolta": "difficile"
+            "difficolta": "facile"
           },
           {
-            "id": 21,
-            "domanda": "Quale film vinse la Palma d’Oro a Cannes nel 1994?",
+            "id": 24,
+            "domanda": "Quale attore italiano fu protagonista di 'Divorzio all'italiana' e 'La dolce vita'?",
             "risposte": [
-              "Pulp Fiction",
-              "Forrest Gump",
-              "Il postino",
-              "Quattro matrimoni e un funerale"
+              "Marcello Mastroianni",
+              "Alberto Sordi",
+              "Vittorio Gassman",
+              "Ugo Tognazzi"
+            ],
+            "corretta": 0,
+            "punti": 120,
+            "difficolta": "medio"
+          },
+          {
+            "id": 25,
+            "domanda": "Quale film di David Lynch del 2001 è ambientato a Hollywood e narra la storia di due donne con identità intrecciate?",
+            "risposte": [
+              "Mulholland Drive",
+              "Velluto blu",
+              "Strade perdute",
+              "Twin Peaks: Fuoco cammina con me"
+            ],
+            "corretta": 0,
+            "punti": 120,
+            "difficolta": "medio"
+          },
+          {
+            "id": 26,
+            "domanda": "Quale regista danese fondò il movimento cinematografico Dogma 95 insieme a Thomas Vinterberg?",
+            "risposte": [
+              "Lars von Trier",
+              "Nicolas Winding Refn",
+              "Susanne Bier",
+              "Carl Theodor Dreyer"
             ],
             "corretta": 0,
             "punti": 160,
             "difficolta": "difficile"
           },
           {
-            "id": 22,
-            "domanda": "Chi ha diretto il film 'Stalker'?",
+            "id": 27,
+            "domanda": "Quale film vinse la Palma d'Oro a Cannes nel 2019, diventando poi il primo film non in lingua inglese a vincere l'Oscar come miglior film?",
             "risposte": [
-              "Tarkovskij",
-              "Bergman",
-              "Kubrick",
-              "Kieslowski"
+              "Parasite",
+              "Shoplifters",
+              "Roma",
+              "Dolor y gloria"
+            ],
+            "corretta": 0,
+            "punti": 160,
+            "difficolta": "difficile"
+          },
+          {
+            "id": 28,
+            "domanda": "Quale regista giapponese diresse 'Rashomon' e 'I sette samurai'?",
+            "risposte": [
+              "Akira Kurosawa",
+              "Yasujirō Ozu",
+              "Hayao Miyazaki",
+              "Kenji Mizoguchi"
             ],
             "corretta": 0,
             "punti": 200,
@@ -377,279 +377,279 @@
         ],
         "Musica": [
           {
-            "id": 21,
-            "domanda": "Quale famosa band britannica ha pubblicato 'Bohemian Rhapsody'?",
+            "id": 29,
+            "domanda": "Quale cantautore italiano scrisse 'La donna cannone'?",
             "risposte": [
-              "Queen",
-              "The Beatles",
-              "The Rolling Stones",
-              "Led Zeppelin"
+              "Francesco De Gregori",
+              "Fabrizio De André",
+              "Lucio Dalla",
+              "Lucio Battisti"
             ],
             "corretta": 0,
             "punti": 100,
             "difficolta": "facile"
           },
           {
-            "id": 22,
-            "domanda": "Chi è conosciuto come il 'Re del Pop'?",
+            "id": 30,
+            "domanda": "Quale compositore scrisse 'Le quattro stagioni'?",
             "risposte": [
-              "Michael Jackson",
-              "Elvis Presley",
-              "Prince",
-              "Madonna"
-            ],
-            "corretta": 0,
-            "punti": 100,
-            "difficolta": "facile"
-          },
-          {
-            "id": 23,
-            "domanda": "Quale compositore classico è sordo per gran parte della sua vita?",
-            "risposte": [
-              "Ludwig van Beethoven",
-              "Wolfgang Amadeus Mozart",
+              "Antonio Vivaldi",
               "Johann Sebastian Bach",
-              "Frédéric Chopin"
+              "Georg Friedrich Händel",
+              "Arcangelo Corelli"
             ],
             "corretta": 0,
             "punti": 100,
+            "difficolta": "facile"
+          },
+          {
+            "id": 31,
+            "domanda": "Quale strumento suonava il jazzista Charlie Parker?",
+            "risposte": [
+              "Sassofono contralto",
+              "Tromba",
+              "Pianoforte",
+              "Contrabbasso"
+            ],
+            "corretta": 0,
+            "punti": 120,
             "difficolta": "medio"
           },
           {
-            "id": 24,
-            "domanda": "Quale cantante italiana ha vinto il Festival di Sanremo 2022?",
+            "id": 32,
+            "domanda": "Quale opera lirica di Puccini è ambientata a Nagasaki?",
             "risposte": [
-              "Mahmood e Blanco",
-              "Elisa",
-              "Marco Mengoni",
-              "Annalisa"
+              "Madama Butterfly",
+              "Turandot",
+              "La Bohème",
+              "Tosca"
             ],
             "corretta": 0,
-            "punti": 100,
+            "punti": 120,
             "difficolta": "medio"
           },
           {
-            "id": 25,
-            "domanda": "In quale anno i Beatles si sono sciolti ufficialmente?",
+            "id": 33,
+            "domanda": "Quale album dei Pink Floyd del 1973 è rimasto in classifica per oltre 900 settimane?",
             "risposte": [
-              "1970",
-              "1969",
-              "1971",
-              "1972"
+              "The Dark Side of the Moon",
+              "The Wall",
+              "Wish You Were Here",
+              "Animals"
             ],
             "corretta": 0,
-            "punti": 100,
-            "difficolta": "difficile"
-          },
-          {
-            "id": 26,
-            "domanda": "Quale compositore ha introdotto l’uso sistematico del leitmotiv nell’opera?",
-            "risposte": [
-              "Verdi",
-              "Wagner",
-              "Puccini",
-              "Strauss"
-            ],
-            "corretta": 1,
             "punti": 160,
             "difficolta": "difficile"
           },
           {
-            "id": 27,
-            "domanda": "In quale tonalità è scritta la Sinfonia n.5 di Beethoven?",
+            "id": 34,
+            "domanda": "Quale compositore russo scrisse 'La sagra della primavera', che causò uno scandalo alla prima del 1913?",
             "risposte": [
-              "Do maggiore",
-              "Re minore",
-              "Do minore",
-              "Mi♭ maggiore"
+              "Igor' Stravinskij",
+              "Sergej Rachmaninov",
+              "Dmitrij Šostakovič",
+              "Sergej Prokof'ev"
             ],
-            "corretta": 2,
+            "corretta": 0,
+            "punti": 160,
+            "difficolta": "difficile"
+          },
+          {
+            "id": 35,
+            "domanda": "Quale forma musicale barocca consiste in un dialogo tra un solista e l'orchestra?",
+            "risposte": [
+              "Concerto grosso",
+              "Fuga",
+              "Sonata",
+              "Suite"
+            ],
+            "corretta": 0,
             "punti": 200,
             "difficolta": "molto difficile"
           }
         ],
         "Arte": [
           {
-            "id": 26,
-            "domanda": "Chi dipinse la Cappella Sistina?",
+            "id": 36,
+            "domanda": "Quale pittore olandese dipinse 'La ragazza con l'orecchino di perla'?",
             "risposte": [
-              "Michelangelo",
-              "Leonardo da Vinci",
-              "Raffaello",
-              "Donatello"
+              "Johannes Vermeer",
+              "Rembrandt van Rijn",
+              "Frans Hals",
+              "Jan Steen"
             ],
             "corretta": 0,
             "punti": 100,
             "difficolta": "facile"
           },
           {
-            "id": 27,
-            "domanda": "In quale città si trova il Museo del Louvre?",
+            "id": 37,
+            "domanda": "Quale scultore realizzò 'Il pensatore' e 'Il bacio'?",
             "risposte": [
-              "Parigi",
-              "Londra",
-              "Roma",
-              "New York"
+              "Auguste Rodin",
+              "Antonio Canova",
+              "Gian Lorenzo Bernini",
+              "Constantin Brâncuși"
             ],
             "corretta": 0,
             "punti": 100,
             "difficolta": "facile"
           },
           {
-            "id": 28,
-            "domanda": "Quale movimento artistico è associato a Salvador Dalì?",
+            "id": 38,
+            "domanda": "Quale architetto catalano progettò la Sagrada Familia a Barcellona?",
             "risposte": [
-              "Surrealismo",
-              "Impressionismo",
-              "Cubismo",
-              "Espressionismo"
+              "Antoni Gaudí",
+              "Santiago Calatrava",
+              "Rafael Moneo",
+              "Oscar Niemeyer"
             ],
             "corretta": 0,
-            "punti": 100,
+            "punti": 120,
             "difficolta": "medio"
           },
           {
-            "id": 29,
-            "domanda": "Chi è l'autore della scultura 'David'?",
+            "id": 39,
+            "domanda": "Quale corrente artistica di inizio '900 si proponeva di rappresentare il movimento e la velocità?",
             "risposte": [
-              "Michelangelo",
-              "Donatello",
-              "Bernini",
-              "Cellini"
-            ],
-            "corretta": 0,
-            "punti": 100,
-            "difficolta": "medio"
-          },
-          {
-            "id": 30,
-            "domanda": "Quale famoso quadro rappresenta una notte stellata?",
-            "risposte": [
-              "Notte stellata di Van Gogh",
-              "Urlo di Munch",
-              "Nascita di Venere",
-              "Guernica"
-            ],
-            "corretta": 0,
-            "punti": 100,
-            "difficolta": "difficile"
-          },
-          {
-            "id": 31,
-            "domanda": "A quale corrente artistica appartiene 'Guernica' di Picasso?",
-            "risposte": [
-              "Cubismo",
-              "Surrealismo",
               "Futurismo",
-              "Espressionismo"
+              "Cubismo",
+              "Espressionismo",
+              "Dadaismo"
+            ],
+            "corretta": 0,
+            "punti": 120,
+            "difficolta": "medio"
+          },
+          {
+            "id": 40,
+            "domanda": "Quale pittore fiammingo del XV secolo dipinse il 'Ritratto dei coniugi Arnolfini'?",
+            "risposte": [
+              "Jan van Eyck",
+              "Rogier van der Weyden",
+              "Hans Memling",
+              "Hieronymus Bosch"
             ],
             "corretta": 0,
             "punti": 160,
             "difficolta": "difficile"
           },
           {
-            "id": 32,
-            "domanda": "Chi affrescò la Scuola di Atene?",
+            "id": 41,
+            "domanda": "Quale artista realizzò la serie di stampe 'Trentasei vedute del Monte Fuji'?",
             "risposte": [
-              "Michelangelo",
-              "Raffaello",
-              "Perugino",
-              "Bramante"
+              "Katsushika Hokusai",
+              "Utagawa Hiroshige",
+              "Kitagawa Utamaro",
+              "Tōshūsai Sharaku"
             ],
-            "corretta": 1,
+            "corretta": 0,
+            "punti": 160,
+            "difficolta": "difficile"
+          },
+          {
+            "id": 42,
+            "domanda": "Quale movimento artistico degli anni '60 utilizzava immagini della cultura di massa e della pubblicità?",
+            "risposte": [
+              "Pop Art",
+              "Minimalismo",
+              "Arte concettuale",
+              "Espressionismo astratto"
+            ],
+            "corretta": 0,
             "punti": 200,
             "difficolta": "molto difficile"
           }
         ],
         "Sport": [
           {
-            "id": 31,
-            "domanda": "In quale sport si usa la mazza da hockey?",
+            "id": 43,
+            "domanda": "Quale tennista ha vinto più titoli del Grande Slam nella storia del tennis maschile?",
             "risposte": [
-              "Hockey su ghiaccio",
-              "Golf",
-              "Tennis",
-              "Baseball"
+              "Novak Djokovic",
+              "Rafael Nadal",
+              "Roger Federer",
+              "Pete Sampras"
             ],
             "corretta": 0,
             "punti": 100,
             "difficolta": "facile"
           },
           {
-            "id": 32,
-            "domanda": "Quanti giocatori ci sono in una squadra di calcio?",
+            "id": 44,
+            "domanda": "In quale disciplina sportiva si assegna la 'maglia rosa'?",
             "risposte": [
+              "Giro d'Italia (ciclismo)",
+              "Tour de France",
+              "Vuelta a España",
+              "Campionato mondiale di ciclismo"
+            ],
+            "corretta": 0,
+            "punti": 100,
+            "difficolta": "facile"
+          },
+          {
+            "id": 45,
+            "domanda": "Quale squadra di calcio ha vinto la prima edizione della Champions League (allora Coppa dei Campioni) nel 1956?",
+            "risposte": [
+              "Real Madrid",
+              "Milan",
+              "Benfica",
+              "Juventus"
+            ],
+            "corretta": 0,
+            "punti": 120,
+            "difficolta": "medio"
+          },
+          {
+            "id": 46,
+            "domanda": "Quanti giocatori compongono una squadra di rugby a 15?",
+            "risposte": [
+              "15",
+              "13",
               "11",
-              "10",
-              "9",
-              "12"
+              "18"
             ],
             "corretta": 0,
-            "punti": 100,
-            "difficolta": "facile"
-          },
-          {
-            "id": 33,
-            "domanda": "Quale paese ha vinto il Mondiale di calcio 2018?",
-            "risposte": [
-              "Francia",
-              "Croazia",
-              "Brasile",
-              "Germania"
-            ],
-            "corretta": 0,
-            "punti": 100,
+            "punti": 120,
             "difficolta": "medio"
           },
           {
-            "id": 34,
-            "domanda": "In quale sport si compete per il Trofeo della Coppa Davis?",
+            "id": 47,
+            "domanda": "Quale pugile fu soprannominato 'The Greatest' e vinse l'oro olimpico nel 1960?",
             "risposte": [
-              "Tennis",
-              "Calcio",
-              "Rugby",
-              "Golf"
+              "Muhammad Ali",
+              "Joe Frazier",
+              "Mike Tyson",
+              "George Foreman"
             ],
             "corretta": 0,
-            "punti": 100,
-            "difficolta": "medio"
-          },
-          {
-            "id": 35,
-            "domanda": "Chi detiene il record mondiale dei 100 metri piani maschili?",
-            "risposte": [
-              "Usain Bolt",
-              "Carl Lewis",
-              "Justin Gatlin",
-              "Asafa Powell"
-            ],
-            "corretta": 0,
-            "punti": 100,
-            "difficolta": "difficile"
-          },
-          {
-            "id": 36,
-            "domanda": "In quale anno si disputarono le prime Olimpiadi moderne?",
-            "risposte": [
-              "1886",
-              "1896",
-              "1900",
-              "1912"
-            ],
-            "corretta": 1,
             "punti": 160,
             "difficolta": "difficile"
           },
           {
-            "id": 37,
-            "domanda": "Quale nazione ha vinto più Coppe del Mondo di calcio?",
+            "id": 48,
+            "domanda": "In quale città si disputò la prima maratona olimpica moderna nel 1896?",
             "risposte": [
-              "Germania",
-              "Italia",
-              "Argentina",
-              "Brasile"
+              "Atene",
+              "Parigi",
+              "Londra",
+              "Stoccolma"
             ],
-            "corretta": 3,
+            "corretta": 0,
+            "punti": 160,
+            "difficolta": "difficile"
+          },
+          {
+            "id": 49,
+            "domanda": "Quale pilota di Formula 1 detiene il record di vittorie in una singola stagione con 19 GP vinti nel 2023?",
+            "risposte": [
+              "Max Verstappen",
+              "Lewis Hamilton",
+              "Michael Schumacher",
+              "Sebastian Vettel"
+            ],
+            "corretta": 0,
             "punti": 200,
             "difficolta": "molto difficile"
           }
@@ -657,12 +657,12 @@
         "Giochi di logica": [
           {
             "id": 1001,
-            "domanda": "Completa la sequenza: 2, 4, 6, 8, ?",
+            "domanda": "Un contadino ha 17 pecore. Tutte tranne 9 scappano. Quante pecore gli restano?",
             "risposte": [
+              "8",
               "9",
-              "10",
-              "12",
-              "14"
+              "17",
+              "0"
             ],
             "corretta": 1,
             "punti": 50,
@@ -670,12 +670,12 @@
           },
           {
             "id": 1002,
-            "domanda": "Completa la sequenza: 3, 6, 12, 24, ?",
+            "domanda": "Completa la sequenza: 1, 4, 9, 16, 25, ?",
             "risposte": [
+              "30",
+              "35",
               "36",
-              "40",
-              "48",
-              "60"
+              "49"
             ],
             "corretta": 2,
             "punti": 80,
@@ -683,40 +683,40 @@
           },
           {
             "id": 1003,
-            "domanda": "Completa la sequenza: 1, 1, 2, 3, 5, ?",
+            "domanda": "Un orologio suona 6 rintocchi in 5 secondi. In quanti secondi suona 12 rintocchi?",
             "risposte": [
-              "6",
-              "7",
-              "8",
-              "5"
+              "10 secondi",
+              "11 secondi",
+              "12 secondi",
+              "15 secondi"
             ],
-            "corretta": 2,
+            "corretta": 1,
             "punti": 120,
             "difficolta": "medio"
           },
           {
             "id": 1004,
-            "domanda": "Completa la sequenza: 2, 5, 10, 17, ?",
+            "domanda": "Tre amici pagano 30€ per una cena. Il cameriere restituisce 5€. Ognuno riprende 1€ e lasciano 2€ di mancia. Hanno pagato 9€ ciascuno (27€) + 2€ di mancia = 29€. Dov'è l'euro mancante?",
             "risposte": [
-              "24",
-              "26",
-              "28",
-              "30"
+              "Non manca nessun euro: i 27€ già includono la mancia",
+              "L'euro è rimasto al cameriere",
+              "L'euro è un errore di arrotondamento",
+              "Manca davvero un euro"
             ],
-            "corretta": 1,
+            "corretta": 0,
             "punti": 160,
             "difficolta": "difficile"
           },
           {
             "id": 1005,
-            "domanda": "Completa la sequenza: 1, 4, 9, 16, ?",
+            "domanda": "In una gara, se superi il secondo, in che posizione arrivi?",
             "risposte": [
-              "20",
-              "24",
-              "25",
-              "36"
+              "Primo",
+              "Secondo",
+              "Terzo",
+              "Dipende dalla gara"
             ],
-            "corretta": 2,
+            "corretta": 1,
             "punti": 200,
             "difficolta": "molto difficile"
           }
@@ -724,27 +724,27 @@
         "Raddoppi": [
           {
             "id": 2101,
-            "domanda": "RADDOPPIO: In quale anno è entrata in vigore la Costituzione Italiana?",
+            "domanda": "RADDOPPIO: Quale filosofo greco fu condannato a morte bevendo la cicuta nel 399 a.C.?",
             "risposte": [
-              "1946",
-              "1947",
-              "1948",
-              "1950"
+              "Platone",
+              "Socrate",
+              "Aristotele",
+              "Epicuro"
             ],
-            "corretta": 2,
+            "corretta": 1,
             "punti": 400,
             "difficolta": "molto difficile"
           },
           {
             "id": 2102,
-            "domanda": "RADDOPPIO: Quale legge fisica è espressa dalla formula F = q·v×B?",
+            "domanda": "RADDOPPIO: In quale anno Cristoforo Colombo sbarcò per la prima volta nelle Americhe?",
             "risposte": [
-              "Legge di Coulomb",
-              "Forza di Lorentz",
-              "Legge di Ohm",
-              "Principio di Archimede"
+              "1490",
+              "1498",
+              "1492",
+              "1494"
             ],
-            "corretta": 1,
+            "corretta": 2,
             "punti": 400,
             "difficolta": "molto difficile"
           }
@@ -752,12 +752,12 @@
         "Logica verbale": [
           {
             "id": 3101,
-            "domanda": "LOGICA VERBALE: Individua la parola che NON appartiene al gruppo.",
+            "domanda": "LOGICA VERBALE: Quale parola NON appartiene al gruppo: Sonetto, Ode, Elegia, Affresco?",
             "risposte": [
-              "Assioma",
-              "Teorema",
-              "Postulato",
-              "Ipotesi"
+              "Sonetto",
+              "Ode",
+              "Elegia",
+              "Affresco"
             ],
             "corretta": 3,
             "punti": 80,
@@ -765,12 +765,12 @@
           },
           {
             "id": 3102,
-            "domanda": "LOGICA VERBALE: Quale relazione lega 'metallo' a 'conducibilità' come 'legno' a…",
+            "domanda": "LOGICA VERBALE: Se ARCHITETTO sta a EDIFICIO, allora REGISTA sta a…?",
             "risposte": [
-              "Resistenza",
-              "Isolamento",
-              "Elasticità",
-              "Fragilità"
+              "Teatro",
+              "Film",
+              "Sceneggiatura",
+              "Attore"
             ],
             "corretta": 1,
             "punti": 120,
@@ -778,12 +778,12 @@
           },
           {
             "id": 3103,
-            "domanda": "LOGICA VERBALE: Tutti i filosofi sono pensatori. Alcuni pensatori sono scrittori. Quale affermazione è certamente vera?",
+            "domanda": "LOGICA VERBALE: Tutti i mammiferi sono vertebrati. Alcune creature marine sono mammiferi. Quale affermazione è certamente vera?",
             "risposte": [
-              "Tutti i filosofi sono scrittori",
-              "Alcuni filosofi potrebbero essere scrittori",
-              "Nessun filosofo è scrittore",
-              "Tutti gli scrittori sono filosofi"
+              "Tutte le creature marine sono vertebrati",
+              "Alcune creature marine sono vertebrati",
+              "Nessuna creatura marina è vertebrato",
+              "Tutti i vertebrati sono mammiferi"
             ],
             "corretta": 1,
             "punti": 160,
@@ -791,12 +791,12 @@
           },
           {
             "id": 3104,
-            "domanda": "LOGICA VERBALE: Se A implica B e B implica C, quale affermazione è corretta?",
+            "domanda": "LOGICA VERBALE: Nessun pesce può volare. Alcuni animali che vivono nell'acqua non sono pesci. Cosa si può concludere?",
             "risposte": [
-              "A implica C",
-              "C implica A",
-              "A e C sono indipendenti",
-              "B non implica C"
+              "Alcuni animali acquatici potrebbero volare",
+              "Nessun animale acquatico può volare",
+              "Tutti gli animali acquatici sono pesci",
+              "Tutti i pesci vivono nell'acqua"
             ],
             "corretta": 0,
             "punti": 200,
@@ -816,12 +816,12 @@
           },
           {
             "id": 9002,
-            "domanda": "ALL IN: Quale affermazione è corretta riguardo al numero e (≈2,71828…)?",
+            "domanda": "ALL IN: Quale trattato del 1713 pose fine alla Guerra di successione spagnola?",
             "risposte": [
-              "È una radice di un polinomio a coefficienti interi",
-              "È un numero trascendente",
-              "È un numero razionale",
-              "È un numero primo"
+              "Trattato di Westfalia",
+              "Trattato di Utrecht",
+              "Trattato di Versailles",
+              "Trattato di Tordesillas"
             ],
             "corretta": 1,
             "punti": 0,
@@ -829,51 +829,51 @@
           },
           {
             "id": 9003,
-            "domanda": "ALL IN: In chimica, quale affermazione descrive correttamente un catalizzatore?",
+            "domanda": "ALL IN: Quale scienziato propose per primo il modello eliocentrico in epoca moderna?",
             "risposte": [
-              "Aumenta la resa teorica della reazione",
-              "Aumenta l’energia di attivazione",
-              "Aumenta la velocità di reazione abbassando l’energia di attivazione senza consumarsi",
-              "Si trasforma irreversibilmente nei prodotti"
+              "Galileo Galilei",
+              "Niccolò Copernico",
+              "Giovanni Keplero",
+              "Tycho Brahe"
             ],
-            "corretta": 2,
+            "corretta": 1,
             "punti": 0,
             "difficolta": "all in"
           },
           {
             "id": 9004,
-            "domanda": "ALL IN: Quale evento è avvenuto per primo?",
+            "domanda": "ALL IN: Quale filosofo scrisse 'Critica della ragion pura'?",
             "risposte": [
-              "Rivoluzione francese (1789)",
-              "Riforma protestante (1517)",
-              "Caduta di Costantinopoli (1453)",
-              "Scoperta dell’America (1492)"
+              "Georg Wilhelm Friedrich Hegel",
+              "Immanuel Kant",
+              "Arthur Schopenhauer",
+              "Friedrich Nietzsche"
             ],
-            "corretta": 2,
+            "corretta": 1,
             "punti": 0,
             "difficolta": "all in"
           },
           {
             "id": 9005,
-            "domanda": "ALL IN: In logica, quale delle seguenti forme è una tautologia?",
+            "domanda": "ALL IN: Quale pittore dipinse 'Il giardino delle delizie', trittico conservato al Museo del Prado?",
             "risposte": [
-              "p ∧ ¬p",
-              "p → q",
-              "p ∨ ¬p",
-              "p ∧ q"
+              "Pieter Bruegel il Vecchio",
+              "Hieronymus Bosch",
+              "Albrecht Dürer",
+              "Lucas Cranach"
             ],
-            "corretta": 2,
+            "corretta": 1,
             "punti": 0,
             "difficolta": "all in"
           },
           {
             "id": 9006,
-            "domanda": "ALL IN: Se una funzione è continua in [a,b] e derivabile in (a,b), quale teorema garantisce l’esistenza di c in (a,b) tale che f'(c) = (f(b)−f(a))/(b−a)?",
+            "domanda": "ALL IN: Come si chiama il paradosso logico per cui 'questa frase è falsa' non può essere né vera né falsa?",
             "risposte": [
-              "Teorema di Rolle",
-              "Teorema di Lagrange (del valor medio)",
-              "Teorema di Pitagora",
-              "Teorema di Gauss"
+              "Paradosso di Zenone",
+              "Paradosso del mentitore",
+              "Paradosso di Russell",
+              "Paradosso di Banach-Tarski"
             ],
             "corretta": 1,
             "punti": 0,
@@ -883,39 +883,39 @@
       },
       "bonus": [
         {
-          "id": 36,
-          "domanda": "BONUS: Qual è l'animale più veloce sulla terra?",
+          "id": 50,
+          "domanda": "BONUS: Quale scrittore italiano vinse il Premio Nobel per la letteratura nel 1934?",
           "risposte": [
-            "Ghepardo",
-            "Leone",
-            "Antilope",
-            "Leopardo"
+            "Luigi Pirandello",
+            "Grazia Deledda",
+            "Eugenio Montale",
+            "Salvatore Quasimodo"
           ],
           "corretta": 0,
           "punti": 200,
           "difficolta": "facile"
         },
         {
-          "id": 37,
-          "domanda": "BONUS: Quale pianeta ha il giorno più lungo?",
+          "id": 51,
+          "domanda": "BONUS: Quale gas nobile è il più abbondante nell'atmosfera terrestre dopo l'azoto e l'ossigeno?",
           "risposte": [
-            "Venere",
-            "Marte",
-            "Giove",
-            "Saturno"
+            "Argon",
+            "Elio",
+            "Neon",
+            "Kripton"
           ],
           "corretta": 0,
           "punti": 200,
           "difficolta": "facile"
         },
         {
-          "id": 38,
-          "domanda": "BONUS: Chi ha scritto 'Il vecchio e il mare'?",
+          "id": 52,
+          "domanda": "BONUS: Quale paese è sia il più piccolo del mondo per superficie che per popolazione?",
           "risposte": [
-            "Ernest Hemingway",
-            "Mark Twain",
-            "John Steinbeck",
-            "F. Scott Fitzgerald"
+            "Città del Vaticano",
+            "Monaco",
+            "San Marino",
+            "Liechtenstein"
           ],
           "corretta": 0,
           "punti": 200,
@@ -924,23 +924,23 @@
       ],
       "stima": [
         {
-          "id": 39,
-          "domanda": "STIMA: Quanto è alta la Torre di Pisa in metri? (approssimativamente)",
-          "corretta": "57",
+          "id": 53,
+          "domanda": "STIMA: Quanti chilometri separa la Terra dalla Luna (approssimativamente, in migliaia di km)?",
+          "corretta": "384",
           "punti": 150,
           "difficolta": "facile"
         },
         {
-          "id": 40,
-          "domanda": "STIMA: Quanti abitanti ha la città di Milano? (approssimativamente in milioni)",
-          "corretta": "1.4",
+          "id": 54,
+          "domanda": "STIMA: In che anno fu completata la costruzione della Torre Eiffel?",
+          "corretta": "1889",
           "punti": 150,
           "difficolta": "facile"
         },
         {
-          "id": 41,
-          "domanda": "STIMA: Quanti anni aveva Leonardo da Vinci quando è morto?",
-          "corretta": "67",
+          "id": 55,
+          "domanda": "STIMA: Quanti comuni ci sono in Italia (approssimativamente)?",
+          "corretta": "7900",
           "punti": 150,
           "difficolta": "medio"
         }
@@ -955,29 +955,29 @@
         },
         {
           "id": 4002,
-          "domanda": "ANAGRAMMA: C A S A",
-          "corretta": "SACA",
+          "domanda": "ANAGRAMMA: P A R C O",
+          "corretta": "CORPO",
           "punti": 80,
           "difficolta": "medio"
         },
         {
           "id": 4003,
-          "domanda": "ANAGRAMMA: P A R O L A",
-          "corretta": "LAPARO",
+          "domanda": "ANAGRAMMA: S E R E N O",
+          "corretta": "NEROSE",
           "punti": 120,
           "difficolta": "medio"
         },
         {
           "id": 4004,
-          "domanda": "ANAGRAMMA: S P E T T A C O L O",
-          "corretta": "POTESCOLTA",
+          "domanda": "ANAGRAMMA: C A L O R E",
+          "corretta": "ORACL E",
           "punti": 160,
           "difficolta": "difficile"
         },
         {
           "id": 4005,
-          "domanda": "ANAGRAMMA: I N T R A T T E N I M E N T O",
-          "corretta": "INTRATTENIMENTO",
+          "domanda": "ANAGRAMMA: T R A M O N T O",
+          "corretta": "MORTANTO",
           "punti": 200,
           "difficolta": "molto difficile"
         }

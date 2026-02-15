@@ -7,64 +7,64 @@
         "Storia": [
           {
             "id": 101,
-            "domanda": "Quale imperatore romano fu assassinato alle Idi di Marzo del 44 a.C.?",
-            "risposte": ["Giulio Cesare", "Augusto", "Nerone", "Caligola"],
+            "domanda": "Quale evento del 1789 è considerato l'inizio simbolico della Rivoluzione francese?",
+            "risposte": ["La presa della Bastiglia", "La fuga del re a Varennes", "L'esecuzione di Luigi XVI", "Il colpo di stato di Napoleone"],
             "corretta": 0,
             "punti": 100,
             "difficolta": "facile"
           },
           {
             "id": 102,
-            "domanda": "Come si chiamava il premier britannico durante la Seconda Guerra Mondiale?",
-            "risposte": ["Winston Churchill", "Neville Chamberlain", "Clement Attlee", "Anthony Eden"],
+            "domanda": "Quale civiltà antica sviluppò la scrittura cuneiforme?",
+            "risposte": ["I Sumeri", "Gli Egizi", "I Fenici", "I Persiani"],
             "corretta": 0,
             "punti": 100,
             "difficolta": "facile"
           },
           {
             "id": 103,
-            "domanda": "Quale civiltà costruì il Colosseo?",
-            "risposte": ["Romana", "Greca", "Etrusca", "Cartaginese"],
+            "domanda": "Quale imperatore romano divise l'Impero in Oriente e Occidente nel 285 d.C.?",
+            "risposte": ["Diocleziano", "Costantino", "Teodosio", "Marco Aurelio"],
             "corretta": 0,
             "punti": 120,
             "difficolta": "medio"
           },
           {
             "id": 104,
-            "domanda": "In quale anno l'Italia è diventata una Repubblica?",
-            "risposte": ["1946", "1948", "1944", "1950"],
+            "domanda": "Quale conferenza del 1884-1885 stabilì le regole per la spartizione coloniale dell'Africa?",
+            "risposte": ["Conferenza di Berlino", "Conferenza di Vienna", "Conferenza di Parigi", "Conferenza di Londra"],
             "corretta": 0,
             "punti": 120,
             "difficolta": "medio"
           },
           {
             "id": 105,
-            "domanda": "Chi guidò la spedizione dei Mille nel 1860?",
-            "risposte": ["Giuseppe Garibaldi", "Camillo Cavour", "Vittorio Emanuele II", "Giuseppe Mazzini"],
+            "domanda": "Chi fu il primo imperatore del Sacro Romano Impero, incoronato da Papa Leone III nell'800?",
+            "risposte": ["Carlo Magno", "Ottone I", "Federico Barbarossa", "Enrico IV"],
             "corretta": 0,
             "punti": 120,
             "difficolta": "medio"
           },
           {
             "id": 106,
-            "domanda": "Quale trattato sancì la fine della Seconda Guerra Mondiale in Europa?",
-            "risposte": ["Trattato di Parigi (1947)", "Trattato di Versailles", "Accordi di Yalta", "Trattato di Potsdam"],
+            "domanda": "Quale battaglia del 1571 vide la flotta cristiana sconfiggere quella ottomana nel Mediterraneo?",
+            "risposte": ["Battaglia di Lepanto", "Battaglia di Trafalgar", "Battaglia delle Midway", "Battaglia di Salamina"],
             "corretta": 0,
             "punti": 160,
             "difficolta": "difficile"
           },
           {
             "id": 107,
-            "domanda": "In quale anno Napoleone Bonaparte fu esiliato definitivamente a Sant'Elena?",
-            "risposte": ["1815", "1813", "1814", "1821"],
+            "domanda": "Quale trattato del 1648 pose fine alla Guerra dei Trent'Anni e ridefinì l'ordine europeo?",
+            "risposte": ["Pace di Westfalia", "Pace di Augusta", "Trattato di Utrecht", "Trattato di Tordesillas"],
             "corretta": 0,
             "punti": 160,
             "difficolta": "difficile"
           },
           {
             "id": 108,
-            "domanda": "Come si chiamava il piano tedesco di invasione del Belgio e della Francia nel 1914?",
-            "risposte": ["Piano Schlieffen", "Piano Barbarossa", "Piano Bleu", "Piano Westwall"],
+            "domanda": "Quale storico greco è considerato il 'padre della storia' per la sua opera sulle guerre persiane?",
+            "risposte": ["Erodoto", "Tucidide", "Senofonte", "Polibio"],
             "corretta": 0,
             "punti": 200,
             "difficolta": "molto difficile"
@@ -74,56 +74,56 @@
         "Geografia": [
           {
             "id": 201,
-            "domanda": "Quale delle seguenti capitali europee si trova più a nord?",
-            "risposte": ["Reykjavik", "Oslo", "Helsinki", "Stoccolma"],
+            "domanda": "Quale stato insulare è il più popoloso del mondo?",
+            "risposte": ["Indonesia", "Giappone", "Filippine", "Regno Unito"],
             "corretta": 0,
             "punti": 100,
             "difficolta": "facile"
           },
           {
             "id": 202,
-            "domanda": "Quale continente è privo di stati sovrani permanenti?",
-            "risposte": ["Antartide", "Oceania", "Artide", "Groenlandia"],
+            "domanda": "In quale oceano si trovano le Isole Maldive?",
+            "risposte": ["Oceano Indiano", "Oceano Pacifico", "Oceano Atlantico", "Mar dei Caraibi"],
             "corretta": 0,
             "punti": 100,
             "difficolta": "facile"
           },
           {
             "id": 203,
-            "domanda": "In quale mare sfocia il fiume Po?",
-            "risposte": ["Mar Adriatico", "Mar Tirreno", "Mar Ligure", "Mar Ionio"],
+            "domanda": "Quale paese sudamericano è attraversato sia dall'equatore che dal tropico del Capricorno?",
+            "risposte": ["Brasile", "Colombia", "Ecuador", "Perù"],
             "corretta": 0,
             "punti": 120,
             "difficolta": "medio"
           },
           {
             "id": 204,
-            "domanda": "Quale dei seguenti paesi non fa parte della penisola iberica?",
-            "risposte": ["Francia", "Spagna", "Portogallo", "Andorra"],
+            "domanda": "Quale lago africano è il più grande per superficie del continente?",
+            "risposte": ["Lago Vittoria", "Lago Tanganyika", "Lago Malawi", "Lago Ciad"],
             "corretta": 0,
             "punti": 120,
             "difficolta": "medio"
           },
           {
             "id": 205,
-            "domanda": "Qual è il lago più profondo del mondo?",
-            "risposte": ["Lago Bajkal", "Lago Tanganyika", "Lago Superiore", "Lago Titicaca"],
+            "domanda": "Quale penisola comprende Norvegia, Svezia e parte della Finlandia?",
+            "risposte": ["Penisola scandinava", "Penisola di Kola", "Penisola dello Jutland", "Penisola balcanica"],
             "corretta": 0,
             "punti": 160,
             "difficolta": "difficile"
           },
           {
             "id": 206,
-            "domanda": "Quale stretto separa l'Europa dall'Africa?",
-            "risposte": ["Stretto di Gibilterra", "Stretto di Messina", "Stretto di Hormuz", "Stretto di Dover"],
+            "domanda": "Quale capitale mondiale si trova alla più alta altitudine?",
+            "risposte": ["La Paz (Bolivia)", "Quito (Ecuador)", "Bogotá (Colombia)", "Addis Abeba (Etiopia)"],
             "corretta": 0,
             "punti": 160,
             "difficolta": "difficile"
           },
           {
             "id": 207,
-            "domanda": "Quale paese ha la maggiore densità di popolazione al mondo?",
-            "risposte": ["Monaco", "Singapore", "Bangladesh", "Maldive"],
+            "domanda": "Quale mare interno è il più grande del mondo per superficie?",
+            "risposte": ["Mar Caspio", "Mar Nero", "Mar Mediterraneo", "Mar Baltico"],
             "corretta": 0,
             "punti": 200,
             "difficolta": "molto difficile"
@@ -133,7 +133,7 @@
         "Scienze": [
           {
             "id": 301,
-            "domanda": "Quale vitamina viene prodotta dalla pelle esposta alla luce solare?",
+            "domanda": "Quale vitamina viene sintetizzata dalla pelle esposta alla luce solare?",
             "risposte": ["Vitamina D", "Vitamina C", "Vitamina A", "Vitamina B12"],
             "corretta": 0,
             "punti": 100,
@@ -141,56 +141,56 @@
           },
           {
             "id": 302,
-            "domanda": "Quale organo del corpo umano non si rigenera mai dopo la nascita?",
-            "risposte": ["Neuroni cerebrali", "Cellule del fegato", "Globuli rossi", "Cellule cutanee"],
+            "domanda": "Quale gas costituisce circa il 78% dell'atmosfera terrestre?",
+            "risposte": ["Azoto", "Ossigeno", "Anidride carbonica", "Argon"],
             "corretta": 0,
             "punti": 100,
             "difficolta": "facile"
           },
           {
             "id": 303,
-            "domanda": "Qual è l'unità di misura della frequenza?",
-            "risposte": ["Hertz", "Watt", "Joule", "Pascal"],
+            "domanda": "Come si chiama il processo per cui le piante convertono CO₂ e acqua in glucosio usando la luce?",
+            "risposte": ["Fotosintesi clorofilliana", "Respirazione cellulare", "Chemiosintesi", "Fermentazione"],
             "corretta": 0,
             "punti": 100,
             "difficolta": "facile"
           },
           {
             "id": 304,
-            "domanda": "Quale organo produce l'insulina?",
-            "risposte": ["Pancreas", "Fegato", "Rene", "Milza"],
+            "domanda": "Quale organo del corpo umano regola il metabolismo attraverso la produzione di tiroxina?",
+            "risposte": ["Tiroide", "Pancreas", "Ipofisi", "Surrene"],
             "corretta": 0,
             "punti": 120,
             "difficolta": "medio"
           },
           {
             "id": 305,
-            "domanda": "Quanti cromosomi ha una cellula umana sana?",
-            "risposte": ["46", "23", "48", "44"],
+            "domanda": "Quale legge della termodinamica afferma che l'entropia di un sistema isolato tende ad aumentare?",
+            "risposte": ["Secondo principio", "Primo principio", "Terzo principio", "Principio zero"],
             "corretta": 0,
             "punti": 120,
             "difficolta": "medio"
           },
           {
             "id": 306,
-            "domanda": "Quale legge fisica afferma che per ogni azione esiste una reazione uguale e contraria?",
-            "risposte": ["Terza legge di Newton", "Prima legge di Newton", "Legge di Gravitazione", "Principio di Archimede"],
+            "domanda": "Come si chiama il legame chimico che si forma per condivisione di elettroni tra atomi?",
+            "risposte": ["Legame covalente", "Legame ionico", "Legame metallico", "Legame a idrogeno"],
             "corretta": 0,
             "punti": 160,
             "difficolta": "difficile"
           },
           {
             "id": 307,
-            "domanda": "Quale parte del cervello regola l'equilibrio e la coordinazione motoria?",
-            "risposte": ["Cervelletto", "Corteccia cerebrale", "Talamo", "Ipotalamo"],
+            "domanda": "Quale struttura cellulare è sede della sintesi proteica?",
+            "risposte": ["Ribosomi", "Mitocondri", "Apparato di Golgi", "Reticolo endoplasmatico"],
             "corretta": 0,
             "punti": 160,
             "difficolta": "difficile"
           },
           {
             "id": 308,
-            "domanda": "Qual è il numero atomico dell'oro?",
-            "risposte": ["79", "47", "29", "82"],
+            "domanda": "Quale fenomeno fisico spiega perché il cielo appare blu?",
+            "risposte": ["Diffusione di Rayleigh", "Effetto Doppler", "Rifrazione atmosferica", "Effetto Compton"],
             "corretta": 0,
             "punti": 200,
             "difficolta": "molto difficile"
@@ -200,56 +200,56 @@
         "Cinema": [
           {
             "id": 401,
-            "domanda": "Quale attore italiano ha vinto l'Oscar sia come migliore attore che come miglior film con lo stesso film nel 1999?",
-            "risposte": ["Roberto Benigni", "Marcello Mastroianni", "Nanni Moretti", "Massimo Troisi"],
+            "domanda": "Quale regista italiano vinse l'Oscar per 'La vita è bella' nel 1999?",
+            "risposte": ["Roberto Benigni", "Nanni Moretti", "Paolo Sorrentino", "Gabriele Salvatores"],
             "corretta": 0,
             "punti": 100,
             "difficolta": "facile"
           },
           {
             "id": 402,
-            "domanda": "In quale film Marlon Brando pronuncia la frase 'Gli farò un'offerta che non potrà rifiutare'?",
-            "risposte": ["Il Padrino", "Apocalypse Now", "Ultimo tango a Parigi", "A Streetcar Named Desire"],
+            "domanda": "In quale trilogia cinematografica Peter Jackson adattò l'opera di Tolkien?",
+            "risposte": ["Il Signore degli Anelli", "Lo Hobbit", "Le cronache di Narnia", "Harry Potter"],
             "corretta": 0,
             "punti": 100,
             "difficolta": "facile"
           },
           {
             "id": 403,
-            "domanda": "In quale anno è uscito il primo film della saga di Star Wars?",
-            "risposte": ["1977", "1975", "1980", "1983"],
+            "domanda": "Quale regista messicano ha diretto 'Il labirinto del fauno' e 'La forma dell'acqua'?",
+            "risposte": ["Guillermo del Toro", "Alfonso Cuarón", "Alejandro González Iñárritu", "Robert Rodriguez"],
             "corretta": 0,
             "punti": 120,
             "difficolta": "medio"
           },
           {
             "id": 404,
-            "domanda": "Chi ha interpretato James Bond nel film 'Casino Royale' del 2006?",
-            "risposte": ["Daniel Craig", "Pierce Brosnan", "Sean Connery", "Roger Moore"],
+            "domanda": "Quale film di Federico Fellini è considerato un capolavoro autobiografico e porta un titolo numerico?",
+            "risposte": ["8½", "La dolce vita", "Amarcord", "Le notti di Cabiria"],
             "corretta": 0,
             "punti": 120,
             "difficolta": "medio"
           },
           {
             "id": 405,
-            "domanda": "Di quale regista italiano è il film 'Nuovo Cinema Paradiso'?",
-            "risposte": ["Giuseppe Tornatore", "Federico Fellini", "Bernardo Bertolucci", "Luchino Visconti"],
+            "domanda": "Quale regista polacco diresse la trilogia 'Tre colori: Blu, Bianco, Rosso'?",
+            "risposte": ["Krzysztof Kieślowski", "Roman Polanski", "Andrzej Wajda", "Agnieszka Holland"],
             "corretta": 0,
             "punti": 160,
             "difficolta": "difficile"
           },
           {
             "id": 406,
-            "domanda": "Quale attore ha vinto più Oscar nella storia della cerimonia?",
-            "risposte": ["Katharine Hepburn", "Meryl Streep", "Jack Nicholson", "Daniel Day-Lewis"],
+            "domanda": "Quale film del 1941 di Orson Welles è spesso considerato il più grande film mai realizzato?",
+            "risposte": ["Quarto potere (Citizen Kane)", "L'orgoglio degli Amberson", "L'infernale Quinlan", "La signora di Shanghai"],
             "corretta": 0,
             "punti": 160,
             "difficolta": "difficile"
           },
           {
             "id": 407,
-            "domanda": "In quale film Marcello Mastroianni dice 'La dolce vita'?",
-            "risposte": ["La dolce vita di Fellini (1960)", "8½", "Divorzio all'italiana", "Ieri, oggi, domani"],
+            "domanda": "Quale regista iraniano vinse la Palma d'Oro a Cannes nel 1997 con 'Il sapore della ciliegia'?",
+            "risposte": ["Abbas Kiarostami", "Asghar Farhadi", "Mohsen Makhmalbaf", "Jafar Panahi"],
             "corretta": 0,
             "punti": 200,
             "difficolta": "molto difficile"
@@ -259,56 +259,56 @@
         "Musica": [
           {
             "id": 501,
-            "domanda": "Quale cantautore italiano scrisse 'La canzone del sole'?",
-            "risposte": ["Lucio Battisti", "Fabrizio De André", "Francesco De Gregori", "Lucio Dalla"],
+            "domanda": "Quale cantautore italiano è autore di 'La canzone di Marinella' e 'Bocca di rosa'?",
+            "risposte": ["Fabrizio De André", "Francesco De Gregori", "Lucio Dalla", "Francesco Guccini"],
             "corretta": 0,
             "punti": 100,
             "difficolta": "facile"
           },
           {
             "id": 502,
-            "domanda": "In quale decennio nacque il genere musicale del rock and roll?",
-            "risposte": ["Anni '50", "Anni '40", "Anni '60", "Anni '30"],
+            "domanda": "Quale compositore tedesco scrisse la 'Nona Sinfonia' con il celebre 'Inno alla gioia'?",
+            "risposte": ["Ludwig van Beethoven", "Johannes Brahms", "Richard Wagner", "Robert Schumann"],
             "corretta": 0,
             "punti": 100,
             "difficolta": "facile"
           },
           {
             "id": 503,
-            "domanda": "In quale città nacque Wolfgang Amadeus Mozart?",
-            "risposte": ["Salisburgo", "Vienna", "Berlino", "Monaco"],
+            "domanda": "Quale musicista è considerato il 'padre del jazz moderno' e rivoluzionò il genere con il bebop?",
+            "risposte": ["Charlie Parker", "Louis Armstrong", "Duke Ellington", "Dizzy Gillespie"],
             "corretta": 0,
             "punti": 120,
             "difficolta": "medio"
           },
           {
             "id": 504,
-            "domanda": "Quale cantante italiana è soprannominata 'la tigre di Cremona'?",
-            "risposte": ["Mina", "Ornella Vanoni", "Patty Pravo", "Milva"],
+            "domanda": "Quale opera lirica di Giuseppe Verdi fu commissionata per l'inaugurazione del Canale di Suez?",
+            "risposte": ["Aida", "Nabucco", "La Traviata", "Otello"],
             "corretta": 0,
             "punti": 120,
             "difficolta": "medio"
           },
           {
             "id": 505,
-            "domanda": "Come si chiama la tecnica chitarristica inventata da Jimi Hendrix di suonare con i denti?",
-            "risposte": ["Non ha un nome ufficiale, ma è associata al suo show", "Hammer-on", "Slide", "Fingerpicking"],
+            "domanda": "Quale album dei Radiohead del 1997 è considerato una pietra miliare del rock alternativo?",
+            "risposte": ["OK Computer", "The Bends", "Kid A", "In Rainbows"],
             "corretta": 0,
             "punti": 160,
             "difficolta": "difficile"
           },
           {
             "id": 506,
-            "domanda": "Quale strumento suonava Miles Davis?",
-            "risposte": ["Tromba", "Sassofono", "Clarinetto", "Pianoforte"],
+            "domanda": "Quale compositore francese scrisse 'Prélude à l'après-midi d'un faune', considerato l'inizio della musica moderna?",
+            "risposte": ["Claude Debussy", "Maurice Ravel", "Erik Satie", "Camille Saint-Saëns"],
             "corretta": 0,
             "punti": 160,
             "difficolta": "difficile"
           },
           {
             "id": 507,
-            "domanda": "In quale anno si tenne il celebre concerto di Woodstock?",
-            "risposte": ["1969", "1967", "1971", "1973"],
+            "domanda": "Quale cantante americana è nota come 'Lady Day' ed è considerata tra le più grandi voci jazz di sempre?",
+            "risposte": ["Billie Holiday", "Ella Fitzgerald", "Nina Simone", "Sarah Vaughan"],
             "corretta": 0,
             "punti": 200,
             "difficolta": "molto difficile"
@@ -318,56 +318,56 @@
         "Arte e Letteratura": [
           {
             "id": 601,
-            "domanda": "Quale poeta italiano scrisse 'L'Infinito'?",
-            "risposte": ["Giacomo Leopardi", "Ugo Foscolo", "Alessandro Manzoni", "Giovanni Pascoli"],
+            "domanda": "Quale scrittore russo è autore di 'Guerra e pace' e 'Anna Karenina'?",
+            "risposte": ["Lev Tolstoj", "Fëdor Dostoevskij", "Anton Čechov", "Ivan Turgenev"],
             "corretta": 0,
             "punti": 100,
             "difficolta": "facile"
           },
           {
             "id": 602,
-            "domanda": "In quale città visse e lavorò Caravaggio negli anni della sua maturità artistica?",
-            "risposte": ["Roma", "Milano", "Napoli", "Venezia"],
+            "domanda": "Quale pittore spagnolo, insieme a Georges Braque, fondò il Cubismo?",
+            "risposte": ["Pablo Picasso", "Salvador Dalí", "Joan Miró", "Juan Gris"],
             "corretta": 0,
             "punti": 100,
             "difficolta": "facile"
           },
           {
             "id": 603,
-            "domanda": "In quale città si svolge il romanzo 'Il nome della rosa' di Umberto Eco?",
-            "risposte": ["In un abbazia medievale (Appennino ligure-piemontese)", "Roma", "Firenze", "Venezia"],
+            "domanda": "Quale scrittore colombiano vinse il Nobel nel 1982 e scrisse 'Cent'anni di solitudine'?",
+            "risposte": ["Gabriel García Márquez", "Mario Vargas Llosa", "Jorge Luis Borges", "Julio Cortázar"],
             "corretta": 0,
             "punti": 120,
             "difficolta": "medio"
           },
           {
             "id": 604,
-            "domanda": "Quale pittore impressionista è famoso per le sue serie di ninfee?",
-            "risposte": ["Claude Monet", "Pierre-Auguste Renoir", "Edgar Degas", "Camille Pissarro"],
+            "domanda": "Quale scultore barocco realizzò l'Estasi di Santa Teresa nella chiesa di Santa Maria della Vittoria a Roma?",
+            "risposte": ["Gian Lorenzo Bernini", "Antonio Canova", "Donatello", "Andrea del Verrocchio"],
             "corretta": 0,
             "punti": 120,
             "difficolta": "medio"
           },
           {
             "id": 605,
-            "domanda": "Chi scrisse 'Cento anni di solitudine'?",
-            "risposte": ["Gabriel García Márquez", "Mario Vargas Llosa", "Jorge Luis Borges", "Pablo Neruda"],
+            "domanda": "Quale poeta portoghese scrisse usando numerosi eteronimi, tra cui Álvaro de Campos e Ricardo Reis?",
+            "risposte": ["Fernando Pessoa", "José Saramago", "Luís de Camões", "Eça de Queirós"],
             "corretta": 0,
             "punti": 160,
             "difficolta": "difficile"
           },
           {
             "id": 606,
-            "domanda": "In quale secolo fu scritta la Divina Commedia?",
-            "risposte": ["XIV secolo (1300-1321)", "XIII secolo", "XV secolo", "XII secolo"],
+            "domanda": "Quale pittore italiano del '600 è noto per il suo uso drammatico del chiaroscuro e per una vita turbolenta?",
+            "risposte": ["Caravaggio", "Guido Reni", "Artemisia Gentileschi", "Annibale Carracci"],
             "corretta": 0,
             "punti": 160,
             "difficolta": "difficile"
           },
           {
             "id": 607,
-            "domanda": "Come si chiama la tecnica pittorica che consiste nell'applicare colore su intonaco fresco?",
-            "risposte": ["Affresco", "Tempera", "Encausto", "Gouache"],
+            "domanda": "Quale scrittore irlandese scrisse 'Ulisse', considerato uno dei romanzi più importanti del XX secolo?",
+            "risposte": ["James Joyce", "Samuel Beckett", "Oscar Wilde", "William Butler Yeats"],
             "corretta": 0,
             "punti": 200,
             "difficolta": "molto difficile"
@@ -377,56 +377,56 @@
         "Sport": [
           {
             "id": 701,
-            "domanda": "Quale paese ha vinto il primo Campionato Mondiale di calcio nel 1930?",
-            "risposte": ["Uruguay", "Argentina", "Brasile", "Italia"],
+            "domanda": "Quale paese ha vinto più Coppe del Mondo di calcio nella storia?",
+            "risposte": ["Brasile", "Germania", "Italia", "Argentina"],
             "corretta": 0,
             "punti": 100,
             "difficolta": "facile"
           },
           {
             "id": 702,
-            "domanda": "In quale sport si assegna il Trofeo Borg-Warner?",
-            "risposte": ["Indianapolis 500 (automobilismo)", "Tennis", "Golf", "Ciclismo"],
+            "domanda": "Quale nuotatore americano è l'atleta più decorato nella storia delle Olimpiadi?",
+            "risposte": ["Michael Phelps", "Mark Spitz", "Ryan Lochte", "Ian Thorpe"],
             "corretta": 0,
             "punti": 100,
             "difficolta": "facile"
           },
           {
             "id": 703,
-            "domanda": "In quanti set si disputa una partita di tennis del Grande Slam maschile?",
-            "risposte": ["Al meglio dei 5 set", "Al meglio dei 3 set", "Al meglio dei 7 set", "4 set fissi"],
+            "domanda": "In quale sport si disputa il torneo delle Sei Nazioni?",
+            "risposte": ["Rugby", "Calcio", "Cricket", "Hockey su prato"],
             "corretta": 0,
             "punti": 120,
             "difficolta": "medio"
           },
           {
             "id": 704,
-            "domanda": "Quale club ha vinto più Champions League nella storia?",
-            "risposte": ["Real Madrid", "AC Milan", "Bayern Monaco", "Barcellona"],
+            "domanda": "Quale ciclista italiano fu soprannominato 'Il Pirata' e vinse Tour de France e Giro d'Italia nel 1998?",
+            "risposte": ["Marco Pantani", "Fausto Coppi", "Gino Bartali", "Felice Gimondi"],
             "corretta": 0,
             "punti": 120,
             "difficolta": "medio"
           },
           {
             "id": 705,
-            "domanda": "Quante medaglie d'oro ha vinto Michael Phelps in carriera alle Olimpiadi?",
-            "risposte": ["23", "18", "28", "15"],
+            "domanda": "Quale atleta giamaicano detiene il record mondiale dei 100 e 200 metri piani?",
+            "risposte": ["Usain Bolt", "Yohan Blake", "Asafa Powell", "Justin Gatlin"],
             "corretta": 0,
             "punti": 160,
             "difficolta": "difficile"
           },
           {
             "id": 706,
-            "domanda": "In quale sport si usa il termine 'birdie'?",
-            "risposte": ["Golf", "Badminton", "Bowling", "Cricket"],
+            "domanda": "In quale anno le Olimpiadi si tennero per la prima volta in Asia?",
+            "risposte": ["1964 (Tokyo)", "1988 (Seul)", "2008 (Pechino)", "1972 (Monaco)"],
             "corretta": 0,
             "punti": 160,
             "difficolta": "difficile"
           },
           {
             "id": 707,
-            "domanda": "Quale italiano ha vinto il Tour de France?",
-            "risposte": ["Marco Pantani (1998)", "Fausto Coppi", "Gino Bartali", "Felice Gimondi"],
+            "domanda": "Quale tennista ha vinto il maggior numero di titoli al Roland Garros nella storia?",
+            "risposte": ["Rafael Nadal", "Björn Borg", "Novak Djokovic", "Gustavo Kuerten"],
             "corretta": 0,
             "punti": 200,
             "difficolta": "molto difficile"
@@ -436,16 +436,16 @@
         "Giochi di logica": [
           {
             "id": 1001,
-            "domanda": "Se oggi è mercoledì, che giorno sarà tra 100 giorni?",
-            "risposte": ["Venerdì", "Giovedì", "Sabato", "Martedì"],
+            "domanda": "Un treno parte alle 7:45 e arriva alle 13:20. Quanto dura il viaggio?",
+            "risposte": ["5 ore e 35 minuti", "5 ore e 45 minuti", "6 ore e 25 minuti", "5 ore e 25 minuti"],
             "corretta": 0,
-            "punti": 120,
-            "difficolta": "medio"
+            "punti": 100,
+            "difficolta": "facile"
           },
           {
             "id": 1002,
-            "domanda": "Un treno parte alle 7:45 e arriva alle 13:20. Quanto dura il viaggio?",
-            "risposte": ["5 ore e 35 minuti", "5 ore e 45 minuti", "6 ore e 25 minuti", "5 ore e 25 minuti"],
+            "domanda": "Se oggi è mercoledì, che giorno sarà tra 100 giorni?",
+            "risposte": ["Venerdì", "Giovedì", "Sabato", "Martedì"],
             "corretta": 0,
             "punti": 100,
             "difficolta": "facile"
@@ -460,8 +460,8 @@
           },
           {
             "id": 1004,
-            "domanda": "Ho una candela che dura 2 ore. Ne accendo metà. Quanto durerà?",
-            "risposte": ["2 ore", "1 ora", "4 ore", "30 minuti"],
+            "domanda": "Un commerciante vende un oggetto a 120€ guadagnando il 20% sul costo. Quanto gli era costato?",
+            "risposte": ["100€", "96€", "110€", "104€"],
             "corretta": 0,
             "punti": 120,
             "difficolta": "medio"
@@ -476,7 +476,7 @@
           },
           {
             "id": 1006,
-            "domanda": "Se un gatto corre a 4 metri al secondo e un topo a 2 metri al secondo, con 20 metri di vantaggio, dopo quanti secondi il gatto raggiunge il topo?",
+            "domanda": "Un gatto corre a 4 m/s e un topo a 2 m/s. Il topo ha 20 m di vantaggio. Dopo quanti secondi il gatto raggiunge il topo?",
             "risposte": ["10 secondi", "5 secondi", "20 secondi", "8 secondi"],
             "corretta": 0,
             "punti": 160,
@@ -484,7 +484,7 @@
           },
           {
             "id": 1007,
-            "domanda": "Mario ha 3 figli. Il prodotto delle loro età è 36. La somma delle loro età è uguale al numero di finestre di casa sua. Non riesce a capire quanti anni hanno. Qual è la somma delle loro età?",
+            "domanda": "Mario ha 3 figli. Il prodotto delle loro età è 36. La somma delle loro età è uguale al numero civico di casa sua. Un amico non riesce a indovinare le età. Qual è la somma delle loro età?",
             "risposte": ["13", "12", "10", "14"],
             "corretta": 0,
             "punti": 200,
@@ -492,11 +492,11 @@
           },
           {
             "id": 1008,
-            "domanda": "Un commerciante vende un oggetto a 120€ guadagnando il 20% sul costo. Quanto gli era costato?",
-            "risposte": ["100€", "96€", "110€", "104€"],
+            "domanda": "Se 3 gatti catturano 3 topi in 3 minuti, quanti gatti servono per catturare 100 topi in 100 minuti?",
+            "risposte": ["3", "100", "33", "9"],
             "corretta": 0,
-            "punti": 100,
-            "difficolta": "facile"
+            "punti": 120,
+            "difficolta": "medio"
           }
         ],
 
@@ -535,15 +535,15 @@
           },
           {
             "id": 3105,
-            "domanda": "Se 'avvocato' sta a 'tribunale' come 'chirurgo' sta a…?",
-            "risposte": ["Sala operatoria", "Ospedale", "Ambulatorio", "Pronto soccorso"],
+            "domanda": "Se OSSIGENO sta a RESPIRAZIONE come GLUCOSIO sta a…?",
+            "risposte": ["Metabolismo", "Digestione", "Fotosintesi", "Circolazione"],
             "corretta": 0,
-            "punti": 100,
-            "difficolta": "facile"
+            "punti": 120,
+            "difficolta": "medio"
           },
           {
             "id": 3106,
-            "domanda": "Nessun politico è onesto. Marco è onesto. Cosa si può dedurre?",
+            "domanda": "Nessun politico è onesto. Marco è onesto. Cosa si può dedurre con certezza?",
             "risposte": ["Marco non è un politico", "Marco potrebbe essere un politico", "Marco è onesto ma politico", "Non si può dedurre niente"],
             "corretta": 0,
             "punti": 160,
@@ -551,19 +551,19 @@
           },
           {
             "id": 3107,
-            "domanda": "Quale parola completa l'analogia: Pittore : Pennello = Fotografo : ?",
-            "risposte": ["Macchina fotografica", "Obiettivo", "Pellicola", "Luce"],
+            "domanda": "Se tutti i A sono B, e tutti i B sono C, e nessun C è D, cosa possiamo concludere?",
+            "risposte": ["Nessun A è D", "Alcuni A sono D", "Tutti i D sono A", "Non si può concludere nulla"],
             "corretta": 0,
-            "punti": 120,
-            "difficolta": "medio"
+            "punti": 200,
+            "difficolta": "molto difficile"
           }
         ],
 
         "Raddoppi": [
           {
             "id": 2101,
-            "domanda": "RADDOPPIO: In quale anno fu firmata la Costituzione Italiana, entrata in vigore il 1° gennaio 1948?",
-            "risposte": ["1947", "1946", "1948", "1949"],
+            "domanda": "RADDOPPIO: Quale scienziato italiano inventò la pila elettrica nel 1800?",
+            "risposte": ["Alessandro Volta", "Luigi Galvani", "Guglielmo Marconi", "Galileo Galilei"],
             "corretta": 0,
             "punti": 400,
             "difficolta": "molto difficile"
@@ -571,15 +571,15 @@
           {
             "id": 2102,
             "domanda": "RADDOPPIO: Quale scrittore italiano vinse il Premio Nobel per la letteratura nel 1997?",
-            "risposte": ["Dario Fo", "Eugenio Montale", "Grazia Deledda", "Alberto Moravia"],
+            "risposte": ["Dario Fo", "Eugenio Montale", "Grazia Deledda", "Luigi Pirandello"],
             "corretta": 0,
             "punti": 400,
             "difficolta": "molto difficile"
           },
           {
             "id": 2103,
-            "domanda": "RADDOPPIO: Quanti sono i libri della Commedia di Dante?",
-            "risposte": ["3 (Inferno, Purgatorio, Paradiso)", "2", "4", "1"],
+            "domanda": "RADDOPPIO: In quale anno cadde il Muro di Berlino?",
+            "risposte": ["1989", "1991", "1987", "1990"],
             "corretta": 0,
             "punti": 400,
             "difficolta": "molto difficile"
@@ -597,7 +597,7 @@
           },
           {
             "id": 9002,
-            "domanda": "ALL IN: Chi ha dipinto 'Le Meninas'?",
+            "domanda": "ALL IN: Quale pittore spagnolo del XVII secolo dipinse 'Las Meninas'?",
             "risposte": ["Diego Velázquez", "Francisco Goya", "El Greco", "Bartolomé Murillo"],
             "corretta": 0,
             "punti": 0,
@@ -605,8 +605,8 @@
           },
           {
             "id": 9003,
-            "domanda": "ALL IN: Quante sonate per pianoforte scrisse Ludwig van Beethoven?",
-            "risposte": ["32", "24", "48", "16"],
+            "domanda": "ALL IN: Quale filosofo tedesco scrisse 'Essere e tempo' nel 1927?",
+            "risposte": ["Martin Heidegger", "Edmund Husserl", "Ludwig Wittgenstein", "Karl Jaspers"],
             "corretta": 0,
             "punti": 0,
             "difficolta": "all in"
@@ -621,8 +621,8 @@
           },
           {
             "id": 9005,
-            "domanda": "ALL IN: Come si chiama il teorema che afferma che in ogni sistema formale abbastanza potente esistono affermazioni vere ma non dimostrabili?",
-            "risposte": ["Teorema di incompletezza di Gödel", "Teorema di Fermat", "Teorema di Pitagora", "Paradosso di Russell"],
+            "domanda": "ALL IN: Quale matematico formulò il teorema secondo cui in ogni sistema formale sufficientemente potente esistono proposizioni vere ma non dimostrabili?",
+            "risposte": ["Kurt Gödel", "Alan Turing", "Bertrand Russell", "David Hilbert"],
             "corretta": 0,
             "punti": 0,
             "difficolta": "all in"
@@ -633,15 +633,15 @@
       "sfida_finale": [
         {
           "id": 8001,
-          "domanda": "SFIDA FINALE: Chi ha scritto 'Il Principe'?",
-          "risposte": ["Niccolò Machiavelli", "Dante Alighieri", "Tommaso Moro", "Francesco Guicciardini"],
+          "domanda": "SFIDA FINALE: Quale filosofo rinascimentale scrisse 'Il Principe'?",
+          "risposte": ["Niccolò Machiavelli", "Tommaso Moro", "Erasmo da Rotterdam", "Francesco Guicciardini"],
           "corretta": 0,
           "punti": 300,
           "difficolta": "sfida"
         },
         {
           "id": 8002,
-          "domanda": "SFIDA FINALE: Qual è il paese con più siti UNESCO al mondo?",
+          "domanda": "SFIDA FINALE: Quale paese detiene il primato mondiale per numero di siti Patrimonio UNESCO?",
           "risposte": ["Italia", "Cina", "Spagna", "Francia"],
           "corretta": 0,
           "punti": 300,
@@ -649,15 +649,15 @@
         },
         {
           "id": 8003,
-          "domanda": "SFIDA FINALE: Quale scienziato formulò la legge di gravitazione universale?",
-          "risposte": ["Isaac Newton", "Galileo Galilei", "Albert Einstein", "Johannes Kepler"],
+          "domanda": "SFIDA FINALE: Quale scienziato formulò le tre leggi del moto planetario nel XVII secolo?",
+          "risposte": ["Giovanni Keplero", "Isaac Newton", "Galileo Galilei", "Tycho Brahe"],
           "corretta": 0,
           "punti": 300,
           "difficolta": "sfida"
         },
         {
           "id": 8004,
-          "domanda": "SFIDA FINALE: In quale anno fu lanciato il primo satellite artificiale, lo Sputnik?",
+          "domanda": "SFIDA FINALE: In quale anno fu lanciato lo Sputnik, il primo satellite artificiale?",
           "risposte": ["1957", "1955", "1961", "1959"],
           "corretta": 0,
           "punti": 300,
@@ -665,15 +665,15 @@
         },
         {
           "id": 8005,
-          "domanda": "SFIDA FINALE: Quale opera lirica di Verdi si svolge in Egitto?",
-          "risposte": ["Aida", "Nabucco", "Otello", "Trovatore"],
+          "domanda": "SFIDA FINALE: Quale opera lirica di Verdi si svolge nell'antico Egitto?",
+          "risposte": ["Aida", "Nabucco", "Otello", "Il Trovatore"],
           "corretta": 0,
           "punti": 300,
           "difficolta": "sfida"
         },
         {
           "id": 8006,
-          "domanda": "SFIDA FINALE: Logica — Se tutti i B sono A, e nessun C è A, allora…",
+          "domanda": "SFIDA FINALE: Se tutti i B sono A, e nessun C è A, allora cosa è certamente vero?",
           "risposte": ["Nessun C è B", "Tutti i C sono B", "Alcuni C sono B", "Non si può concludere niente"],
           "corretta": 0,
           "punti": 300,
@@ -681,48 +681,48 @@
         },
         {
           "id": 8007,
-          "domanda": "SFIDA FINALE: Qual è la radice quadrata di 1.764?",
-          "risposte": ["42", "44", "40", "38"],
+          "domanda": "SFIDA FINALE: Quale pittore olandese dipinse 'La ronda di notte'?",
+          "risposte": ["Rembrandt van Rijn", "Johannes Vermeer", "Frans Hals", "Jan Steen"],
           "corretta": 0,
           "punti": 300,
           "difficolta": "sfida"
         },
         {
           "id": 8008,
-          "domanda": "SFIDA FINALE: Chi guidò la rivoluzione cubana nel 1959?",
-          "risposte": ["Fidel Castro", "Ernesto Che Guevara", "Raúl Castro", "Camilo Cienfuegos"],
+          "domanda": "SFIDA FINALE: Quale architetto progettò il Guggenheim Museum di Bilbao?",
+          "risposte": ["Frank Gehry", "Renzo Piano", "Zaha Hadid", "Norman Foster"],
           "corretta": 0,
           "punti": 300,
           "difficolta": "sfida"
         },
         {
           "id": 8009,
-          "domanda": "SFIDA FINALE: Quale regione italiana ha il maggior numero di comuni?",
-          "risposte": ["Lombardia", "Piemonte", "Campania", "Sicilia"],
+          "domanda": "SFIDA FINALE: Quale regione italiana produce più vino?",
+          "risposte": ["Veneto", "Piemonte", "Toscana", "Sicilia"],
           "corretta": 0,
           "punti": 300,
           "difficolta": "sfida"
         },
         {
           "id": 8010,
-          "domanda": "SFIDA FINALE: In quale romanzo compare il personaggio di Don Abbondio?",
-          "risposte": ["I Promessi Sposi", "Il fu Mattia Pascal", "I Malavoglia", "Le confessioni di un italiano"],
+          "domanda": "SFIDA FINALE: Quale scrittore ceco scrisse 'Il processo' e 'La metamorfosi'?",
+          "risposte": ["Franz Kafka", "Milan Kundera", "Rainer Maria Rilke", "Robert Musil"],
           "corretta": 0,
           "punti": 300,
           "difficolta": "sfida"
         },
         {
           "id": 8011,
-          "domanda": "SFIDA FINALE: Quanti lati ha un dodecagono?",
-          "risposte": ["12", "10", "14", "8"],
+          "domanda": "SFIDA FINALE: Quale struttura anatomica collega il cervello al midollo spinale?",
+          "risposte": ["Tronco encefalico", "Cervelletto", "Talamo", "Ipotalamo"],
           "corretta": 0,
           "punti": 300,
           "difficolta": "sfida"
         },
         {
           "id": 8012,
-          "domanda": "SFIDA FINALE: Qual è la moneta ufficiale del Giappone?",
-          "risposte": ["Yen", "Won", "Yuan", "Baht"],
+          "domanda": "SFIDA FINALE: Quale compositore scrisse 'Il flauto magico' poco prima di morire nel 1791?",
+          "risposte": ["Wolfgang Amadeus Mozart", "Joseph Haydn", "Ludwig van Beethoven", "Antonio Salieri"],
           "corretta": 0,
           "punti": 300,
           "difficolta": "sfida"
@@ -732,8 +732,8 @@
       "bonus": [
         {
           "id": 5001,
-          "domanda": "BONUS: Quale paese produce più vino al mondo?",
-          "risposte": ["Italia", "Francia", "Spagna", "Cile"],
+          "domanda": "BONUS: Quale paese è il maggior produttore mondiale di olio d'oliva?",
+          "risposte": ["Spagna", "Italia", "Grecia", "Tunisia"],
           "corretta": 0,
           "punti": 200,
           "difficolta": "facile"
@@ -748,24 +748,24 @@
         },
         {
           "id": 5003,
-          "domanda": "BONUS: In quale città italiana si trova il Duomo più grande del mondo?",
-          "risposte": ["Milano", "Roma", "Firenze", "Napoli"],
+          "domanda": "BONUS: Quale metallo prezioso ha simbolo chimico Ag?",
+          "risposte": ["Argento", "Oro", "Platino", "Palladio"],
           "corretta": 0,
           "punti": 200,
           "difficolta": "medio"
         },
         {
           "id": 5004,
-          "domanda": "BONUS: Quale nazione europea ha più frontiere terrestri con altri paesi?",
-          "risposte": ["Germania", "Francia", "Austria", "Russia"],
+          "domanda": "BONUS: Quale filosofo greco fondò l'Accademia ad Atene?",
+          "risposte": ["Platone", "Aristotele", "Socrate", "Epicuro"],
           "corretta": 0,
           "punti": 200,
           "difficolta": "facile"
         },
         {
           "id": 5005,
-          "domanda": "BONUS: Quale elemento chimico è il più abbondante nell'universo?",
-          "risposte": ["Idrogeno", "Elio", "Ossigeno", "Carbonio"],
+          "domanda": "BONUS: Quale elemento chimico è il più abbondante nella crosta terrestre?",
+          "risposte": ["Ossigeno", "Silicio", "Alluminio", "Ferro"],
           "corretta": 0,
           "punti": 200,
           "difficolta": "medio"
@@ -782,21 +782,21 @@
         },
         {
           "id": 6002,
-          "domanda": "STIMA: A quanti gradi bolle l'acqua sul Monte Everest (approssimativamente)?",
+          "domanda": "STIMA: A quanti gradi Celsius bolle l'acqua sulla cima del Monte Everest (approssimativamente)?",
           "corretta": "70",
           "punti": 150,
           "difficolta": "difficile"
         },
         {
           "id": 6003,
-          "domanda": "STIMA: Quanti abitanti ha la Puglia (approssimativamente in milioni)?",
-          "corretta": "3.9",
+          "domanda": "STIMA: Quanti abitanti ha l'Italia (approssimativamente, in milioni)?",
+          "corretta": "59",
           "punti": 150,
           "difficolta": "medio"
         },
         {
           "id": 6004,
-          "domanda": "STIMA: In che anno fu costruito il Colosseo (approssimativamente)?",
+          "domanda": "STIMA: In quale anno d.C. fu inaugurato il Colosseo (approssimativamente)?",
           "corretta": "80",
           "punti": 150,
           "difficolta": "difficile"
@@ -807,7 +807,7 @@
         {
           "id": 4001,
           "domanda": "ANAGRAMMA: A M O R E",
-          "corretta": "ROMEA / REAMO / varianti accettate",
+          "corretta": "REAMO",
           "punti": 80,
           "difficolta": "facile"
         },
@@ -821,21 +821,21 @@
         {
           "id": 4003,
           "domanda": "ANAGRAMMA: S T E L L A",
-          "corretta": "ALLEST / TALLAS (varianti: STELLE-A)",
+          "corretta": "STALLE",
           "punti": 120,
           "difficolta": "medio"
         },
         {
           "id": 4004,
-          "domanda": "ANAGRAMMA: M U S I C A",
-          "corretta": "CAMUSI / MISUCA — o MACIUS (varianti accettate)",
+          "domanda": "ANAGRAMMA: C A L O R E",
+          "corretta": "ORACL E",
           "punti": 140,
           "difficolta": "difficile"
         },
         {
           "id": 4005,
-          "domanda": "ANAGRAMMA: C A L C I A T O R E",
-          "corretta": "CATALRICOE / RACICOLTAE (varianti accettate)",
+          "domanda": "ANAGRAMMA: M A E S T R O",
+          "corretta": "ESORTAM",
           "punti": 200,
           "difficolta": "molto difficile"
         }

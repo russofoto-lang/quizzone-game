@@ -7,16 +7,16 @@
         "Storia": [
           {
             "id": 101,
-            "domanda": "In quale anno cadde il Muro di Berlino?",
-            "risposte": ["1989", "1991", "1985", "1987"],
+            "domanda": "Quale imperatore romano fu assassinato alle Idi di Marzo del 44 a.C.?",
+            "risposte": ["Giulio Cesare", "Augusto", "Nerone", "Caligola"],
             "corretta": 0,
             "punti": 100,
             "difficolta": "facile"
           },
           {
             "id": 102,
-            "domanda": "Chi fu il primo uomo a camminare sulla Luna?",
-            "risposte": ["Neil Armstrong", "Buzz Aldrin", "Yuri Gagarin", "John Glenn"],
+            "domanda": "Come si chiamava il premier britannico durante la Seconda Guerra Mondiale?",
+            "risposte": ["Winston Churchill", "Neville Chamberlain", "Clement Attlee", "Anthony Eden"],
             "corretta": 0,
             "punti": 100,
             "difficolta": "facile"
@@ -74,16 +74,16 @@
         "Geografia": [
           {
             "id": 201,
-            "domanda": "Qual è la capitale del Canada?",
-            "risposte": ["Ottawa", "Toronto", "Montreal", "Vancouver"],
+            "domanda": "Quale delle seguenti capitali europee si trova più a nord?",
+            "risposte": ["Reykjavik", "Oslo", "Helsinki", "Stoccolma"],
             "corretta": 0,
             "punti": 100,
             "difficolta": "facile"
           },
           {
             "id": 202,
-            "domanda": "Quale è il paese più grande del mondo per superficie?",
-            "risposte": ["Russia", "Canada", "Cina", "USA"],
+            "domanda": "Quale continente è privo di stati sovrani permanenti?",
+            "risposte": ["Antartide", "Oceania", "Artide", "Groenlandia"],
             "corretta": 0,
             "punti": 100,
             "difficolta": "facile"
@@ -133,24 +133,24 @@
         "Scienze": [
           {
             "id": 301,
-            "domanda": "Quante ossa ha il corpo umano adulto?",
-            "risposte": ["206", "186", "230", "212"],
+            "domanda": "Quale vitamina viene prodotta dalla pelle esposta alla luce solare?",
+            "risposte": ["Vitamina D", "Vitamina C", "Vitamina A", "Vitamina B12"],
             "corretta": 0,
             "punti": 100,
             "difficolta": "facile"
           },
           {
             "id": 302,
-            "domanda": "Quale pianeta è il più vicino al Sole?",
-            "risposte": ["Mercurio", "Venere", "Marte", "Terra"],
+            "domanda": "Quale organo del corpo umano non si rigenera mai dopo la nascita?",
+            "risposte": ["Neuroni cerebrali", "Cellule del fegato", "Globuli rossi", "Cellule cutanee"],
             "corretta": 0,
             "punti": 100,
             "difficolta": "facile"
           },
           {
             "id": 303,
-            "domanda": "Qual è la formula chimica dell'acqua?",
-            "risposte": ["H₂O", "H₂O₂", "HO", "H₃O"],
+            "domanda": "Qual è l'unità di misura della frequenza?",
+            "risposte": ["Hertz", "Watt", "Joule", "Pascal"],
             "corretta": 0,
             "punti": 100,
             "difficolta": "facile"
@@ -200,16 +200,16 @@
         "Cinema": [
           {
             "id": 401,
-            "domanda": "Chi ha diretto 'La vita è bella' del 1997?",
-            "risposte": ["Roberto Benigni", "Nanni Moretti", "Giuseppe Tornatore", "Gabriele Muccino"],
+            "domanda": "Quale attore italiano ha vinto l'Oscar sia come migliore attore che come miglior film con lo stesso film nel 1999?",
+            "risposte": ["Roberto Benigni", "Marcello Mastroianni", "Nanni Moretti", "Massimo Troisi"],
             "corretta": 0,
             "punti": 100,
             "difficolta": "facile"
           },
           {
             "id": 402,
-            "domanda": "Quale film ha vinto l'Oscar come miglior film nel 2020?",
-            "risposte": ["Parasite", "1917", "Joker", "C'era una volta a Hollywood"],
+            "domanda": "In quale film Marlon Brando pronuncia la frase 'Gli farò un'offerta che non potrà rifiutare'?",
+            "risposte": ["Il Padrino", "Apocalypse Now", "Ultimo tango a Parigi", "A Streetcar Named Desire"],
             "corretta": 0,
             "punti": 100,
             "difficolta": "facile"
@@ -259,16 +259,16 @@
         "Musica": [
           {
             "id": 501,
-            "domanda": "Chi ha scritto la canzone 'Volare'?",
-            "risposte": ["Domenico Modugno", "Lucio Battisti", "Mina", "Adriano Celentano"],
+            "domanda": "Quale cantautore italiano scrisse 'La canzone del sole'?",
+            "risposte": ["Lucio Battisti", "Fabrizio De André", "Francesco De Gregori", "Lucio Dalla"],
             "corretta": 0,
             "punti": 100,
             "difficolta": "facile"
           },
           {
             "id": 502,
-            "domanda": "Quante corde ha una chitarra classica?",
-            "risposte": ["6", "4", "8", "12"],
+            "domanda": "In quale decennio nacque il genere musicale del rock and roll?",
+            "risposte": ["Anni '50", "Anni '40", "Anni '60", "Anni '30"],
             "corretta": 0,
             "punti": 100,
             "difficolta": "facile"
@@ -318,16 +318,16 @@
         "Arte e Letteratura": [
           {
             "id": 601,
-            "domanda": "Chi ha scritto 'I Promessi Sposi'?",
-            "risposte": ["Alessandro Manzoni", "Italo Svevo", "Ugo Foscolo", "Giacomo Leopardi"],
+            "domanda": "Quale poeta italiano scrisse 'L'Infinito'?",
+            "risposte": ["Giacomo Leopardi", "Ugo Foscolo", "Alessandro Manzoni", "Giovanni Pascoli"],
             "corretta": 0,
             "punti": 100,
             "difficolta": "facile"
           },
           {
             "id": 602,
-            "domanda": "Quale scrittore ha creato il personaggio di Sherlock Holmes?",
-            "risposte": ["Arthur Conan Doyle", "Agatha Christie", "Edgar Allan Poe", "Raymond Chandler"],
+            "domanda": "In quale città visse e lavorò Caravaggio negli anni della sua maturità artistica?",
+            "risposte": ["Roma", "Milano", "Napoli", "Venezia"],
             "corretta": 0,
             "punti": 100,
             "difficolta": "facile"
@@ -377,16 +377,16 @@
         "Sport": [
           {
             "id": 701,
-            "domanda": "Quante squadre partecipano alla Serie A italiana?",
-            "risposte": ["20", "18", "22", "16"],
+            "domanda": "Quale paese ha vinto il primo Campionato Mondiale di calcio nel 1930?",
+            "risposte": ["Uruguay", "Argentina", "Brasile", "Italia"],
             "corretta": 0,
             "punti": 100,
             "difficolta": "facile"
           },
           {
             "id": 702,
-            "domanda": "Quale paese ha ospitato le Olimpiadi del 2016?",
-            "risposte": ["Brasile", "Argentina", "Cina", "Russia"],
+            "domanda": "In quale sport si assegna il Trofeo Borg-Warner?",
+            "risposte": ["Indianapolis 500 (automobilismo)", "Tennis", "Golf", "Ciclismo"],
             "corretta": 0,
             "punti": 100,
             "difficolta": "facile"
@@ -492,8 +492,8 @@
           },
           {
             "id": 1008,
-            "domanda": "Quale numero viene dopo nella serie: 1, 4, 9, 16, 25, ?",
-            "risposte": ["36", "30", "32", "40"],
+            "domanda": "Un commerciante vende un oggetto a 120€ guadagnando il 20% sul costo. Quanto gli era costato?",
+            "risposte": ["100€", "96€", "110€", "104€"],
             "corretta": 0,
             "punti": 100,
             "difficolta": "facile"
@@ -503,16 +503,16 @@
         "Logica verbale": [
           {
             "id": 3101,
-            "domanda": "Quale parola NON appartiene al gruppo: Rosa, Tulipano, Orchidea, Quercia?",
-            "risposte": ["Quercia", "Rosa", "Tulipano", "Orchidea"],
+            "domanda": "Quale parola NON appartiene al gruppo: Sonata, Sinfonia, Requiem, Acquaforte?",
+            "risposte": ["Acquaforte", "Sonata", "Sinfonia", "Requiem"],
             "corretta": 0,
             "punti": 100,
             "difficolta": "facile"
           },
           {
             "id": 3102,
-            "domanda": "Se SOLE sta a GIORNO, allora LUNA sta a…?",
-            "risposte": ["Notte", "Cielo", "Stelle", "Buio"],
+            "domanda": "Se PENNELLO sta a PITTORE, allora BISTURI sta a…?",
+            "risposte": ["Chirurgo", "Medico", "Infermiere", "Farmacista"],
             "corretta": 0,
             "punti": 100,
             "difficolta": "facile"
@@ -535,8 +535,8 @@
           },
           {
             "id": 3105,
-            "domanda": "Se 'medico' sta a 'ospedale' come 'insegnante' sta a…?",
-            "risposte": ["Scuola", "Libro", "Aula", "Università"],
+            "domanda": "Se 'avvocato' sta a 'tribunale' come 'chirurgo' sta a…?",
+            "risposte": ["Sala operatoria", "Ospedale", "Ambulatorio", "Pronto soccorso"],
             "corretta": 0,
             "punti": 100,
             "difficolta": "facile"
@@ -732,16 +732,16 @@
       "bonus": [
         {
           "id": 5001,
-          "domanda": "BONUS: Qual è l'animale terrestre più veloce?",
-          "risposte": ["Ghepardo", "Leopardo", "Antilope", "Puma"],
+          "domanda": "BONUS: Quale paese produce più vino al mondo?",
+          "risposte": ["Italia", "Francia", "Spagna", "Cile"],
           "corretta": 0,
           "punti": 200,
           "difficolta": "facile"
         },
         {
           "id": 5002,
-          "domanda": "BONUS: Quanti colori ha l'arcobaleno?",
-          "risposte": ["7", "6", "8", "5"],
+          "domanda": "BONUS: Quale pianeta del sistema solare ha il maggior numero di lune conosciute?",
+          "risposte": ["Saturno", "Giove", "Urano", "Nettuno"],
           "corretta": 0,
           "punti": 200,
           "difficolta": "facile"
@@ -756,8 +756,8 @@
         },
         {
           "id": 5004,
-          "domanda": "BONUS: Quanti secondi ci sono in un'ora?",
-          "risposte": ["3600", "360", "6000", "3000"],
+          "domanda": "BONUS: Quale nazione europea ha più frontiere terrestri con altri paesi?",
+          "risposte": ["Germania", "Francia", "Austria", "Russia"],
           "corretta": 0,
           "punti": 200,
           "difficolta": "facile"

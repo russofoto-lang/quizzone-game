@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Foreever young Siponto - Eventi</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; background: #f4f6fb; color: #1a1a1a; }
+    header { background: #1f3c88; color: #fff; padding: 20px; }
+    .container { max-width: 1000px; margin: 20px auto; padding: 0 16px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 16px; }
+    .card { background: #fff; border-radius: 12px; padding: 16px; box-shadow: 0 4px 14px rgba(0,0,0,0.08); }
+    .meta { color: #4a4a4a; font-size: 14px; margin: 6px 0; }
+    .badge { display: inline-block; background: #eef3ff; color: #1f3c88; padding: 4px 10px; border-radius: 999px; font-size: 12px; margin-bottom: 10px; }
+    a.btn { display:inline-block; margin-top: 12px; background: #1f3c88; color: #fff; text-decoration:none; padding: 10px 14px; border-radius: 8px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Foreever young Siponto</h1>
+    <p>Eventi in programma e prenotazioni online</p>
+  </header>
+  <main class="container">
+    <div id="events" class="grid"></div>
+  </main>
+
+  <script>
+    async function loadEvents() {
+      const container = document.getElementById('events');
+      const res = await fetch('/api/events');
+      const events = await res.json();
+      if (!events.length) {
+        container.innerHTML = '<p>Nessun evento disponibile.</p>';
+        return;
+      }
+
+      container.innerHTML = events.map(event => `
+        <article class="card">
+          <span class="badge">${event.contributionType === 'contributo' ? 'Contributo' : 'Portateco'}</span>
+          <h2>${event.title}</h2>
+          <p>${event.description}</p>
+          <p class="meta"><strong>Quando:</strong> ${new Date(event.startDateTime).toLocaleString('it-IT')}</p>
+          <p class="meta"><strong>Dove:</strong> ${event.locationName}</p>
+          <p class="meta"><strong>Posti disponibili:</strong> ${event.remainingParticipants}/${event.maxParticipants}</p>
+          <a class="btn" href="/events/${event.id}">Dettagli e prenota</a>
+        </article>
+      `).join('');
+    }
+
+    loadEvents().catch(err => {
+      document.getElementById('events').innerHTML = `<p>Errore caricamento eventi: ${err.message}</p>`;
+    });
+  </script>
+</body>
+</html>

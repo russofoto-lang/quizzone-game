@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Foreever young Siponto</title>
+  <style>
+    body { font-family: Arial,sans-serif; margin:0; background:#f3f5fb; }
+    .wrap { max-width:1100px; margin:20px auto; padding:0 16px; }
+    .card { background:#fff; border-radius:12px; padding:18px; margin-bottom:16px; box-shadow:0 3px 10px rgba(0,0,0,.08); }
+    input, textarea, select { width:100%; margin:6px 0 10px; padding:10px; border:1px solid #d5dbef; border-radius:8px; }
+    button { background:#1f3c88; color:#fff; border:0; padding:10px 14px; border-radius:8px; cursor:pointer; }
+    .grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+    table { width:100%; border-collapse:collapse; }
+    th,td { border-bottom:1px solid #e7eaf5; padding:8px; text-align:left; font-size:14px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Pannello amministratore - Foreever young Siponto</h1>
+
+    <div class="card">
+      <h2>Credenziali admin</h2>
+      <label>Chiave admin (header x-admin-key)</label>
+      <input id="adminKey" type="password" placeholder="foreveryoung-admin" />
+    </div>
+
+    <div class="card">
+      <h2>Crea evento</h2>
+      <form id="eventForm">
+        <label>Nome evento</label><input required name="title" />
+        <label>Descrizione</label><textarea required name="description"></textarea>
+        <div class="grid">
+          <div><label>Location nome</label><input required name="locationName" /></div>
+          <div><label>Indirizzo location</label><input name="locationAddress" /></div>
+        </div>
+        <label>Link Google Maps</label><input name="googleMapsUrl" />
+        <div class="grid">
+          <div><label>Massimo partecipanti</label><input required name="maxParticipants" type="number" min="1" /></div>
+          <div><label>Data/ora inizio</label><input required name="startDateTime" type="datetime-local" /></div>
+        </div>
+        <label>Tipologia evento</label>
+        <select name="contributionType" id="contributionType">
+          <option value="contributo">Con contributo</option>
+          <option value="portateco">Portateco</option>
+        </select>
+        <label>Istruzioni pagamento (Revolut/PayPal) o note</label>
+        <textarea name="paymentInstructions" placeholder="@revolut / PayPal ecc."></textarea>
+
+        <h3>Tipologie biglietto</h3>
+        <div id="tickets"></div>
+        <button type="button" id="addTicket">+ Aggiungi biglietto</button>
+        <button type="submit">Salva evento</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <h2>Check-in QR</h2>
+      <input id="checkinCode" placeholder="Incolla codice QR (es. FY-ABC123)" />
+      <button id="checkinBtn">Verifica ingresso</button>
+      <p id="checkinResult"></p>
+    </div>
+
+    <div class="card">
+      <h2>Prenotazioni</h2>
+      <div id="overview"></div>
+    </div>
+  </div>
+
+  <script>
+    const ticketsDiv = document.getElementById('tickets');
+    const adminKeyInput = document.getElementById('adminKey');
+
+    function ticketRow(name = '', max = 1) {
+      const row = document.createElement('div');
+      row.className = 'grid';
+      row.innerHTML = `
+        <input class="ticket-name" placeholder="Nome biglietto (es. Porto un primo)" value="${name}" />
+        <input class="ticket-max" type="number" min="1" placeholder="Max" value="${max}" />
+      `;
+      ticketsDiv.appendChild(row);
+    }
+
+    addTicket.addEventListener('click', () => ticketRow());
+    ticketRow('Ingresso standard', 30);
+
+    async function fetchOverview() {
+      if (!adminKeyInput.value) return;
+      const res = await fetch('/api/admin/overview', { headers: { 'x-admin-key': adminKeyInput.value } });
+      if (!res.ok) return;
+      const data = await res.json();
+
+      overview.innerHTML = data.events.map(event => `
+        <h3>${event.title} (${new Date(event.startDateTime).toLocaleString('it-IT')})</h3>
+        <p>Posti: ${event.bookedParticipants}/${event.maxParticipants}</p>
+        <table>
+          <thead><tr><th>Nome</th><th>Email</th><th>Telefono</th><th>Biglietto</th><th>QR</th><th>Stato</th></tr></thead>
+          <tbody>
+            ${event.bookings.map(b => `
+              <tr>
+                <td>${b.fullName}</td>
+                <td>${b.email}</td>
+                <td>${b.phone || '-'}</td>
+                <td>${b.ticket ? b.ticket.name : '-'}</td>
+                <td>${b.checkInCode}</td>
+                <td>${b.status === 'checked_in' ? 'Entrato' : 'Da verificare'}</td>
+              </tr>
+            `).join('') || '<tr><td colspan="6">Nessuna prenotazione</td></tr>'}
+          </tbody>
+        </table>
+      `).join('');
+    }
+
+    eventForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const form = new FormData(eventForm);
+      const tickets = [...ticketsDiv.querySelectorAll('.grid')].map(row => ({
+        name: row.querySelector('.ticket-name').value,
+        maxTickets: Number(row.querySelector('.ticket-max').value)
+      }));
+
+      const payload = Object.fromEntries(form.entries());
+      payload.maxParticipants = Number(payload.maxParticipants);
+      payload.startDateTime = new Date(payload.startDateTime).toISOString();
+      payload.tickets = tickets;
+
+      const res = await fetch('/api/admin/events', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-admin-key': adminKeyInput.value },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (!res.ok) return alert(data.error || 'Errore');
+      alert('Evento creato con successo');
+      fetchOverview();
+    });
+
+    checkinBtn.addEventListener('click', async () => {
+      const code = checkinCode.value.trim();
+      const res = await fetch('/api/admin/checkin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-admin-key': adminKeyInput.value },
+        body: JSON.stringify({ code })
+      });
+      const data = await res.json();
+      checkinResult.textContent = res.ok
+        ? `${data.message}: ${data.booking.fullName} (${data.booking.checkInCode})`
+        : (data.error || 'Errore check-in');
+      fetchOverview();
+    });
+
+    adminKeyInput.addEventListener('change', fetchOverview);
+  </script>
+</body>
+</html>

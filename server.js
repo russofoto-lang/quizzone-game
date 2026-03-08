@@ -13,6 +13,71 @@ const io = require('socket.io')(http, {
 });
 const path = require('path');
 const fs = require('fs');
+const { randomUUID } = require('crypto');
+
+app.use(express.json());
+
+const EVENTS_DB_DIR = path.join(__dirname, 'data');
+const EVENTS_DB_PATH = path.join(EVENTS_DB_DIR, 'events-db.json');
+const ADMIN_KEY = process.env.FY_ADMIN_KEY || 'foreveryoung-admin';
+
+function ensureEventsDb() {
+  if (!fs.existsSync(EVENTS_DB_DIR)) {
+    fs.mkdirSync(EVENTS_DB_DIR, { recursive: true });
+  }
+
+  if (!fs.existsSync(EVENTS_DB_PATH)) {
+    fs.writeFileSync(EVENTS_DB_PATH, JSON.stringify({ events: [], bookings: [] }, null, 2));
+  }
+}
+
+function loadEventsDb() {
+  ensureEventsDb();
+  try {
+    const raw = fs.readFileSync(EVENTS_DB_PATH, 'utf8');
+    const parsed = JSON.parse(raw);
+    return {
+      events: Array.isArray(parsed.events) ? parsed.events : [],
+      bookings: Array.isArray(parsed.bookings) ? parsed.bookings : []
+    };
+  } catch (error) {
+    console.error('Errore lettura events-db:', error.message);
+    return { events: [], bookings: [] };
+  }
+}
+
+function saveEventsDb(db) {
+  ensureEventsDb();
+  fs.writeFileSync(EVENTS_DB_PATH, JSON.stringify(db, null, 2));
+}
+
+function requireAdmin(req, res, next) {
+  const key = req.header('x-admin-key');
+  if (key !== ADMIN_KEY) {
+    return res.status(401).json({ error: 'Chiave amministratore non valida' });
+  }
+  next();
+}
+
+function eventWithAvailability(event, bookings) {
+  const eventBookings = bookings.filter(b => b.eventId === event.id);
+  const bookedParticipants = eventBookings.length;
+  const tickets = (event.tickets || []).map(ticket => {
+    const sold = eventBookings.filter(b => b.ticketTypeId === ticket.id).length;
+    return {
+      ...ticket,
+      sold,
+      remaining: Math.max(0, (ticket.maxTickets || 0) - sold)
+    };
+  });
+
+  return {
+    ...event,
+    bookedParticipants,
+    remainingParticipants: Math.max(0, (event.maxParticipants || 0) - bookedParticipants),
+    tickets
+  };
+}
 
 // ? Carica domande dal file JSON
 let questionsData = { categories: [], questions: [] };
@@ -98,6 +163,203 @@ app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.ht
 app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
 app.get('/display', (req, res) => res.sendFile(path.join(__dirname, 'public', 'display.html')));
 app.get('/preview', (req, res) => res.sendFile(path.join(__dirname, 'public', 'preview.html')));
+
+app.get('/events', (req, res) => res.sendFile(path.join(__dirname, 'public', 'events.html')));
+app.get('/events/:id', (req, res) => res.sendFile(path.join(__dirname, 'public', 'event-details.html')));
+app.get('/fy-admin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'fy-admin.html')));
+
+app.get('/api/events', (req, res) => {
+  const db = loadEventsDb();
+  const events = db.events
+    .map(event => eventWithAvailability(event, db.bookings))
+    .sort((a, b) => new Date(a.startDateTime).getTime() - new Date(b.startDateTime).getTime());
+
+  res.json(events);
+});
+
+app.get('/api/events/:id', (req, res) => {
+  const db = loadEventsDb();
+  const event = db.events.find(e => e.id === req.params.id);
+  if (!event) {
+    return res.status(404).json({ error: 'Evento non trovato' });
+  }
+
+  const enriched = eventWithAvailability(event, db.bookings);
+  res.json(enriched);
+});
+
+app.post('/api/bookings', (req, res) => {
+  const { eventId, ticketTypeId, fullName, email, phone } = req.body || {};
+  if (!eventId || !ticketTypeId || !fullName || !email) {
+    return res.status(400).json({ error: 'Dati prenotazione incompleti' });
+  }
+
+  const db = loadEventsDb();
+  const event = db.events.find(e => e.id === eventId);
+  if (!event) {
+    return res.status(404).json({ error: 'Evento non trovato' });
+  }
+
+  const enriched = eventWithAvailability(event, db.bookings);
+  if (enriched.remainingParticipants <= 0) {
+    return res.status(400).json({ error: 'Posti terminati per questo evento' });
+  }
+
+  const selectedTicket = enriched.tickets.find(t => t.id === ticketTypeId);
+  if (!selectedTicket) {
+    return res.status(400).json({ error: 'Tipologia biglietto non valida' });
+  }
+
+  if (selectedTicket.remaining <= 0) {
+    return res.status(400).json({ error: 'Biglietti esauriti per la tipologia selezionata' });
+  }
+
+  const bookingId = randomUUID();
+  const checkInCode = `FY-${bookingId.split('-')[0].toUpperCase()}`;
+  const booking = {
+    id: bookingId,
+    eventId,
+    ticketTypeId,
+    fullName: String(fullName).trim(),
+    email: String(email).trim().toLowerCase(),
+    phone: phone ? String(phone).trim() : '',
+    checkInCode,
+    status: 'booked',
+    bookedAt: new Date().toISOString(),
+    checkedInAt: null
+  };
+
+  db.bookings.push(booking);
+  saveEventsDb(db);
+
+  res.status(201).json({ booking, eventTitle: event.title });
+});
+
+app.get('/api/bookings/:id', (req, res) => {
+  const db = loadEventsDb();
+  const booking = db.bookings.find(b => b.id === req.params.id || b.checkInCode === req.params.id);
+  if (!booking) {
+    return res.status(404).json({ error: 'Prenotazione non trovata' });
+  }
+
+  const event = db.events.find(e => e.id === booking.eventId);
+  const ticket = event?.tickets?.find(t => t.id === booking.ticketTypeId);
+
+  res.json({
+    ...booking,
+    event,
+    ticket
+  });
+});
+
+app.get('/api/admin/overview', requireAdmin, (req, res) => {
+  const db = loadEventsDb();
+  const events = db.events.map(event => {
+    const enriched = eventWithAvailability(event, db.bookings);
+    const bookings = db.bookings
+      .filter(b => b.eventId === event.id)
+      .map(booking => ({
+        ...booking,
+        ticket: event.tickets.find(t => t.id === booking.ticketTypeId) || null
+      }));
+
+    return {
+      ...enriched,
+      bookings
+    };
+  });
+
+  res.json({ events });
+});
+
+app.post('/api/admin/events', requireAdmin, (req, res) => {
+  const {
+    title,
+    description,
+    locationName,
+    locationAddress,
+    googleMapsUrl,
+    maxParticipants,
+    startDateTime,
+    contributionType,
+    paymentInstructions,
+    tickets
+  } = req.body || {};
+
+  if (!title || !description || !locationName || !startDateTime || !contributionType || !Array.isArray(tickets) || tickets.length === 0) {
+    return res.status(400).json({ error: 'Compila tutti i campi obbligatori' });
+  }
+
+  const normalizedTickets = tickets.map(ticket => ({
+    id: randomUUID(),
+    name: String(ticket.name || '').trim(),
+    maxTickets: Number(ticket.maxTickets || 0)
+  })).filter(ticket => ticket.name && ticket.maxTickets > 0);
+
+  if (normalizedTickets.length === 0) {
+    return res.status(400).json({ error: 'Inserisci almeno una tipologia biglietto valida' });
+  }
+
+  const event = {
+    id: randomUUID(),
+    title: String(title).trim(),
+    description: String(description).trim(),
+    locationName: String(locationName).trim(),
+    locationAddress: locationAddress ? String(locationAddress).trim() : '',
+    googleMapsUrl: googleMapsUrl ? String(googleMapsUrl).trim() : '',
+    maxParticipants: Number(maxParticipants || 0),
+    startDateTime,
+    contributionType,
+    paymentInstructions: paymentInstructions ? String(paymentInstructions).trim() : '',
+    tickets: normalizedTickets,
+    createdAt: new Date().toISOString()
+  };
+
+  if (event.maxParticipants <= 0) {
+    return res.status(400).json({ error: 'Numero massimo partecipanti non valido' });
+  }
+
+  const db = loadEventsDb();
+  db.events.push(event);
+  saveEventsDb(db);
+
+  res.status(201).json(event);
+});
+
+app.post('/api/admin/checkin', requireAdmin, (req, res) => {
+  const { code } = req.body || {};
+  if (!code) {
+    return res.status(400).json({ error: 'Codice QR mancante' });
+  }
+
+  const db = loadEventsDb();
+  const booking = db.bookings.find(b => b.id === code || b.checkInCode === code);
+
+  if (!booking) {
+    return res.status(404).json({ error: 'Prenotazione non trovata' });
+  }
+
+  if (booking.status === 'checked_in') {
+    return res.status(200).json({
+      message: 'Prenotazione già verificata in precedenza',
+      booking,
+      alreadyCheckedIn: true
+    });
+  }
+
+  booking.status = 'checked_in';
+  booking.checkedInAt = new Date().toISOString();
+  saveEventsDb(db);
+
+  const event = db.events.find(e => e.id === booking.eventId);
+  res.json({
+    message: 'Check-in confermato',
+    booking,
+    event,
+    alreadyCheckedIn: false
+  });
+});
+
 
 // ============================================
 // 🔄 SISTEMA DI RICONNESSIONE

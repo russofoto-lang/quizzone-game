@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dettaglio evento - Foreever young Siponto</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin:0; background:#f7f8fc; }
+    .container { max-width: 820px; margin: 24px auto; background:#fff; border-radius:12px; padding:20px; box-shadow:0 4px 12px rgba(0,0,0,.08); }
+    input, select { width:100%; padding:10px; margin:6px 0 12px; border:1px solid #cfd4e4; border-radius:8px; }
+    button { background:#1f3c88; color:#fff; border:0; padding:10px 16px; border-radius:8px; cursor:pointer; }
+    .qr-wrap { margin-top: 20px; padding: 14px; border:1px dashed #9aa8d0; border-radius:10px; }
+    #qrcode { margin-top:10px; }
+    .info { background:#f1f4ff; border-radius:8px; padding:10px; margin:10px 0; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a href="/events">← Torna agli eventi</a>
+    <h1 id="title"></h1>
+    <p id="description"></p>
+    <div class="info" id="meta"></div>
+    <div class="info" id="payment"></div>
+
+    <h2>Prenota il tuo posto</h2>
+    <form id="bookingForm">
+      <label>Nome e cognome</label>
+      <input required name="fullName" />
+      <label>Email</label>
+      <input required type="email" name="email" />
+      <label>Telefono</label>
+      <input name="phone" />
+      <label>Tipologia biglietto</label>
+      <select required id="ticketType"></select>
+      <button type="submit">Conferma prenotazione</button>
+    </form>
+
+    <div id="result" class="qr-wrap" style="display:none;">
+      <h3>Prenotazione confermata</h3>
+      <p id="resultText"></p>
+      <p><strong>Mostra questo QR all'ingresso.</strong></p>
+      <div id="qrcode"></div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script>
+    const eventId = window.location.pathname.split('/').pop();
+    let eventData;
+
+    async function loadEvent() {
+      const res = await fetch(`/api/events/${eventId}`);
+      if (!res.ok) throw new Error('Evento non trovato');
+      eventData = await res.json();
+
+      title.textContent = eventData.title;
+      description.textContent = eventData.description;
+      meta.innerHTML = `
+        <p><strong>Data:</strong> ${new Date(eventData.startDateTime).toLocaleString('it-IT')}</p>
+        <p><strong>Location:</strong> ${eventData.locationName} ${eventData.locationAddress ? '- ' + eventData.locationAddress : ''}</p>
+        <p><strong>Max partecipanti:</strong> ${eventData.maxParticipants}</p>
+        ${eventData.googleMapsUrl ? `<p><a href="${eventData.googleMapsUrl}" target="_blank">Apri su Google Maps</a></p>` : ''}
+      `;
+
+      payment.innerHTML = eventData.contributionType === 'contributo'
+        ? `<strong>Evento con contributo.</strong><br>${eventData.paymentInstructions || 'Inserire le istruzioni di pagamento nel pannello admin.'}`
+        : `<strong>Evento Portateco.</strong><br>Scegli cosa portare selezionando il biglietto dedicato.`;
+
+      ticketType.innerHTML = eventData.tickets.map(ticket =>
+        `<option value="${ticket.id}" ${ticket.remaining <= 0 ? 'disabled' : ''}>${ticket.name} - disponibili: ${ticket.remaining}</option>`
+      ).join('');
+    }
+
+    bookingForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const form = new FormData(bookingForm);
+      const payload = {
+        eventId,
+        ticketTypeId: ticketType.value,
+        fullName: form.get('fullName'),
+        email: form.get('email'),
+        phone: form.get('phone')
+      };
+
+      const res = await fetch('/api/bookings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.error || 'Errore durante la prenotazione');
+        return;
+      }
+
+      result.style.display = 'block';
+      resultText.textContent = `Prenotazione #${data.booking.checkInCode} intestata a ${data.booking.fullName}`;
+      qrcode.innerHTML = '';
+      new QRCode(document.getElementById('qrcode'), {
+        text: data.booking.checkInCode,
+        width: 180,
+        height: 180
+      });
+    });
+
+    loadEvent().catch(err => {
+      document.querySelector('.container').innerHTML = `<p>${err.message}</p>`;
+    });
+  </script>
+</body>
+</html>

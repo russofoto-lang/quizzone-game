@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Una Festa alla Spina — Foggia</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #250007;
+      --card: #3b0a11;
+      --gold: #ffbf3f;
+      --pink: #ff1f8f;
+      --yellow: #ffd500;
+      --text: #fff8e8;
+      --muted: #f6d7a8;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Montserrat", sans-serif;
+      background: radial-gradient(circle at top, #5c0c16, var(--bg) 55%);
+      color: var(--text);
+    }
+    .wrap { max-width: 1050px; margin: 0 auto; padding: 24px; }
+    .hero {
+      background: linear-gradient(170deg, #5a101a 0%, #2b0209 100%);
+      border: 2px solid #81401a;
+      border-radius: 24px;
+      padding: 28px;
+      box-shadow: 0 20px 40px rgba(0,0,0,.4);
+      text-align: center;
+    }
+    .chip {
+      display: inline-block;
+      background: var(--pink);
+      color: white;
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-weight: 800;
+      letter-spacing: .5px;
+      margin-bottom: 12px;
+    }
+    h1 { font-size: clamp(2rem, 6vw, 4rem); margin: 8px 0; text-transform: uppercase; }
+    .subtitle { font-size: clamp(1rem, 2vw, 1.25rem); color: var(--muted); margin-bottom: 0; }
+    .highlight {
+      margin: 22px auto 0;
+      background: linear-gradient(90deg, #c40f53, #ff2f94);
+      color: var(--yellow);
+      font-size: clamp(1.6rem, 5vw, 3rem);
+      font-weight: 900;
+      text-transform: uppercase;
+      border-radius: 14px;
+      padding: 10px 18px;
+      width: fit-content;
+    }
+    .date {
+      margin: 12px auto 0;
+      background: #111;
+      color: var(--yellow);
+      font-size: clamp(1.8rem, 6vw, 3.4rem);
+      font-weight: 900;
+      border-radius: 12px;
+      padding: 8px 20px;
+      width: fit-content;
+    }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; margin-top: 22px; }
+    .card {
+      background: linear-gradient(180deg, #4b121c, #33080f);
+      border: 1px solid #7a2536;
+      border-radius: 16px;
+      padding: 18px;
+    }
+    .card h3 { margin-top: 0; color: var(--gold); }
+    ul { margin: 0; padding-left: 20px; line-height: 1.55; }
+    .tag { display: inline-block; margin: 6px 8px 0 0; background: #5f1434; border: 1px solid #a42d62; padding: 6px 10px; border-radius: 999px; font-size: .88rem; }
+    .footer-note {
+      margin-top: 24px;
+      border-left: 4px solid var(--gold);
+      background: rgba(255,191,63,.08);
+      border-radius: 8px;
+      padding: 12px 14px;
+      color: #ffe7bf;
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="hero">
+      <span class="chip">Evento a Foggia</span>
+      <h1>Una Festa alla Spina</h1>
+      <p class="subtitle">Cinema, musica, gusto e divertimento nel cuore di Foggia.</p>
+      <div class="highlight">Città del Cinema · Foggia</div>
+      <div class="date">5 · 6 · 7 Giugno</div>
+    </section>
+
+    <section class="grid" aria-label="Dettagli evento">
+      <article class="card">
+        <h3>📍 Dove</h3>
+        <ul>
+          <li><strong>Città del Cinema</strong>, Foggia</li>
+          <li>Area in prossimità di <strong>Piazzale Anna De Lauro</strong></li>
+          <li>Presenza di <strong>parcheggio</strong> dedicato</li>
+        </ul>
+      </article>
+
+      <article class="card">
+        <h3>🎡 Cosa trovi</h3>
+        <ul>
+          <li>Food truck (salsiccia, fritti, birra)</li>
+          <li>Palco live show</li>
+          <li>Area cinema</li>
+          <li>Ruota panoramica, montagne russe, drop tower</li>
+          <li>Area relax e info point</li>
+          <li>Servizi igienici</li>
+        </ul>
+      </article>
+
+      <article class="card">
+        <h3>🎤 Speciale</h3>
+        <ul>
+          <li>Presenza format <strong>Kantakipass Kids</strong></li>
+          <li>Spazio spettacolo e intrattenimento per famiglie</li>
+        </ul>
+      </article>
+    </section>
+
+    <section class="card" style="margin-top:16px;">
+      <h3>Atmosfera</h3>
+      <span class="tag">Street food</span>
+      <span class="tag">Birra alla spina</span>
+      <span class="tag">Musica live</span>
+      <span class="tag">Luna park vibes</span>
+      <span class="tag">Family friendly</span>
+    </section>
+
+    <p class="footer-note">
+      Questa è una prima versione della landing con i dati visibili nelle locandine. Quando vuoi, aggiungo programma orari, ospiti, CTA biglietti, mappa interattiva e sezione sponsor.
+    </p>
+  </main>
+</body>
+</html>
